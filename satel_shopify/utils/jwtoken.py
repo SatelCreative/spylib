@@ -33,7 +33,7 @@ class JWTBaseModel(BaseModel):
         -------
         Class instance
         """
-        data = jwt.decode(token, key, algorithms='HS256', verify=verify)
+        data = jwt.decode(token, key, algorithms=['HS256'], verify=verify)
         # Enforce conversion to satisfy typing
         data = dict(data)
         return cls(**data)
