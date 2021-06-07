@@ -9,12 +9,8 @@ from tenacity.retry import retry_if_exception
 from tenacity.stop import stop_after_attempt
 from tenacity.wait import wait_random
 
+from .constants import API_VERSION, MAX_TOKENS, RATE
 from .exceptions import ShopifyCallInvalidError, ShopifyError, not_our_fault
-
-API_VERSION: str = '2021-04'
-# Default assumes Shopify Plus rate
-RATE = 4
-MAX_TOKENS = 80
 
 
 class Store:
