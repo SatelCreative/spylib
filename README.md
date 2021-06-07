@@ -6,11 +6,11 @@ All of this is done **asynchronously using asyncio**.
 
 Features:
 
-* [Shopify admin API](shopify-admin-api)
+* [Shopify admin API](#shopify-admin-api)
   * [REST API](#rest-api)
     * Rate limit handling per API key
     * Retry mechanism for 5xx status codes from Shopify
-  * [GraphQL AP](#graphql-api)
+  * [GraphQL API](#graphql-api)
 * [Shopify OAuth](#shopify-oauth)
   * Provide FastAPI router ready to handle the OAuth process
   * Handle the whole Oauth process
@@ -87,16 +87,15 @@ You just need to call `init_oauth_router` such that:
 ```python
 from satel_shopify.oauth import init_oauth_router, OfflineToken, OnlineToken
 
-async def post_install(storename: str, offline_token: OfflineToken):
+async def my_post_install(storename: str, offline_token: OfflineToken):
     """Function handling the offline token obtained at the end of the installation"""
     # Store to database
     pass
 
-async def post_login(storename: str, online_token: OnlineToken):
+async def my_post_login(storename: str, online_token: OnlineToken):
     """Function handling the online token obtained at the end of the user login"""
     # Store to database
     pass
-
 
 oauth_router = init_oauth_router(
     app_scopes=['write_orders', 'write_products'],
@@ -120,15 +119,5 @@ The `post_install` and `post_login` provide a way to inject functions handling t
 result of the installation and the login processes respectivaly. They are meant in 
 particular to record the offline and online tokens in your app's database.
 They can be synchronous or asynchronous functions taking the storename and the token
-as arguments. For example:
-```python
-from satel_shopify.oauth import OfflineToken, OnlineToken
-def my_post_install(storename: str, offlinetoken: OfflineToken):
-  pass
-def my_post_login(storename: str, onlinetoken: OnlineToken):
-  pass
-async def my_async_post_install(storename: str, offlinetoken: OfflineToken):
-  pass
-async def my_async_post_login(storename: str, onlinetoken: OnlineToken):
-  pass
+as arguments.
 ```
