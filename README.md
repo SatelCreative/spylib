@@ -87,9 +87,9 @@ Similarly the headers can be passed as a dictionary to the `headers` argument.
 #### GraphQL API
 
 To perform a GraphQL call, one must simply provide the `query` string.
-The `query` name of the argument is the GraphQL call for this of the call
-though it actually takes `query` and `mutation` calls as strings with
-the GraphQL format.
+The `query` name of the argument matches the GraphQL specification for the field
+name that corresponds to a string with the `query` or `mutation` code
+in the GraphQL format.
 
 The variables of the GraphQL query as passed as a dictionary to the `variables`
 argument.
