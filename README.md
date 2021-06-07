@@ -24,7 +24,10 @@ Features:
 The Shopify API version is defined [here](satel_shopify/constants.py) and is typically
 the latest stable version.
 
-#### Initialize
+#### Initialize store instance
+
+All the API calls to Shopify are done using an instance of the `Store` class.
+This class provides methods to perform Rest and GraphQL calls.
 
 ```python
 from satel_shopify import Store
@@ -32,7 +35,22 @@ from satel_shopify import Store
 store = Store.load(store_id='mystore1', name='mystore', access_token='shppa_7a1e466ab2a')
 ```
 
+Each store instance is defined using a `store_id` identifying the store uniquely, a `name`
+corresponding to the Shopify store subdomain such that `https://<name>.myshopify.com`, and
+the `access_token` or offline token to be used in the calls.
+
 #### Rest API
+
+The `Store` instance tracks and handles the rate limit for Rest calls.
+When the rate limit is hit (status code 429), the `Store` instance will estimate how quickly
+the available calls are restored and it will randomly retry one of the calls that
+were stalled.
+
+Besides the rate limit, the `Store` will also automatically retry errors with a status code
+5xx which are due to failures of Shopify or the network. All other status codes are assumed
+to be errors of the implementation and therefore shouldn't be needlessly retried.
+
+Example `GET` request to retrieve all the tags on a customer account:
 
 ```python
 custid = 1234567890
@@ -44,6 +62,14 @@ customerjson = await store.shoprequest(
 )
 ```
 
+The `goodstatus` defines the expected successful status code. Any other status code will
+be considered to be an error. In case the Rest call cannot go through, the `debug` message
+is used to provide an app specific messaging along with the generic exception message.
+
+The `method` and `endpoint` define the Rest API calls with the `endpoint` being the last
+part of the URL.
+
+Example `POST` request to update tags on a customer account:
 
 ```python
 custdata = await store.shoprequest(
@@ -55,7 +81,21 @@ custdata = await store.shoprequest(
 )
 ```
 
+The body of the `POST` request is given as a dictionary to the `json` argument.
+Similarly the headers can be passed as a dictionary to the `headers` argument.
+
 #### GraphQL API
+
+To perform a GraphQL call, one must simply provide the `query` string.
+The `query` name of the argument is the GraphQL call for this of the call
+though it actually takes `query` and `mutation` calls as strings with
+the GraphQL format.
+
+The variables of the GraphQL query as passed as a dictionary to the `variables`
+argument.
+
+See this example retrieving the list of webhooks defined for a store with
+a given callback URL:
 
 ```python
 query = """query getWebhooks($callbackUrl: URL!) {
