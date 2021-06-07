@@ -46,9 +46,10 @@ When the rate limit is hit (status code 429), the `Store` instance will estimate
 the available calls are restored and it will randomly retry one of the calls that
 were stalled.
 
-Besides the rate limit, the `Store` will also automatically retry errors with a status code
-5xx which are due to failures of Shopify or the network. All other status codes are assumed
-to be errors of the implementation and therefore shouldn't be needlessly retried.
+Besides the rate limit, the `Store` will also automatically retry calls failing with a status
+code 5xx which are due to failures of Shopify or the network. All other status codes are
+assumed to be errors of the implementation and therefore shouldn't be needlessly retried but
+instead raise an exception right away.
 
 Example `GET` request to retrieve all the tags on a customer account:
 
@@ -63,10 +64,11 @@ customerjson = await store.shoprequest(
 ```
 
 The `goodstatus` defines the expected successful status code. Any other status code will
-be considered to be an error. In case the Rest call cannot go through, the `debug` message
+be considered to be an error and will raise an exception.
+In case the Rest call cannot go through, the `debug` message
 is used to provide an app specific messaging along with the generic exception message.
 
-The `method` and `endpoint` define the Rest API calls with the `endpoint` being the last
+The `method` and `endpoint` define the Rest API call with the `endpoint` being the last
 part of the URL.
 
 Example `POST` request to update tags on a customer account:
@@ -83,6 +85,8 @@ custdata = await store.shoprequest(
 
 The body of the `POST` request is given as a dictionary to the `json` argument.
 Similarly the headers can be passed as a dictionary to the `headers` argument.
+The URL parameters can be passed as part of `endpoint` although it is preferrable
+to provide a dictionary to the `params` argument.
 
 #### GraphQL API
 
@@ -91,7 +95,7 @@ The `query` name of the argument matches the GraphQL specification for the field
 name that corresponds to a string with the `query` or `mutation` code
 in the GraphQL format.
 
-The variables of the GraphQL query as passed as a dictionary to the `variables`
+The variables of the GraphQL query are passed as a dictionary to the `variables`
 argument.
 
 See this example retrieving the list of webhooks defined for a store with
