@@ -2,7 +2,7 @@ from asyncio import sleep
 from time import monotonic
 from typing import Any, Dict, Optional
 
-from httpx import AsyncClient
+from httpx import AsyncClient, Response
 from loguru import logger
 from tenacity import retry
 from tenacity.retry import retry_if_exception
@@ -71,14 +71,14 @@ class Store:
             self.tokens = min(self.tokens + new_tokens, self.max_tokens)  # type: ignore
             self.updated_at = now
 
-    async def __handle_error(self, debug: str, endpoint: str, response):
+    async def __handle_error(self, debug: str, endpoint: str, response: Response):
         """Handle any error that occured when calling Shopify
 
         If the response has a valid json then return it too.
         """
         msg = (
             f'ERROR in store {self.name}: {debug}\n'
-            f'API response code: {response.status}\n'
+            f'API response code: {response.status_code}\n'
             f'API endpoint: {endpoint}\n'
         )
         try:
@@ -88,7 +88,7 @@ class Store:
         else:
             msg += f'API response json: {jresp}\n'
 
-        if 400 <= response.status < 500:
+        if 400 <= response.status_code < 500:
             # This appears to be our fault
             raise ShopifyCallInvalidError(msg)
 

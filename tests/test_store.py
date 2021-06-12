@@ -5,6 +5,7 @@ from pydantic import validator
 from pydantic.dataclasses import dataclass
 
 from satel_shopify import Store
+from satel_shopify.exceptions import ShopifyCallInvalidError
 
 
 @dataclass
@@ -22,7 +23,7 @@ class MockHTTPResponse:
 
 
 @pytest.mark.asyncio
-async def test_store(mocker):
+async def test_store_rest_happypath(mocker):
     store = Store(store_id='TEST', name='test-store', access_token='Te5tM3')
 
     shopify_request_mock = mocker.patch(
@@ -38,3 +39,30 @@ async def test_store(mocker):
     shopify_request_mock.assert_called_once()
 
     assert jsondata == {'success': True}
+
+
+@pytest.mark.asyncio
+async def test_store_rest_badrequest(mocker):
+    store = Store(store_id='TEST', name='test-store', access_token='Te5tM3')
+
+    # S
+    shopify_request_mock = mocker.patch(
+        'httpx.AsyncClient.request',
+        new_callable=AsyncMock,
+        return_value=MockHTTPResponse(
+            status_code=422, jsondata={'errors': {'title': ["can't be blank"]}}
+        ),
+    )
+
+    with pytest.raises(ShopifyCallInvalidError):
+        jsondata = await store.shoprequest(
+            goodstatus=201,
+            debug='Test failed',
+            endpoint='/products.json',
+            method='post',
+            json={'product': {'body_html': 'A mystery!'}},
+        )
+
+        shopify_request_mock.assert_called_once()
+
+        assert jsondata == {'success': True}
