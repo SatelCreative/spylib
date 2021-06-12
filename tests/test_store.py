@@ -45,7 +45,6 @@ async def test_store_rest_happypath(mocker):
 async def test_store_rest_badrequest(mocker):
     store = Store(store_id='TEST', name='test-store', access_token='Te5tM3')
 
-    # S
     shopify_request_mock = mocker.patch(
         'httpx.AsyncClient.request',
         new_callable=AsyncMock,
@@ -55,7 +54,7 @@ async def test_store_rest_badrequest(mocker):
     )
 
     with pytest.raises(ShopifyCallInvalidError):
-        jsondata = await store.shoprequest(
+        await store.shoprequest(
             goodstatus=201,
             debug='Test failed',
             endpoint='/products.json',
@@ -63,6 +62,106 @@ async def test_store_rest_badrequest(mocker):
             json={'product': {'body_html': 'A mystery!'}},
         )
 
-        shopify_request_mock.assert_called_once()
+    shopify_request_mock.assert_called_once()
 
-        assert jsondata == {'success': True}
+
+@pytest.mark.asyncio
+async def test_store_graphql_happypath(mocker):
+    store = Store(store_id='TEST', name='test-store', access_token='Te5tM3')
+
+    query = '''
+    {
+      shop {
+        name
+      }
+    }'''
+    data = {'shop': {'name': 'graphql-admin'}}
+    gql_response = {
+        'data': data,
+        'extensions': {
+            'cost': {
+                'requestedQueryCost': 1,
+                'actualQueryCost': 1,
+                'throttleStatus': {
+                    'maximumAvailable': 1000,
+                    'currentlyAvailable': 999,
+                    'restoreRate': 50,
+                },
+            }
+        },
+    }
+
+    shopify_request_mock = mocker.patch(
+        'httpx.AsyncClient.request',
+        new_callable=AsyncMock,
+        return_value=MockHTTPResponse(status_code=200, jsondata=gql_response),
+    )
+
+    jsondata = await store.execute_gql(query=query)
+
+    shopify_request_mock.assert_called_once()
+
+    assert jsondata == data
+
+
+@pytest.mark.asyncio
+async def test_store_graphql_badquery(mocker):
+    store = Store(store_id='TEST', name='test-store', access_token='Te5tM3')
+
+    query = '''
+    {
+      shopp {
+        name
+      }
+    }'''
+    gql_response = {
+        'errors': [
+            {
+                'message': "Field 'shopp' doesn't exist on type 'QueryRoot'",
+                'locations': [{'line': 2, 'column': 3}],
+                'path': ['query', 'shopp'],
+                'extensions': {
+                    'code': 'undefinedField',
+                    'typeName': 'QueryRoot',
+                    'fieldName': 'shopp',
+                },
+            }
+        ]
+    }
+
+    shopify_request_mock = mocker.patch(
+        'httpx.AsyncClient.request',
+        new_callable=AsyncMock,
+        return_value=MockHTTPResponse(status_code=200, jsondata=gql_response),
+    )
+
+    with pytest.raises(ValueError):
+        await store.execute_gql(query=query)
+
+    shopify_request_mock.assert_called_once()
+
+
+@pytest.mark.asyncio
+async def test_store_graphql_tokeninvalid(mocker):
+    store = Store(store_id='TEST', name='test-store', access_token='INVALID')
+
+    query = '''
+    {
+      shop {
+        name
+      }
+    }'''
+    gql_response = {
+        'errors': '[API] Invalid API key or access token (unrecognized login or wrong password)'
+    }
+
+    shopify_request_mock = mocker.patch(
+        'httpx.AsyncClient.request',
+        new_callable=AsyncMock,
+        return_value=MockHTTPResponse(status_code=200, jsondata=gql_response),
+    )
+
+    with pytest.raises(ConnectionRefusedError):
+        await store.execute_gql(query=query)
+
+    shopify_request_mock.assert_called_once()

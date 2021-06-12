@@ -130,7 +130,7 @@ class Store:
 
         url = f'{self.url}/graphql.json'
         headers = {
-            "Content-type": "application/json",
+            'Content-type': 'application/json',
             'X-Shopify-Access-Token': self.access_token,
         }
         resp = await self.client.post(
@@ -139,16 +139,20 @@ class Store:
         jsondata = resp.json()
         if type(jsondata) is not dict:
             raise ValueError('JSON data is not a dictionary')
-
-        if 'Invalid API key or access token' in jsondata.get('errors', {}):  # type: ignore
-            # Typing seems to not take into account the type check above
+        if 'Invalid API key or access token' in jsondata.get('errors', ''):
             self.access_token_invalid = True
             logger.warning(
                 f'Store {self.name}: The Shopify API token is invalid. '
                 'Flag the access token as invalid.'
             )
             raise ConnectionRefusedError
-        return jsondata
+        if 'data' not in jsondata and 'errors' in jsondata:
+            errorlist = '\n'.join(
+                [err['message'] for err in jsondata['errors'] if 'message' in err]
+            )
+            raise ValueError(f'GraphQL query is incorrect:\n{errorlist}')
+
+        return jsondata['data']
 
 
 class UniqueStore(Store):
