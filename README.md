@@ -17,6 +17,31 @@ Features:
   * Callback validation without the need to track nonce locally
   * Provide post installation and post login function injection for full control
 
+## Contributing
+
+If you want to contribute a small change/feature, the best is to just create a PR with
+your changes.
+For bigger changes/features it's best to open an issue first and discuss it to agree
+on the code organization and overall implementation before spending too much time on
+the code, unless you want to keep it in your own forked repo.
+
+### Setting up the development environment
+
+We use the [python poetry](https://python-poetry.org/) package to manage this package.
+Follow the official instructions to install poetry on your system then once you clone
+this repository just just need to do the following to install the dependencies from
+the development environment, as well as install `satel-python` in
+[editable mode](https://pip.pypa.io/en/stable/cli/pip_install/#install-editable):
+```bash
+poetry install
+```
+
+Then you can start monitoring the code for changes and run the test suite this way:
+```bash
+poetry shell
+scripts/test_watch.sh
+```
+
 ## Tutorial
 
 ### Shopify admin API
