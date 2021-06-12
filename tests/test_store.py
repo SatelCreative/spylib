@@ -114,10 +114,11 @@ async def test_store_graphql_badquery(mocker):
         name
       }
     }'''
+    error_msg = "Field 'shopp' doesn't exist on type 'QueryRoot'"
     gql_response = {
         'errors': [
             {
-                'message': "Field 'shopp' doesn't exist on type 'QueryRoot'",
+                'message': error_msg,
                 'locations': [{'line': 2, 'column': 3}],
                 'path': ['query', 'shopp'],
                 'extensions': {
@@ -135,8 +136,9 @@ async def test_store_graphql_badquery(mocker):
         return_value=MockHTTPResponse(status_code=200, jsondata=gql_response),
     )
 
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError) as e:
         await store.execute_gql(query=query)
+    assert str(e.value) == f'GraphQL query is incorrect:\n{error_msg}'
 
     shopify_request_mock.assert_called_once()
 
