@@ -58,9 +58,10 @@ class Store:
         self.rate = RATE
 
     async def __wait_for_token(self):
+        self.__add_new_tokens()
         while self.tokens <= 1:
-            self.__add_new_tokens()
             await sleep(1)
+            self.__add_new_tokens()
         self.tokens -= 1
 
     def __add_new_tokens(self):
@@ -68,7 +69,7 @@ class Store:
         time_since_update = now - self.updated_at
         new_tokens = time_since_update * self.rate
         if new_tokens > 1:
-            self.tokens = min(self.tokens + new_tokens, self.max_tokens)  # type: ignore
+            self.tokens = min(self.tokens + new_tokens, self.max_tokens)
             self.updated_at = now
 
     async def __handle_error(self, debug: str, endpoint: str, response: Response):

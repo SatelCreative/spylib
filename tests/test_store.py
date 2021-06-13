@@ -1,3 +1,4 @@
+from time import monotonic
 from unittest.mock import AsyncMock
 
 import pytest
@@ -40,6 +41,9 @@ async def test_store_rest_happypath(mocker):
 
     assert jsondata == {'success': True}
 
+    # 80 from assuming Shopify plus then 1 used just now.
+    assert store.tokens == 79
+
 
 @pytest.mark.asyncio
 async def test_store_rest_badrequest(mocker):
@@ -63,6 +67,30 @@ async def test_store_rest_badrequest(mocker):
         )
 
     shopify_request_mock.assert_called_once()
+
+
+@pytest.mark.asyncio
+async def test_store_rest_ratetokens(mocker):
+    store = Store(store_id='TEST', name='test-store', access_token='Te5tM3')
+
+    # Simulate that there is only 2 calls available before hitting the rate limit.
+    # If we set this to zero, then the code will wait 1 sec which is not great to keep the tests
+    # fast
+    store.tokens = 0
+    store.updated_at = monotonic() - 1000  # A looooong time ago
+
+    shopify_request_mock = mocker.patch(
+        'httpx.AsyncClient.request',
+        new_callable=AsyncMock,
+        return_value=MockHTTPResponse(status_code=200, jsondata={'success': True}),
+    )
+    await store.shoprequest(
+        goodstatus=200, debug='Test failed', endpoint='/test.json', method='get'
+    )
+
+    shopify_request_mock.assert_called_once()
+
+    assert store.tokens == 79
 
 
 @pytest.mark.asyncio
