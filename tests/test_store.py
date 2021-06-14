@@ -69,15 +69,25 @@ async def test_store_rest_badrequest(mocker):
     shopify_request_mock.assert_called_once()
 
 
+params = [
+    pytest.param(0, 1000, 79, id='Last call hit rate limit, long time ago'),
+    pytest.param(0, 20, 79, id='Last call hit rate limit, 20s ago'),
+    pytest.param(0, 10, 39, id='Last call hit rate limit, 10s ago'),
+    # Wait 1 second to get 4 then use 1 so 3
+    pytest.param(0, 0, 3, id='Last call that hit rate limit just happened'),
+]
+
+
+@pytest.mark.parametrize('init_tokens, time_passed, expected_tokens', params)
 @pytest.mark.asyncio
-async def test_store_rest_ratetokens(mocker):
+async def test_store_rest_ratetokens(init_tokens, time_passed, expected_tokens, mocker):
     store = Store(store_id='TEST', name='test-store', access_token='Te5tM3')
 
     # Simulate that there is only 2 calls available before hitting the rate limit.
     # If we set this to zero, then the code will wait 1 sec which is not great to keep the tests
     # fast
-    store.tokens = 0
-    store.updated_at = monotonic() - 1000  # A looooong time ago
+    store.tokens = init_tokens
+    store.updated_at = monotonic() - time_passed  # A looooong time ago
 
     shopify_request_mock = mocker.patch(
         'httpx.AsyncClient.request',
@@ -90,7 +100,7 @@ async def test_store_rest_ratetokens(mocker):
 
     shopify_request_mock.assert_called_once()
 
-    assert store.tokens == 79
+    assert store.tokens == expected_tokens
 
 
 @pytest.mark.asyncio
@@ -164,9 +174,8 @@ async def test_store_graphql_badquery(mocker):
         return_value=MockHTTPResponse(status_code=200, jsondata=gql_response),
     )
 
-    with pytest.raises(ValueError) as e:
+    with pytest.raises(ValueError, match=f'^GraphQL query is incorrect:\n{error_msg}$'):
         await store.execute_gql(query=query)
-    assert str(e.value) == f'GraphQL query is incorrect:\n{error_msg}'
 
     shopify_request_mock.assert_called_once()
 

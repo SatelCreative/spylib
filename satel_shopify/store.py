@@ -1,4 +1,5 @@
 from asyncio import sleep
+from math import floor
 from time import monotonic
 from typing import Any, Dict, Optional
 
@@ -67,7 +68,7 @@ class Store:
     def __add_new_tokens(self):
         now = monotonic()
         time_since_update = now - self.updated_at
-        new_tokens = time_since_update * self.rate
+        new_tokens = floor(time_since_update * self.rate)
         if new_tokens > 1:
             self.tokens = min(self.tokens + new_tokens, self.max_tokens)
             self.updated_at = now
