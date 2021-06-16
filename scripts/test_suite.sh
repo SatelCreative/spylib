@@ -12,7 +12,7 @@ reportvalidation() {
 }
 
 
-python -m pytest -vv --durations=3
+python -m pytest -vv --durations=3 --cov=satel_shopify --cov-report term-missing
 
 echo -ne "\n######### CHECK TYPING: "
 MYPYOUT=`mypy --no-error-summary .`
