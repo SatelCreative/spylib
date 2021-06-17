@@ -1,7 +1,7 @@
-# satel-shopify
+# Shopify Python Library - SPyLib
 
-The satel-shopify python library simplifies the use of the Shopify services such as
-the REST and GraphQL APIs as well as the OAuth authentication.
+The Shopify python library or SPyLib, simplifies the use of the Shopify
+services such as the REST and GraphQL APIs as well as the OAuth authentication.
 All of this is done **asynchronously using asyncio**.
 
 Features:
@@ -30,7 +30,7 @@ the code, unless you want to keep it in your own forked repo.
 We use the [python poetry](https://python-poetry.org/) package to manage this package.
 Follow the official instructions to install poetry on your system then once you clone
 this repository just just need to do the following to install the dependencies from
-the development environment, as well as install `satel-python` in
+the development environment, as well as install `spylib` in
 [editable mode](https://pip.pypa.io/en/stable/cli/pip_install/#install-editable):
 ```bash
 poetry install
@@ -46,7 +46,7 @@ scripts/test_watch.sh
 
 ### Shopify admin API
 
-The Shopify API version is defined [here](satel_shopify/constants.py) and is typically
+The Shopify API version is defined [here](spylib/constants.py) and is typically
 the latest stable version.
 
 #### Initialize store instance
@@ -55,7 +55,7 @@ All the API calls to Shopify are done using an instance of the `Store` class.
 This class provides methods to perform Rest and GraphQL calls.
 
 ```python
-from satel_shopify import Store
+from spylib import Store
 
 store = Store.load(store_id='mystore1', name='mystore', access_token='shppa_7a1e466ab2a')
 ```
@@ -154,7 +154,7 @@ the install and callback endpoints ready to handle the whole OAuth process.
 You just need to call `init_oauth_router` such that:
 
 ```python
-from satel_shopify.oauth import init_oauth_router, OfflineToken, OnlineToken
+from spylib.oauth import init_oauth_router, OfflineToken, OnlineToken
 
 async def my_post_install(storename: str, offline_token: OfflineToken):
     """Function handling the offline token obtained at the end of the installation"""

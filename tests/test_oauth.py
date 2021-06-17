@@ -9,8 +9,8 @@ from fastapi.testclient import TestClient
 from pydantic.dataclasses import dataclass
 from requests import Response
 
-from satel_shopify.oauth import OfflineToken, OnlineToken, conf, init_oauth_router
-from satel_shopify.utils import JWTBaseModel, hmac, now_epoch
+from spylib.oauth import OfflineToken, OnlineToken, conf, init_oauth_router
+from spylib.utils import JWTBaseModel, hmac, now_epoch
 
 TEST_STORE = 'test.myshopify.com'
 TEST_DATA = Box(

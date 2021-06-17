@@ -12,7 +12,7 @@ reportvalidation() {
 }
 
 
-python -m pytest -vv --durations=3 --cov=satel_shopify --cov-report term-missing
+python -m pytest -vv --durations=3 --cov=spylib --cov-report term-missing
 
 echo -ne "\n######### CHECK TYPING: "
 MYPYOUT=`mypy --no-error-summary .`
@@ -23,7 +23,7 @@ FLAKE8OUT=`flake8`
 reportvalidation "$FLAKE8OUT"
 
 echo -ne "\n######### CHECK FORMATTING: "
-BLACKOUT=`black satel_shopify tests --check 2>&1`
+BLACKOUT=`black spylib tests --check 2>&1`
 if [[ $BLACKOUT == "All done!"* ]]
 then
   echo "OK"

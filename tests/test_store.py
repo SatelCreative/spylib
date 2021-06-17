@@ -4,7 +4,7 @@ import pytest
 from pydantic import validator
 from pydantic.dataclasses import dataclass
 
-from satel_shopify import Store
+from spylib import Store
 
 
 @dataclass
