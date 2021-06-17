@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "spylib"
-version = "0.1.0"
+version = "0.1.1"
 description = "A library to facilitate interfacing with Shopify's API"
 authors = ["Anthony Hillairet <ant@satel.ca>"]
 license = "MIT"
@@ -32,8 +32,17 @@ argh = "^0.26.2"
 black = "^21.5b2"
 
 [build-system]
-requires = ["poetry-core>=1.0.0"]
-build-backend = "poetry.core.masonry.api"
+requires = ["poetry-core>=1.0.0", "flit_core >=2,<4"]
+build-backend = "flit_core.buildapi"
+
+[tool.flit.metadata]
+module = "spylib"
+author = "Anthony Hillairet"
+author-email = "ant@satel.ca"
+home-page = "https://github.com/SatelCreative/satel-spylib"
+classifiers = [ "License :: OSI Approved :: MIT License",]
+description-file = "README.md"
+
 
 [tool.black]
 line-length = 99

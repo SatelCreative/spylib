@@ -105,6 +105,14 @@ python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*, !=3.4.*, <4"
 toml = ["toml"]
 
 [[package]]
+name = "docutils"
+version = "0.17.1"
+description = "Docutils -- Python Documentation Utilities"
+category = "dev"
+optional = false
+python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*, !=3.4.*"
+
+[[package]]
 name = "fastapi"
 version = "0.65.1"
 description = "FastAPI framework, high performance, easy to learn, fast to code, ready for production"
@@ -150,6 +158,35 @@ testfixtures = ">=6.8.0,<7"
 
 [package.extras]
 test = ["pytest (>=4.0.2,<6)", "toml"]
+
+[[package]]
+name = "flit"
+version = "3.2.0"
+description = "A simple packaging tool for simple packages."
+category = "dev"
+optional = false
+python-versions = ">=3.5"
+
+[package.dependencies]
+docutils = "*"
+flit_core = ">=3.2.0"
+requests = "*"
+toml = "*"
+
+[package.extras]
+doc = ["sphinx", "sphinxcontrib-github-alt", "pygments-github-lexers"]
+test = ["testpath", "responses", "pytest (>=2.7.3)", "pytest-cov"]
+
+[[package]]
+name = "flit-core"
+version = "3.2.0"
+description = "Distribution-building parts of Flit. See flit package for more information"
+category = "dev"
+optional = false
+python-versions = ">=3.4"
+
+[package.dependencies]
+toml = "*"
 
 [[package]]
 name = "h11"
@@ -619,7 +656,7 @@ dev = ["pytest (>=4.6.2)", "black (>=19.3b0)"]
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.9"
-content-hash = "067a0c474044d5213c34d2c8cbd13225156cb81f5b1c0faeaa8886adfa141b57"
+content-hash = "e9fbcbf38c8fd6faf59deb6520dba95fdf37d5d716cfe01a967c20799d69a13b"
 
 [metadata.files]
 appdirs = [
@@ -712,6 +749,10 @@ coverage = [
     {file = "coverage-5.5-pp37-none-any.whl", hash = "sha256:2a3859cb82dcbda1cfd3e6f71c27081d18aa251d20a17d87d26d4cd216fb0af4"},
     {file = "coverage-5.5.tar.gz", hash = "sha256:ebe78fe9a0e874362175b02371bdfbee64d8edc42a044253ddf4ee7d3c15212c"},
 ]
+docutils = [
+    {file = "docutils-0.17.1-py2.py3-none-any.whl", hash = "sha256:cf316c8370a737a022b72b56874f6602acf974a37a9fba42ec2876387549fc61"},
+    {file = "docutils-0.17.1.tar.gz", hash = "sha256:686577d2e4c32380bb50cbb22f575ed742d58168cee37e99117a854bcd88f125"},
+]
 fastapi = [
     {file = "fastapi-0.65.1-py3-none-any.whl", hash = "sha256:7619282fbce0ec53c7dfa3fa262280c00ace9f6d772cfd06e4ab219dce66985e"},
     {file = "fastapi-0.65.1.tar.gz", hash = "sha256:478b7e0cbb52c9913b9903d88ae14195cb8a479c4596e0b2f2238d317840a7dc"},
@@ -723,6 +764,14 @@ flake8 = [
 flake8-isort = [
     {file = "flake8-isort-4.0.0.tar.gz", hash = "sha256:2b91300f4f1926b396c2c90185844eb1a3d5ec39ea6138832d119da0a208f4d9"},
     {file = "flake8_isort-4.0.0-py2.py3-none-any.whl", hash = "sha256:729cd6ef9ba3659512dee337687c05d79c78e1215fdf921ed67e5fe46cce2f3c"},
+]
+flit = [
+    {file = "flit-3.2.0-py3-none-any.whl", hash = "sha256:721ac36ed1317d22e8b35da80b4fb4a50e09765787ff9649d01a4b05cc9f8a38"},
+    {file = "flit-3.2.0.tar.gz", hash = "sha256:592464c9268bbacec9bc67b5a3ae62e6e090aeec1563e69501df338a1728e551"},
+]
+flit-core = [
+    {file = "flit_core-3.2.0-py3-none-any.whl", hash = "sha256:6f25843e908dfc3e907b6b9ee71e3d185bcb5aebab8c3431e4e34c261e5ff1b5"},
+    {file = "flit_core-3.2.0.tar.gz", hash = "sha256:ff87f25c5dbc24ef30ea334074e35030e4885e4c5de3bf4e21f15746f6d99431"},
 ]
 h11 = [
     {file = "h11-0.12.0-py3-none-any.whl", hash = "sha256:36a3cb8c0a032f56e2da7084577878a035d3b61d104230d4bd49c0c6b555a9c6"},
