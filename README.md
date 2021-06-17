@@ -17,6 +17,12 @@ Features:
   * Callback validation without the need to track nonce locally
   * Provide post installation and post login function injection for full control
 
+## Installation
+
+```bash
+pip install spylib
+```
+
 ## Contributing
 
 If you want to contribute a small change/feature, the best is to just create a PR with
