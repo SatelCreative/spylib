@@ -1,8 +1,9 @@
 from asyncio import sleep
+from math import floor
 from time import monotonic
 from typing import Any, Dict, Optional
 
-from httpx import AsyncClient
+from httpx import AsyncClient, Response
 from loguru import logger
 from tenacity import retry
 from tenacity.retry import retry_if_exception
@@ -58,27 +59,28 @@ class Store:
         self.rate = RATE
 
     async def __wait_for_token(self):
+        self.__add_new_tokens()
         while self.tokens <= 1:
-            self.__add_new_tokens()
             await sleep(1)
+            self.__add_new_tokens()
         self.tokens -= 1
 
     def __add_new_tokens(self):
         now = monotonic()
         time_since_update = now - self.updated_at
-        new_tokens = time_since_update * self.rate
+        new_tokens = floor(time_since_update * self.rate)
         if new_tokens > 1:
-            self.tokens = min(self.tokens + new_tokens, self.max_tokens)  # type: ignore
+            self.tokens = min(self.tokens + new_tokens, self.max_tokens)
             self.updated_at = now
 
-    async def __handle_error(self, debug: str, endpoint: str, response):
+    async def __handle_error(self, debug: str, endpoint: str, response: Response):
         """Handle any error that occured when calling Shopify
 
         If the response has a valid json then return it too.
         """
         msg = (
             f'ERROR in store {self.name}: {debug}\n'
-            f'API response code: {response.status}\n'
+            f'API response code: {response.status_code}\n'
             f'API endpoint: {endpoint}\n'
         )
         try:
@@ -88,7 +90,7 @@ class Store:
         else:
             msg += f'API response json: {jresp}\n'
 
-        if 400 <= response.status < 500:
+        if 400 <= response.status_code < 500:
             # This appears to be our fault
             raise ShopifyCallInvalidError(msg)
 
@@ -130,7 +132,7 @@ class Store:
 
         url = f'{self.url}/graphql.json'
         headers = {
-            "Content-type": "application/json",
+            'Content-type': 'application/json',
             'X-Shopify-Access-Token': self.access_token,
         }
         resp = await self.client.post(
@@ -139,16 +141,20 @@ class Store:
         jsondata = resp.json()
         if type(jsondata) is not dict:
             raise ValueError('JSON data is not a dictionary')
-
-        if 'Invalid API key or access token' in jsondata.get('errors', {}):  # type: ignore
-            # Typing seems to not take into account the type check above
+        if 'Invalid API key or access token' in jsondata.get('errors', ''):
             self.access_token_invalid = True
             logger.warning(
                 f'Store {self.name}: The Shopify API token is invalid. '
                 'Flag the access token as invalid.'
             )
             raise ConnectionRefusedError
-        return jsondata
+        if 'data' not in jsondata and 'errors' in jsondata:
+            errorlist = '\n'.join(
+                [err['message'] for err in jsondata['errors'] if 'message' in err]
+            )
+            raise ValueError(f'GraphQL query is incorrect:\n{errorlist}')
+
+        return jsondata['data']
 
 
 class UniqueStore(Store):
