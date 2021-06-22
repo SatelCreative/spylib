@@ -14,4 +14,4 @@ class HTTPClient(AsyncClient):
     @classmethod
     async def close(cls):
         # graceful shutdown
-        await HTTPClient.__instance.close()
+        await HTTPClient.__instance.aclose()
