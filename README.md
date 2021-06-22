@@ -148,7 +148,7 @@ res = await store.execute_gql(
     query=QUERY,
     variables={'callbackUrl': 'https://my.app.com/webhooks'},
 )
-webhook_nodes = res['data']['webhookSubscription']['edges']
+webhook_nodes = res['webhookSubscription']['edges']
 ```
 
 ### Shopify OAuth
