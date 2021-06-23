@@ -3,6 +3,7 @@
 __version__ = '0.1.1'
 
 
+from .multipass import Multipass
 from .store import Store, UniqueStore
 
-__all__ = ['Store', 'UniqueStore']
+__all__ = ['Store', 'UniqueStore', 'Multipass']
