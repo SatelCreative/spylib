@@ -6,12 +6,17 @@ from typing import Any, Dict, Optional
 from httpx import AsyncClient, Response
 from loguru import logger
 from tenacity import retry
-from tenacity.retry import retry_if_exception
+from tenacity.retry import retry_if_exception, retry_if_exception_type
 from tenacity.stop import stop_after_attempt
 from tenacity.wait import wait_random
 
-from .constants import API_VERSION, MAX_TOKENS, RATE
-from .exceptions import ShopifyCallInvalidError, ShopifyError, not_our_fault
+from .constants import API_VERSION, MAX_TOKENS, RATE, THROTTLED_ERROR_MESSAGE
+from .exceptions import (
+    ShopifyCallInvalidError,
+    ShopifyError,
+    ShopifyThrottledError,
+    not_our_fault,
+)
 
 
 class Store:
@@ -127,6 +132,12 @@ class Store:
 
             return jresp
 
+    @retry(
+        reraise=True,
+        wait=wait_random(min=1, max=2),
+        stop=stop_after_attempt(5),
+        retry=retry_if_exception_type(ShopifyThrottledError),
+    )
     async def execute_gql(self, query: str, variables: Dict[str, Any] = {}) -> Dict[str, Any]:
         """Simple graphql query executor because python has no decent graphql client"""
 
@@ -152,7 +163,12 @@ class Store:
             errorlist = '\n'.join(
                 [err['message'] for err in jsondata['errors'] if 'message' in err]
             )
-            raise ValueError(f'GraphQL query is incorrect:\n{errorlist}')
+            if THROTTLED_ERROR_MESSAGE in errorlist:
+                raise ShopifyThrottledError(
+                    f'Store {self.name}: The Shopify API token is throttling. '
+                )
+            else:
+                raise ValueError(f'GraphQL query is incorrect:\n{errorlist}')
 
         return jsondata['data']
 

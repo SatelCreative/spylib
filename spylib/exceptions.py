@@ -13,6 +13,12 @@ class ShopifyCallInvalidError(ShopifyError):
     pass
 
 
+class ShopifyThrottledError(ShopifyError):
+    """Exception to identify errors that are due to rate limit control"""
+
+    pass
+
+
 def not_our_fault(exception: Exception):
     """Simple function to identify invalid Shopify calls, i.e. our mistake.
 
