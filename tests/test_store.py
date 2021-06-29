@@ -204,3 +204,54 @@ async def test_store_graphql_tokeninvalid(mocker):
         await store.execute_gql(query=query)
 
     shopify_request_mock.assert_called_once()
+
+
+@pytest.mark.asyncio
+async def test_store_graphql_throttling(mocker):
+    store = Store(store_id='TEST', name='test-store', access_token='Te5tM3')
+
+    query = '''
+    {
+      shop {
+        name
+      }
+    }'''
+    extensions = {
+        "cost": {
+            "requestedQueryCost": 752,
+            "actualQueryCost": None,
+            "throttleStatus": {
+                "maximumAvailable": 1000,
+                "currentlyAvailable": 662,
+                "restoreRate": 50,
+            },
+        }
+    }
+
+    gql_response_throttled = {
+        "errors": [
+            {
+                "message": "Throttled",
+                "extensions": {
+                    "code": "THROTTLED",
+                    "documentation": "https://help.shopify.com/api/graphql-admin-api/"
+                    "graphql-admin-api-rate-limits",
+                },
+            }
+        ],
+        "extensions": extensions,
+    }
+    data = {'shop': {'name': 'graphql-admin'}}
+    gql_response = {'data': data, 'extensions': extensions}
+
+    shopify_request_mock = mocker.patch(
+        'httpx.AsyncClient.request',
+        new_callable=AsyncMock,
+        side_effect=[
+            MockHTTPResponse(status_code=200, jsondata=gql_response_throttled),
+            MockHTTPResponse(status_code=200, jsondata=gql_response),
+        ],
+    )
+
+    assert 'shop' in await store.execute_gql(query=query)
+    shopify_request_mock.call_count == 2
