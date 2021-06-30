@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "spylib"
-version = "0.2.0"
+version = "0.2.1"
 description = "A library to facilitate interfacing with Shopify's API"
 authors = ["Anthony Hillairet <ant@satel.ca>"]
 license = "MIT"
