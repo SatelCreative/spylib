@@ -11,6 +11,7 @@ def oauth_init_url(
     domain: str,
     requested_scopes: List[str],
     callback_domain: str,
+    callback_path: str,
     is_login: bool,
     jwt_key: str,
 ) -> str:
@@ -31,7 +32,7 @@ def oauth_init_url(
     URL with all needed parameters to trigger the oauth process
     """
     scopes = ','.join(requested_scopes)
-    redirect_uri = f'https://{callback_domain}/callback'
+    redirect_uri = f'https://{callback_domain}{callback_path}'
     oauthjwt = OAuthJWT(
         is_login=is_login, storename=domain_to_storename(domain), nonce=get_unique_id()
     )
