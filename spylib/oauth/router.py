@@ -48,6 +48,7 @@ def init_oauth_router(
                 is_login=False,
                 requested_scopes=app_scopes,
                 callback_domain=public_domain,
+                callback_path=callback_path,
                 jwt_key=private_key,
             )
         )
@@ -95,6 +96,7 @@ def init_oauth_router(
                     is_login=True,
                     requested_scopes=user_scopes,
                     callback_domain=public_domain,
+                    callback_path=callback_path,
                     jwt_key=private_key,
                 )
             )
