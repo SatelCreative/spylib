@@ -208,6 +208,9 @@ async def test_store_graphql_tokeninvalid(mocker):
 
 @pytest.mark.asyncio
 async def test_store_graphql_throttling(mocker):
+    """
+    Tests the throttling of the graphQL requests.
+    """
     store = Store(store_id='TEST', name='test-store', access_token='Te5tM3')
 
     query = '''

@@ -10,7 +10,14 @@ from tenacity.retry import retry_if_exception, retry_if_exception_type
 from tenacity.stop import stop_after_attempt
 from tenacity.wait import wait_random
 
-from .constants import API_VERSION, MAX_TOKENS, RATE, THROTTLED_ERROR_MESSAGE
+from .constants import (
+    API_VERSION,
+    GRAPH_LEAK,
+    GRAPH_MAX,
+    MAX_TOKENS,
+    RATE,
+    THROTTLED_ERROR_MESSAGE,
+)
 from .exceptions import (
     ShopifyCallInvalidError,
     ShopifyError,
@@ -164,9 +171,27 @@ class Store:
                 [err['message'] for err in jsondata['errors'] if 'message' in err]
             )
             if THROTTLED_ERROR_MESSAGE in errorlist:
-                raise ShopifyThrottledError(
-                    f'Store {self.name}: The Shopify API token is throttling. '
-                )
+                """
+                Note for self, remove;
+
+                This will throw when the requestedQueryCost is more than the GRAPH_MAX.
+                This means we need to check if the query cost is > 1000, which means
+                that the query will never be run, else we need to wait until the pool
+                refils sufficiently to execute the query.
+                """
+                with open("foo.txt", "w") as f:
+                    f.write(jsondata)
+                if jsondata['cost']['requestedQueryCost'] > GRAPH_MAX:
+                    raise ShopifyThrottledError(
+                        f'Store {self.name}: The Shopify API token is throttling. \
+                        Query cost is too large (>1000)'
+                    )
+                sleep_time = (
+                    jsondata['cost']['requestedQueryCost']
+                    - jsondata['cost']['throttleStatus']['currentlyAvailable']
+                ) % GRAPH_LEAK
+                await sleep(sleep_time)
+                self.execute_gql(query, variables)
             else:
                 raise ValueError(f'GraphQL query is incorrect:\n{errorlist}')
 
