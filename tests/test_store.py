@@ -206,6 +206,89 @@ async def test_store_graphql_tokeninvalid(mocker):
     shopify_request_mock.assert_called_once()
 
 
+def store_graphql_operation_name_side_effect(*args, **kwargs):
+    '''
+    This is a function that checks the input data for graphQL request
+    and returns based on the query.
+    '''
+
+    data = None
+    errors = None
+    gql_response = {
+        'extensions': {
+            'cost': {
+                'requestedQueryCost': 1,
+                'actualQueryCost': 1,
+                'throttleStatus': {
+                    'maximumAvailable': 1000,
+                    'currentlyAvailable': 999,
+                    'restoreRate': 50,
+                },
+            }
+        },
+    }
+
+    operation_name = kwargs.get("json").get('operationName')
+
+    if not operation_name:
+        errors = [{'message': 'An operation name is required'}]
+        gql_response['errors'] = errors
+    elif operation_name == 'query1':
+        data = {'shop': {'name': 'shop1'}}
+        gql_response['data'] = data
+    elif operation_name == 'query2':
+        data = {'shop': {'name': 'shop2'}}
+        gql_response['data'] = data
+    else:
+        errors = [{'message': f'No operation named "{operation_name}"'}]
+        gql_response['errors'] = errors
+    if data or errors:
+        return MockHTTPResponse(status_code=200, jsondata=gql_response)
+
+
+@pytest.mark.asyncio
+async def test_store_graphql_operation_name(mocker):
+    '''
+    Checks to see if passing an operation name works as expected.
+    There is 3 possible outcomes when you pass in operation_name:
+
+    1. It succeeds, resolving properly with the name.
+    2. It fails because the operation_name you specified doesn't exist.
+    3. It fails because you didn't specify an operation_name (null) when
+        one should have been specified (2 named queries)
+    '''
+    store = Store(store_id='TEST', name='test-store', access_token='Te5tM3')
+
+    query = '''
+    {
+        query query1 {
+            shop {
+                name
+            }
+        }
+
+        query query2 {
+            shop {
+                name
+            }
+        }
+    }'''
+
+    shopify_request_mock = mocker.patch(
+        'httpx.AsyncClient.request',
+        new_callable=AsyncMock,
+        side_effect=store_graphql_operation_name_side_effect,
+    )
+
+    result = await store.execute_gql(query=query, operation_name="query1")
+    assert 'shop1' in result['shop']['name']
+    result = await store.execute_gql(query=query, operation_name="query2")
+    assert 'shop2' in result['shop']['name']
+    with pytest.raises(ShopifyCallInvalidError):
+        await store.execute_gql(query=query, operation_name=None)
+    shopify_request_mock.call_count == 3
+
+
 @pytest.mark.asyncio
 async def test_store_graphql_throttling(mocker):
     store = Store(store_id='TEST', name='test-store', access_token='Te5tM3')
