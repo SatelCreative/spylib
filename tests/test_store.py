@@ -237,7 +237,7 @@ def store_graphql_operation_name_side_effect(*args, **kwargs):
         data = {'shop': {'name': 'shop1'}}
         gql_response['data'] = data
     elif operation_name == 'query2':
-        data = {'shop': {'name': 'shop2'}}
+        data = {'shop': {'domains': [{'id': 'gid://shopify/Domain/33896136726'}]}}
         gql_response['data'] = data
     else:
         errors = [{'message': f'No operation named "{operation_name}"'}]
@@ -260,19 +260,20 @@ async def test_store_graphql_operation_name(mocker):
     store = Store(store_id='TEST', name='test-store', access_token='Te5tM3')
 
     query = '''
-    {
-        query query1 {
-            shop {
-                name
-            }
+    query query1 {
+        shop {
+            name
         }
+    }
 
-        query query2 {
-            shop {
-                name
+    query query2 {
+        shop {
+            domains {
+                id
             }
         }
-    }'''
+    }
+    '''
 
     shopify_request_mock = mocker.patch(
         'httpx.AsyncClient.request',
@@ -284,7 +285,7 @@ async def test_store_graphql_operation_name(mocker):
     result = await store.execute_gql(query=query, operation_name="query1")
     assert 'shop1' in result['shop']['name']
     result = await store.execute_gql(query=query, operation_name="query2")
-    assert 'shop2' in result['shop']['name']
+    assert 'gid://shopify/Domain/33896136726' == result['shop']['domains'][0]['id']
 
     # Checks to see if it fails properly
     with pytest.raises(ShopifyCallInvalidError):
@@ -293,7 +294,7 @@ async def test_store_graphql_operation_name(mocker):
         await store.execute_gql(query=query)
     with pytest.raises(ShopifyCallInvalidError):
         await store.execute_gql(query=query, operation_name="foobar")
-    
+
     assert shopify_request_mock.call_count == 5
 
 
