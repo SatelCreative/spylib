@@ -280,13 +280,21 @@ async def test_store_graphql_operation_name(mocker):
         side_effect=store_graphql_operation_name_side_effect,
     )
 
+    # Checks to see if it is properly handling inputs properly
     result = await store.execute_gql(query=query, operation_name="query1")
     assert 'shop1' in result['shop']['name']
     result = await store.execute_gql(query=query, operation_name="query2")
     assert 'shop2' in result['shop']['name']
+
+    # Checks to see if it fails properly
     with pytest.raises(ShopifyCallInvalidError):
         await store.execute_gql(query=query, operation_name=None)
-    shopify_request_mock.call_count == 3
+    with pytest.raises(ShopifyCallInvalidError):
+        await store.execute_gql(query=query)
+    with pytest.raises(ShopifyCallInvalidError):
+        await store.execute_gql(query=query, operation_name="foobar")
+    
+    assert shopify_request_mock.call_count == 5
 
 
 @pytest.mark.asyncio
