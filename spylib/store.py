@@ -171,16 +171,6 @@ class Store:
                 [err['message'] for err in jsondata['errors'] if 'message' in err]
             )
             if THROTTLED_ERROR_MESSAGE in errorlist:
-                """
-                Note for self, remove;
-
-                This will throw when the requestedQueryCost is more than the GRAPH_MAX.
-                This means we need to check if the query cost is > 1000, which means
-                that the query will never be run, else we need to wait until the pool
-                refils sufficiently to execute the query.
-                """
-                with open("foo.txt", "w") as f:
-                    f.write(jsondata)
                 if jsondata['cost']['requestedQueryCost'] > GRAPH_MAX:
                     raise ShopifyThrottledError(
                         f'Store {self.name}: The Shopify API token is throttling. \
