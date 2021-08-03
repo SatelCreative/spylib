@@ -155,13 +155,7 @@ class Store:
             'Content-type': 'application/json',
             'X-Shopify-Access-Token': self.access_token,
         }
-        body = {
-            'query': query,
-            'variables': variables,
-        }
-
-        if operation_name:
-            body['operationName'] = operation_name
+        body = {'query': query, 'variables': variables, 'operationName': operation_name}
 
         resp = await self.client.post(
             url=url,
@@ -188,14 +182,14 @@ class Store:
                 )
             if OPERATION_NAME_REQUIRED_ERROR_MESSAGE in errorlist:
                 raise ShopifyCallInvalidError(
-                    f'Store {self.name}: Operation name was required for this query. \
-                        This likely means you have multiple queries within one call \
-                        and you must specify which to run.'
+                    f'Store {self.name}: Operation name was required for this query.'
+                    'This likely means you have multiple queries within one call '
+                    'and you must specify which to run.'
                 )
             if WRONG_OPERATION_NAME_ERROR_MESSAGE.format(operation_name) in errorlist:
                 raise ShopifyCallInvalidError(
-                    f'Store {self.name}: Operation name {operation_name} \
-                        does not exist in the query.'
+                    f'Store {self.name}: Operation name {operation_name}'
+                    'does not exist in the query.'
                 )
             else:
                 raise ValueError(f'GraphQL query is incorrect:\n{errorlist}')
