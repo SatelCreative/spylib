@@ -6,7 +6,7 @@ from pydantic import validator
 from pydantic.dataclasses import dataclass
 
 from spylib import Store
-from spylib.exceptions import ShopifyCallInvalidError
+from spylib.exceptions import ShopifyCallInvalidError, ShopifyExceedingMaxCostError
 
 
 @dataclass
@@ -206,55 +206,172 @@ async def test_store_graphql_tokeninvalid(mocker):
     shopify_request_mock.assert_called_once()
 
 
-@pytest.mark.asyncio
-async def test_store_graphql_throttling(mocker):
+def store_graphql_throttling_side_effect(
+    currently_available, requested_cost, actual_cost, call_count, *args, **kwargs
+):
     """
-    Tests the throttling of the graphQL requests.
-    """
-    store = Store(store_id='TEST', name='test-store', access_token='Te5tM3')
+    This is a function that mocks a set of GraphQL requests for throttling
+    and returns the appropriate response. The three responses are:
 
-    query = '''
-    {
-      shop {
-        name
-      }
-    }'''
-    extensions = {
-        "cost": {
-            "requestedQueryCost": 752,
-            "actualQueryCost": None,
-            "throttleStatus": {
-                "maximumAvailable": 1000,
-                "currentlyAvailable": 662,
-                "restoreRate": 50,
+    1. A successful query
+    2. A failed query with a sleeper
+    3. A indefinitely failed query
+
+    """
+
+    gql_response = {}
+
+    extentions = {
+        'cost': {
+            'requestedQueryCost': requested_cost,
+            'actualQueryCost': actual_cost,
+            'throttleStatus': {
+                'maximumAvailable': 1000,
+                'currentlyAvailable': (currently_available - actual_cost)
+                if actual_cost
+                else currently_available,
+                'restoreRate': 50,
             },
         }
     }
 
-    gql_response_throttled = {
-        "errors": [
+    if requested_cost > 1000 and call_count <= 1:
+        gql_response['errors'] = [
             {
-                "message": "Throttled",
-                "extensions": {
-                    "code": "THROTTLED",
-                    "documentation": "https://help.shopify.com/api/graphql-admin-api/"
-                    "graphql-admin-api-rate-limits",
+                'message': 'Query cost is 1032, which exceeds the single query ',
+                'extensions': {
+                    'code': 'MAX_COST_EXCEEDED',
+                    'cost': 1032,
+                    'maxCost': 1000,
+                    'documentation': 'https://help.shopify.com/api/usage/rate-limits',
                 },
             }
-        ],
-        "extensions": extensions,
+        ]
+    elif requested_cost > currently_available and call_count <= 1:
+        gql_response['errors'] = [
+            {
+                'message': 'Throttled',
+                'extensions': {
+                    'code': 'THROTTLED',
+                    'documentation': 'https://help.shopify.com/api/usage/rate-limits',
+                },
+            }
+        ]
+
+        gql_response['extensions'] = extentions
+    else:
+        gql_response['data'] = {
+            'products': {
+                'edges': [
+                    {
+                        'node': {
+                            'variants': {
+                                'edges': [
+                                    {'node': {'id': 'gid://shopify/ProductVariant/19523123216406'}}
+                                ]
+                            }
+                        }
+                    }
+                ]
+            }
+        }
+
+        gql_response['extensions'] = extentions
+
+    return MockHTTPResponse(status_code=200, jsondata=gql_response)
+
+
+graphql_throttling_queries = [
+    """
+    {
+      products(first: 10) {
+        edges {
+          node {
+            variants(first: 96) {
+              edges {
+                node {
+                  id
+                }
+              }
+            }
+          }
+        }
+      }
     }
-    data = {'shop': {'name': 'graphql-admin'}}
-    gql_response = {'data': data, 'extensions': extensions}
+    """,
+    """
+    {
+      products(first: 10) {
+        edges {
+          node {
+            variants(first: 100) {
+              edges {
+                node {
+                  id
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+    """,
+]
+
+params = [
+    pytest.param(graphql_throttling_queries[0], 1000, 992, 42, 1, None, id='Successful run'),
+    pytest.param(
+        graphql_throttling_queries[0], 800, 992, None, 2, None, id='Failed run with sleep to fix'
+    ),
+    pytest.param(
+        graphql_throttling_queries[1],
+        1000,
+        1032,
+        None,
+        1,
+        ShopifyExceedingMaxCostError,
+        id='Indefinite failed run',
+    ),
+]
+
+
+@pytest.mark.parametrize(
+    'query, currently_available, requested_cost, actual_cost, number_calls, error', params
+)
+@pytest.mark.asyncio
+async def test_store_graphql_throttling(
+    query, currently_available, requested_cost, actual_cost, number_calls, error, mocker
+):
+    """
+    Tests the throttling of the graphQL requests. There are 3 possible outcomes
+    when running a test in regards to the throttling:
+
+    1. The query runs with no issues (under the limit and within the current resources).
+    2. The query fails to run due to a lack of resources, and needs to wait for
+        the bucket to re-fill.
+    3. The query fails indefinitely due to it being in excess of the maximum
+        possible query size.
+    """
+    store = Store(store_id='TEST', name='test-store', access_token='Te5tM3')
 
     shopify_request_mock = mocker.patch(
         'httpx.AsyncClient.request',
         new_callable=AsyncMock,
-        side_effect=[
-            MockHTTPResponse(status_code=200, jsondata=gql_response_throttled),
-            MockHTTPResponse(status_code=200, jsondata=gql_response),
-        ],
+        side_effect=lambda *args, **kwargs: store_graphql_throttling_side_effect(
+            currently_available,
+            requested_cost,
+            actual_cost,
+            shopify_request_mock.call_count,
+            *args,
+            **kwargs,
+        ),
     )
 
-    assert 'shop' in await store.execute_gql(query=query)
-    shopify_request_mock.call_count == 2
+    # If you provide an error to expect, we check it
+    if error:
+        with pytest.raises(error):
+            await store.execute_gql(query=query)
+    else:
+        await store.execute_gql(query=query)
+
+    assert shopify_request_mock.call_count == number_calls

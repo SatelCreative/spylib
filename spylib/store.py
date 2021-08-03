@@ -12,15 +12,16 @@ from tenacity.wait import wait_random
 
 from .constants import (
     API_VERSION,
-    GRAPH_LEAK,
     GRAPH_MAX,
+    MAX_COST_EXCEEDED_ERROR_CODE,
     MAX_TOKENS,
     RATE,
-    THROTTLED_ERROR_MESSAGE,
+    THROTTLED_ERROR_CODE,
 )
 from .exceptions import (
     ShopifyCallInvalidError,
     ShopifyError,
+    ShopifyExceedingMaxCostError,
     ShopifyThrottledError,
     not_our_fault,
 )
@@ -170,18 +171,25 @@ class Store:
             errorlist = '\n'.join(
                 [err['message'] for err in jsondata['errors'] if 'message' in err]
             )
-            if THROTTLED_ERROR_MESSAGE in errorlist:
-                if jsondata['cost']['requestedQueryCost'] > GRAPH_MAX:
-                    raise ShopifyThrottledError(
-                        f'Store {self.name}: The Shopify API token is throttling. \
-                        Query cost is too large (>1000)'
-                    )
-                sleep_time = (
-                    jsondata['cost']['requestedQueryCost']
-                    - jsondata['cost']['throttleStatus']['currentlyAvailable']
-                ) % GRAPH_LEAK
+            error_code_list = '\n'.join(
+                [
+                    err['extensions']['code']
+                    for err in jsondata['errors']
+                    if 'extensions' in err and 'code' in err['extensions']
+                ]
+            )
+            if MAX_COST_EXCEEDED_ERROR_CODE in error_code_list:
+                raise ShopifyExceedingMaxCostError(
+                    f'Store {self.name}: The Shopify API token is throttling.'
+                    f' Query cost is too large (>{GRAPH_MAX}) and will never run'
+                )
+            elif THROTTLED_ERROR_CODE in error_code_list:  # This should be the last condition
+                query_cost = jsondata['extensions']['cost']['requestedQueryCost']
+                available = jsondata['extensions']['cost']['throttleStatus']['currentlyAvailable']
+                rate = jsondata['extensions']['cost']['throttleStatus']["restoreRate"]
+                sleep_time = round((query_cost - available) / rate, 0)
                 await sleep(sleep_time)
-                self.execute_gql(query, variables)
+                raise ShopifyThrottledError
             else:
                 raise ValueError(f'GraphQL query is incorrect:\n{errorlist}')
 
