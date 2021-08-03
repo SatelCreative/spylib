@@ -1,5 +1,5 @@
 from asyncio import sleep
-from math import floor
+from math import floor, ceil
 from time import monotonic
 from typing import Any, Dict, Optional
 
@@ -186,7 +186,7 @@ class Store:
                 query_cost = jsondata['extensions']['cost']['requestedQueryCost']
                 available = jsondata['extensions']['cost']['throttleStatus']['currentlyAvailable']
                 rate = jsondata['extensions']['cost']['throttleStatus']["restoreRate"]
-                sleep_time = round((query_cost - available) / rate, 0)
+                sleep_time = ceil((query_cost - available) / rate)
                 await sleep(sleep_time)
                 raise ShopifyThrottledError
             else:
