@@ -142,7 +142,6 @@ class Store:
 
     @retry(
         reraise=True,
-        wait=wait_random(min=1, max=2),
         stop=stop_after_attempt(5),
         retry=retry_if_exception_type(ShopifyThrottledError),
     )
