@@ -179,8 +179,10 @@ class Store:
             )
             if MAX_COST_EXCEEDED_ERROR_CODE in error_code_list:
                 raise ShopifyExceedingMaxCostError(
-                    f'Store {self.name}: The Shopify API token is throttling.'
-                    f' Query cost is too large (>{GRAPH_MAX}) and will never run'
+                    f'Store {self.name}: This query was rejected by the Shopify'
+                    f' API, and will never run as written, as the query cost'
+                    f' is larger than the max possible query size (>{GRAPH_MAX})'
+                    ' for Shopify.'
                 )
             elif THROTTLED_ERROR_CODE in error_code_list:  # This should be the last condition
                 query_cost = jsondata['extensions']['cost']['requestedQueryCost']
