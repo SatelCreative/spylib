@@ -1,5 +1,5 @@
 from asyncio import sleep
-from math import floor, ceil
+from math import ceil, floor
 from time import monotonic
 from typing import Any, Dict, Optional
 
