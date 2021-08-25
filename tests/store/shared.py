@@ -22,21 +22,21 @@ class MockHTTPResponse:
 
 class TestStore(Store):
 
-    _online_tokens: Dict[str, Any]
-    _offline_tokens: Dict[str, Any]
+    _online_tokens: Dict[str, Any] = {}
+    _offline_tokens: Dict[str, Any] = {}
 
     @classmethod
     def save_offline_token(cls, store_name: str, key: str):
-        TestStore._offline_tokens[store_name] = key
+        cls._offline_tokens[store_name] = key
 
     @classmethod
     def save_online_token(cls, store_name: str, key: str):
-        TestStore._online_tokens[store_name] = key
+        cls._online_tokens[store_name] = key
 
     @classmethod
     def load_offline_token(cls, store_name: str):
-        return TestStore._offline_tokens[store_name]
+        return cls._offline_tokens[store_name]
 
     @classmethod
     def load_online_token(cls, store_name: str):
-        return TestStore._online_tokens[store_name]
+        return cls._online_tokens[store_name]

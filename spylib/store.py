@@ -48,29 +48,32 @@ class Store(ABC):
         self.reset_access_token(access_token=access_token, staff_id=staff_id)
 
     @classmethod
-    def load(cls, store_name: str, staff_id: Optional[str]):
+    def load(cls, store_name: str, staff_id: Optional[str] = None):
         """
         Load the store from memory to reuse the tokens. If a staff ID is provided,
         it assumes that you are creating an online token not an offline token.
 
         WARNING: the name will not be changed here after the first initialization
         """
-
-        access_token = cls.load_offline_token(cls, store_name)
-        if store_name not in Store._instances:
+        access_token = None
+        if staff_id:
+            access_token = cls.load_online_token(store_name)
+        else:
+            access_token = cls.load_offline_token(store_name)
+        if store_name not in cls._instances:
             if access_token is None:
                 message = 'Store {name} ({store_id}) initialized without an access_token'
                 logger.error(message)
                 raise ValueError(message)
             # Online token if staff_id is specified, else offline
             if staff_id:
-                Store._instances[store_name] = Store(
+                cls._instances[store_name] = cls(
                     store_name=store_name,
                     access_token=access_token,
                     staff_id=staff_id,
                 )
             else:
-                Store._instances[store_name] = Store(
+                cls._instances[store_name] = cls(
                     store_name=store_name,
                     access_token=access_token,
                 )
@@ -79,18 +82,18 @@ class Store(ABC):
             # Verify if the access token has changed
             if (
                 access_token is not None
-                and Store._instances[store_name].access_token != access_token
+                and cls._instances[store_name].access_token != access_token
             ):
                 if staff_id:
-                    Store._instances[store_name].reset_access_token(
+                    cls._instances[store_name].reset_access_token(
                         access_token=access_token,
                         staff_id=staff_id,
                     )
                 else:
-                    Store._instances[store_name].reset_access_token(
+                    cls._instances[store_name].reset_access_token(
                         access_token=access_token,
                     )
-        return Store._instances[store_name]
+        return cls._instances[store_name]
 
     @abstractclassmethod
     def save_online_token(cls: Any, store_name: str, key: str):
