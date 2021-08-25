@@ -2,7 +2,6 @@ from unittest.mock import AsyncMock
 
 import pytest
 
-from spylib import Store
 from spylib.exceptions import ShopifyCallInvalidError
 
 from ..shared import MockHTTPResponse, TestStore
