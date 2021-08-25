@@ -6,12 +6,12 @@ import pytest
 from spylib import Store
 from spylib.exceptions import ShopifyCallInvalidError
 
-from ..shared import MockHTTPResponse
+from ..shared import MockHTTPResponse, TestStore
 
 
 @pytest.mark.asyncio
 async def test_store_rest_happypath(mocker):
-    store = Store(store_id='TEST', name='test-store', access_token='Te5tM3')
+    store = TestStore(store_name='test-store', access_token='Te5tM3')
 
     shopify_request_mock = mocker.patch(
         'httpx.AsyncClient.request',
@@ -19,7 +19,7 @@ async def test_store_rest_happypath(mocker):
         return_value=MockHTTPResponse(status_code=200, jsondata={'success': True}),
     )
 
-    jsondata = await store.shoprequest(
+    jsondata = await store.execute_rest(
         goodstatus=200, debug='Test failed', endpoint='/test.json', method='get'
     )
 
@@ -33,7 +33,7 @@ async def test_store_rest_happypath(mocker):
 
 @pytest.mark.asyncio
 async def test_store_rest_badrequest(mocker):
-    store = Store(store_id='TEST', name='test-store', access_token='Te5tM3')
+    store = TestStore(store_name='test-store', access_token='Te5tM3')
 
     shopify_request_mock = mocker.patch(
         'httpx.AsyncClient.request',
@@ -44,7 +44,7 @@ async def test_store_rest_badrequest(mocker):
     )
 
     with pytest.raises(ShopifyCallInvalidError):
-        await store.shoprequest(
+        await store.execute_rest(
             goodstatus=201,
             debug='Test failed',
             endpoint='/products.json',
@@ -67,7 +67,7 @@ params = [
 @pytest.mark.parametrize('init_tokens, time_passed, expected_tokens', params)
 @pytest.mark.asyncio
 async def test_store_rest_ratetokens(init_tokens, time_passed, expected_tokens, mocker):
-    store = Store(store_id='TEST', name='test-store', access_token='Te5tM3')
+    store = TestStore(store_name='test-store', access_token='Te5tM3')
 
     # Simulate that there is only 2 calls available before hitting the rate limit.
     # If we set this to zero, then the code will wait 1 sec which is not great to keep the tests
@@ -80,7 +80,7 @@ async def test_store_rest_ratetokens(init_tokens, time_passed, expected_tokens, 
         new_callable=AsyncMock,
         return_value=MockHTTPResponse(status_code=200, jsondata={'success': True}),
     )
-    await store.shoprequest(
+    await store.execute_rest(
         goodstatus=200, debug='Test failed', endpoint='/test.json', method='get'
     )
 

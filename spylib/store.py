@@ -1,3 +1,4 @@
+from abc import ABC, abstractclassmethod
 from asyncio import sleep
 from math import ceil, floor
 from time import monotonic
@@ -29,49 +30,109 @@ from .exceptions import (
 )
 
 
-class Store:
+class Store(ABC):
+    """
+    This is the store abstract class, the class contains a static class variable for
+    the instances that exist.
+    """
+
     _instances: dict = {}
 
-    def __init__(self, store_id: str, name: str, access_token: str):
-        self.id = store_id
-        self.name = name
-        self.url = f'https://{name}.myshopify.com/admin/api/{API_VERSION}'
+    def __init__(self, store_name: str, access_token: str, staff_id: Optional[str] = None):
+        self.store_name = store_name
+        self.url = f'https://{store_name}.myshopify.com/admin/api/{API_VERSION}'
 
         self.client = AsyncClient()
         self.updated_at = monotonic()
 
-        self.reset_access_token(access_token=access_token)
+        self.reset_access_token(access_token=access_token, staff_id=staff_id)
 
     @classmethod
-    def load(cls, store_id: str, name: str, access_token: Optional[str]):
-        """Load the store from memory to reuse the tokens
+    def load(cls, store_name: str, staff_id: Optional[str]):
+        """
+        Load the store from memory to reuse the tokens. If a staff ID is provided,
+        it assumes that you are creating an online token not an offline token.
 
         WARNING: the name will not be changed here after the first initialization
         """
-        if store_id not in Store._instances:
+
+        access_token = cls.load_offline_token()
+        if store_name not in Store._instances:
             if access_token is None:
                 message = 'Store {name} ({store_id}) initialized without an access_token'
                 logger.error(message)
                 raise ValueError(message)
-            Store._instances[store_id] = Store(
-                store_id=store_id, name=name, access_token=access_token
-            )
+            # Online token if staff_id is specified, else offline
+            if staff_id:
+                Store._instances[store_name] = Store(
+                    store_name=store_name,
+                    access_token=access_token,
+                    staff_id=staff_id,
+                )
+            else:
+                Store._instances[store_name] = Store(
+                    store_name=store_name,
+                    access_token=access_token,
+                )
+
         else:
             # Verify if the access token has changed
             if (
                 access_token is not None
-                and Store._instances[store_id].access_token != access_token
+                and Store._instances[store_name].access_token != access_token
             ):
-                Store._instances[store_id].reset_access_token(access_token)
-        return Store._instances[store_id]
+                if staff_id:
+                    Store._instances[store_name].reset_access_token(
+                        access_token=access_token,
+                        staff_id=staff_id,
+                    )
+                else:
+                    Store._instances[store_name].reset_access_token(
+                        access_token=access_token,
+                    )
+        return Store._instances[store_name]
 
-    def reset_access_token(self, access_token: str):
+    @abstractclassmethod
+    def save_online_token(self, store_name: str, key: str):
+        """
+        A method that can be called at the end of the OAuth process to store
+        the online token in a location that can be retrieved.
+        """
+        pass
+
+    @abstractclassmethod
+    def save_offline_token(self, store_name: str, key: str):
+        """
+        A method that can be called at the end of the OAuth process to store
+        the offline token in a location that can be retrieved.
+        """
+        pass
+
+    @abstractclassmethod
+    def load_online_token(self, store_name: str):
+        """
+        Any time the load method is called, this can be used to initialize a store.
+        """
+        pass
+
+    @abstractclassmethod
+    def load_offline_token(self, store_name: str):
+        """
+        Any time the load method is called, this can be used to initialize a store.
+        """
+        pass
+
+    def reset_access_token(self, access_token: str, staff_id: Optional[str]):
         """Use this function to initialize a new access token for this store"""
         self.access_token = access_token
         self.access_token_invalid = False
         self.tokens = MAX_TOKENS
         self.max_tokens = MAX_TOKENS
         self.rate = RATE
+
+        # This handles all of the token related information
+        if staff_id:
+            self.staff_id = staff_id
 
     async def __wait_for_token(self):
         self.__add_new_tokens()
@@ -94,7 +155,7 @@ class Store:
         If the response has a valid json then return it too.
         """
         msg = (
-            f'ERROR in store {self.name}: {debug}\n'
+            f'ERROR in store {self.store_name}: {debug}\n'
             f'API response code: {response.status_code}\n'
             f'API endpoint: {endpoint}\n'
         )
@@ -117,7 +178,7 @@ class Store:
         stop=stop_after_attempt(5),
         retry=retry_if_exception(not_our_fault),
     )
-    async def shoprequest(self, goodstatus, debug, endpoint, **kwargs) -> Dict[str, Any]:
+    async def execute_rest(self, goodstatus, debug, endpoint, **kwargs) -> Dict[str, Any]:
         while True:
             await self.__wait_for_token()
             kwargs['url'] = f'{self.url}{endpoint}'
@@ -170,7 +231,7 @@ class Store:
         if 'Invalid API key or access token' in jsondata.get('errors', ''):
             self.access_token_invalid = True
             logger.warning(
-                f'Store {self.name}: The Shopify API token is invalid. '
+                f'Store {self.store_name}: The Shopify API token is invalid. '
                 'Flag the access token as invalid.'
             )
             raise ConnectionRefusedError
@@ -187,7 +248,7 @@ class Store:
             )
             if MAX_COST_EXCEEDED_ERROR_CODE in error_code_list:
                 raise ShopifyExceedingMaxCostError(
-                    f'Store {self.name}: This query was rejected by the Shopify'
+                    f'Store {self.store_name}: This query was rejected by the Shopify'
                     f' API, and will never run as written, as the query cost'
                     f' is larger than the max possible query size (>{GRAPH_MAX})'
                     ' for Shopify.'
@@ -201,13 +262,13 @@ class Store:
                 raise ShopifyThrottledError
             elif OPERATION_NAME_REQUIRED_ERROR_MESSAGE in errorlist:
                 raise ShopifyCallInvalidError(
-                    f'Store {self.name}: Operation name was required for this query.'
+                    f'Store {self.store_name}: Operation name was required for this query.'
                     'This likely means you have multiple queries within one call '
                     'and you must specify which to run.'
                 )
             elif WRONG_OPERATION_NAME_ERROR_MESSAGE.format(operation_name) in errorlist:
                 raise ShopifyCallInvalidError(
-                    f'Store {self.name}: Operation name {operation_name}'
+                    f'Store {self.store_name}: Operation name {operation_name}'
                     'does not exist in the query.'
                 )
             else:

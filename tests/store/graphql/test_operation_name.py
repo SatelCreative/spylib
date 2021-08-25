@@ -5,7 +5,7 @@ import pytest
 from spylib import Store
 from spylib.exceptions import ShopifyCallInvalidError
 
-from ..shared import MockHTTPResponse
+from ..shared import MockHTTPResponse, TestStore
 
 graphql_operation_name_query = '''
     query query1 {
@@ -59,7 +59,7 @@ async def test_store_graphql_operation_name_happypath(
 
     This checks just the successful queries.
     '''
-    store = Store(store_id='TEST', name='test-store', access_token='Te5tM3')
+    store = TestStore(store_name='test-store', access_token='Te5tM3')
 
     gql_response = {
         'extensions': {
@@ -125,7 +125,7 @@ async def test_store_graphql_operation_name_badquery(query, operation_name, erro
     This tests the error cases.
 
     '''
-    store = Store(store_id='TEST', name='test-store', access_token='Te5tM3')
+    store = TestStore(store_name='test-store', access_token='Te5tM3')
 
     gql_response = {
         'extensions': {
