@@ -93,7 +93,7 @@ class Store(ABC):
         return Store._instances[store_name]
 
     @abstractclassmethod
-    def save_online_token(cls, store_name: str, key: str):
+    def save_online_token(cls: Any, store_name: str, key: str):
         """
         A method that can be called at the end of the OAuth process to store
         the online token in a location that can be retrieved.
@@ -101,7 +101,7 @@ class Store(ABC):
         pass
 
     @abstractclassmethod
-    def save_offline_token(cls, store_name: str, key: str):
+    def save_offline_token(cls: Any, store_name: str, key: str):
         """
         A method that can be called at the end of the OAuth process to store
         the offline token in a location that can be retrieved.
@@ -109,14 +109,14 @@ class Store(ABC):
         pass
 
     @abstractclassmethod
-    def load_online_token(cls, store_name: str):
+    def load_online_token(cls: Any, store_name: str):
         """
         Any time the load method is called, this can be used to initialize a store.
         """
         pass
 
     @abstractclassmethod
-    def load_offline_token(cls, store_name: str):
+    def load_offline_token(cls: Any, store_name: str):
         """
         Any time the load method is called, this can be used to initialize a store.
         """
