@@ -3,6 +3,7 @@
 __version__ = '0.2.1'
 
 
-from .store import Store, UniqueStore
+from .store import Store
+from .application import ShopifyApplication
 
-__all__ = ['Store', 'UniqueStore']
+__all__ = ['Store', 'ShopifyApplication']

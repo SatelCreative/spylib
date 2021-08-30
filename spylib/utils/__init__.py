@@ -12,4 +12,5 @@ __all__ = [
     'HTTPClient',
     'domain_to_storename',
     'store_domain',
+    'hmac',
 ]

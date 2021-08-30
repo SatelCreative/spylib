@@ -1,23 +1,20 @@
-from abc import ABC, abstractclassmethod
 from asyncio import sleep
 from math import ceil, floor
 from time import monotonic
-from typing import Any, Dict, Optional
-
+from types import MethodType
 from httpx import AsyncClient, Response
 from loguru import logger
+from re import search
+from pydantic.main import BaseModel
 from tenacity import retry
 from tenacity.retry import retry_if_exception, retry_if_exception_type
 from tenacity.stop import stop_after_attempt
 from tenacity.wait import wait_random
+from typing import Any, Callable, Dict, List, Optional
 
 from .constants import (
-    API_VERSION,
-    GRAPH_MAX,
     MAX_COST_EXCEEDED_ERROR_CODE,
-    MAX_TOKENS,
     OPERATION_NAME_REQUIRED_ERROR_MESSAGE,
-    RATE,
     THROTTLED_ERROR_CODE,
     WRONG_OPERATION_NAME_ERROR_MESSAGE,
 )
@@ -28,114 +25,76 @@ from .exceptions import (
     ShopifyThrottledError,
     not_our_fault,
 )
+from .token import OnlineToken, OfflineToken
 
 
-class Store(ABC):
+class Store(BaseModel):
     """
-    This is the store abstract class, the class contains a static class variable for
-    the instances that exist.
+    This is an instance of a store, this contains the core logic for
+    manipulating the shopifyAPI.
     """
 
-    _instances: dict = {}
+    def __init__(
+        self,
+        store_name: str,
+        api_version: str = '2021-04',
+        max_rest_bucket: int = 80,
+        rest_refill_rate: int = 4,
+        max_graphql_bucket: int = 1000,
+        graphql_refill_rate: int = 50,
+        save_token: Optional[Callable] = None,
+        load_token: Optional[Callable] = None,
+    ) -> None:
+        """
+        Creates a new instance of a store. Takes in:
 
-    def __init__(self, store_name: str, access_token: str, staff_id: Optional[str] = None):
+        - `store_name` - The name of the store specified by shopify.
+        - `api_version` - The version of the shopify API that the store is using
+        - `max_rest_bucket` - This is the max number of rest tokens allowed by the store.
+        - `rest_refill_rate` - The rate at which the tokens refill (per second)
+        - `max_graphql_bucket` - This is the max size of the graphql bucket
+        - `graphql_refill_rate` - This is how much the graphql bucket refills per second
+        - `save_token` - Function that saves the tokens for this store, must start
+            with self as a parameter.
+        - `load_token` - Function that loads the tokens for this store, must start
+            with self as a parameter.
+        """
+
+        self.online_access_tokens: Optional[Dict[str, OnlineToken]] = {}
+        self.offline_access_token: Optional[OfflineToken] = None
+
         self.store_name = store_name
-        self.url = f'https://{store_name}.myshopify.com/admin/api/{API_VERSION}'
+        self.api_version = api_version
 
-        self.client = AsyncClient()
-        self.updated_at = monotonic()
+        if load_token:
+            self.load_token = MethodType(load_token, self)
+        if save_token:
+            self.save_token = MethodType(save_token, self)
 
-        self.reset_access_token(access_token=access_token, staff_id=staff_id)
+        # API tokens represent the amount of calls you can make
+        self.rest_bucket: int = max_rest_bucket
+        self.max_rest_bucket: int = max_rest_bucket
+        self.rest_refill_rate: int = rest_refill_rate
 
-    @classmethod
-    def load(cls, store_name: str, staff_id: Optional[str] = None):
+        self.graphql_bucket = max_graphql_bucket
+        self.max_graphql_bucket = max_graphql_bucket
+        self.graphql_refill_rate = graphql_refill_rate
+
+        self.api_url = f'https://{store_name}.myshopify.com/admin/api/{api_version}'
+        self.client: AsyncClient = AsyncClient()
+        self.updated_at: float = monotonic()
+
+    async def add_offline_token(self, token: OfflineToken):
         """
-        Load the store from memory to reuse the tokens. If a staff ID is provided,
-        it assumes that you are creating an online token not an offline token.
+        Adds an offline token to the store. There can be `n` tokens.
+        """
+        self.offline_access_token = token
 
-        WARNING: the name will not be changed here after the first initialization
+    async def add_online_token(self, token: OnlineToken):
         """
-        access_token = None
-        if staff_id:
-            access_token = cls.load_online_token(store_name)
-        else:
-            access_token = cls.load_offline_token(store_name)
-        if store_name not in cls._instances:
-            if access_token is None:
-                message = 'Store {name} ({store_id}) initialized without an access_token'
-                logger.error(message)
-                raise ValueError(message)
-            # Online token if staff_id is specified, else offline
-            if staff_id:
-                cls._instances[store_name] = cls(
-                    store_name=store_name,
-                    access_token=access_token,
-                    staff_id=staff_id,
-                )
-            else:
-                cls._instances[store_name] = cls(
-                    store_name=store_name,
-                    access_token=access_token,
-                )
-
-        else:
-            # Verify if the access token has changed
-            if (
-                access_token is not None
-                and cls._instances[store_name].access_token != access_token
-            ):
-                if staff_id:
-                    cls._instances[store_name].reset_access_token(
-                        access_token=access_token,
-                        staff_id=staff_id,
-                    )
-                else:
-                    cls._instances[store_name].reset_access_token(
-                        access_token=access_token,
-                    )
-        return cls._instances[store_name]
-
-    @abstractclassmethod
-    def save_online_token(cls: Any, store_name: str, key: str):
+        Adds an online token to the store. There can only be 1 online token.
         """
-        A method that can be called at the end of the OAuth process to store
-        the online token in a location that can be retrieved.
-        """
-        pass
-
-    @abstractclassmethod
-    def save_offline_token(cls: Any, store_name: str, key: str):
-        """
-        A method that can be called at the end of the OAuth process to store
-        the offline token in a location that can be retrieved.
-        """
-        pass
-
-    @abstractclassmethod
-    def load_online_token(cls: Any, store_name: str):
-        """
-        Any time the load method is called, this can be used to initialize a store.
-        """
-        pass
-
-    @abstractclassmethod
-    def load_offline_token(cls: Any, store_name: str):
-        """
-        Any time the load method is called, this can be used to initialize a store.
-        """
-        pass
-
-    def reset_access_token(self, access_token: str, staff_id: Optional[str]):
-        """Use this function to initialize a new access token for this store"""
-        self.access_token = access_token
-        self.access_token_invalid = False
-        self.tokens = MAX_TOKENS
-        self.max_tokens = MAX_TOKENS
-        self.rate = RATE
-
-        # This handles all of the token related information
-        if staff_id:
-            self.staff_id = staff_id
+        self.online_access_tokens[token.access_token] = token
 
     async def __wait_for_token(self):
         self.__add_new_tokens()
@@ -153,7 +112,7 @@ class Store(ABC):
             self.updated_at = now
 
     async def __handle_error(self, debug: str, endpoint: str, response: Response):
-        """Handle any error that occured when calling Shopify
+        """Handle any error that occurred when calling Shopify
 
         If the response has a valid json then return it too.
         """
@@ -175,17 +134,54 @@ class Store(ABC):
 
         raise ShopifyError(msg)
 
+    @classmethod
+    def store_domain(shop: str) -> str:
+        """Very flexible conversion of a shop's subdomain or complete or incomplete url into a
+        complete url"""
+        result = search(r'^(https:\/\/)?([a-z1-9\-]+)(\.myshopify\.com[\/]?)?$', shop.lower())
+        if not result:
+            raise ValueError(f'{shop} is not a shopify shop')
+
+        domain = result.group(3) or '.myshopify.com'
+        storename = result.group(2)
+
+        return f'{storename}{domain}'
+
+    @classmethod
+    def domain_to_storename(domain: str) -> str:
+        result = search(r'(https:\/\/)?([^.]+)\.myshopify\.com[\/]?', domain)
+        if result:
+            return result.group(2)
+
+        raise ValueError(f'{domain} is not a shopify domain')
+
+    async def execute_rest_online(self, goodstatus, debug, endpoint, token, **kwargs):
+        """
+        Makes a request to the REST endpoint using an online token for the store.
+        """
+        self.__execute_rest(
+            goodstatus, debug, endpoint, self.online_access_tokens[token], **kwargs
+        )
+
+    async def execute_rest_offline(self, goodstatus, debug, endpoint, **kwargs):
+        """
+        Makes a request to the REST endpoint using the offline token for the store.
+        """
+        self.__execute_rest(goodstatus, debug, endpoint, self.offline_access_token, **kwargs)
+
     @retry(
         reraise=True,
         wait=wait_random(min=1, max=2),
         stop=stop_after_attempt(5),
         retry=retry_if_exception(not_our_fault),
     )
-    async def execute_rest(self, goodstatus, debug, endpoint, **kwargs) -> Dict[str, Any]:
+    async def __execute_rest(
+        self, goodstatus, debug, endpoint, access_token, **kwargs
+    ) -> Dict[str, Any]:
         while True:
             await self.__wait_for_token()
-            kwargs['url'] = f'{self.url}{endpoint}'
-            kwargs['headers'] = {'X-Shopify-Access-Token': self.access_token}
+            kwargs['url'] = f'{self.api_url}{endpoint}'
+            kwargs['headers'] = {'X-Shopify-Access-Token': access_token}
 
             response = await self.client.request(**kwargs)
             if response.status_code == 429:
@@ -206,20 +202,61 @@ class Store(ABC):
 
             return jresp
 
+    async def execute_gql_online(
+        self,
+        access_token: str,
+        query: str,
+        variables: Dict[str, Any] = {},
+        operation_name: Optional[str] = None,
+        **kwargs,
+    ):
+        """
+        Makes a request to the GQL endpoint using an online token for the store.
+        """
+        self.__execute_gql(
+            self.online_access_tokens[access_token].access_token,
+            query,
+            variables,
+            operation_name,
+            **kwargs,
+        )
+
+    async def execute_gql_offline(
+        self,
+        query: str,
+        variables: Dict[str, Any] = {},
+        operation_name: Optional[str] = None,
+        **kwargs,
+    ):
+        """
+        Makes a request to the GQL endpoint using the offline token for the store.
+        """
+        self.__execute_gql(
+            self.offline_access_token.access_token,
+            query,
+            variables,
+            operation_name,
+            **kwargs,
+        )
+
     @retry(
         reraise=True,
         stop=stop_after_attempt(5),
         retry=retry_if_exception_type(ShopifyThrottledError),
     )
-    async def execute_gql(
-        self, query: str, variables: Dict[str, Any] = {}, operation_name: Optional[str] = None
+    async def __execute_gql(
+        self,
+        access_token: str,
+        query: str,
+        variables: Dict[str, Any] = {},
+        operation_name: Optional[str] = None,
     ) -> Dict[str, Any]:
         """Simple graphql query executor because python has no decent graphql client"""
 
-        url = f'{self.url}/graphql.json'
+        url = f'{self.api_url}/graphql.json'
         headers = {
             'Content-type': 'application/json',
-            'X-Shopify-Access-Token': self.access_token,
+            'X-Shopify-Access-Token': access_token,
         }
         body = {'query': query, 'variables': variables, 'operationName': operation_name}
 
@@ -253,7 +290,7 @@ class Store(ABC):
                 raise ShopifyExceedingMaxCostError(
                     f'Store {self.store_name}: This query was rejected by the Shopify'
                     f' API, and will never run as written, as the query cost'
-                    f' is larger than the max possible query size (>{GRAPH_MAX})'
+                    f' is larger than the max possible query size (>{self.max_graphql_bucket})'
                     ' for Shopify.'
                 )
             elif THROTTLED_ERROR_CODE in error_code_list:  # This should be the last condition
@@ -278,16 +315,3 @@ class Store(ABC):
                 raise ValueError(f'GraphQL query is incorrect:\n{errorlist}')
 
         return jsondata['data']
-
-
-class UniqueStore(Store):
-    __instance = None
-
-    def __new__(cls):
-        if UniqueStore.__instance is None:
-            raise ValueError('The unique store was not initialized')
-        return UniqueStore.__instance
-
-    @staticmethod
-    def init(store_id, name, access_token):
-        UniqueStore.__instance = Store(store_id, name, access_token)

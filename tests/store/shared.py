@@ -1,9 +1,5 @@
-from typing import Any, Dict
-
 from pydantic import validator
 from pydantic.dataclasses import dataclass
-
-from spylib import Store
 
 
 @dataclass
@@ -18,25 +14,3 @@ class MockHTTPResponse:
 
     def json(self):
         return self.jsondata
-
-
-class TestStore(Store):
-
-    _online_tokens: Dict[str, Any] = {}
-    _offline_tokens: Dict[str, Any] = {}
-
-    @classmethod
-    def save_offline_token(cls, store_name: str, key: str):
-        cls._offline_tokens[store_name] = key
-
-    @classmethod
-    def save_online_token(cls, store_name: str, key: str):
-        cls._online_tokens[store_name] = key
-
-    @classmethod
-    def load_offline_token(cls, store_name: str):
-        return cls._offline_tokens[store_name]
-
-    @classmethod
-    def load_online_token(cls, store_name: str):
-        return cls._online_tokens[store_name]

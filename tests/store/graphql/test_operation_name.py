@@ -4,7 +4,9 @@ import pytest
 
 from spylib.exceptions import ShopifyCallInvalidError
 
-from ..shared import MockHTTPResponse, TestStore
+from ..shared import MockHTTPResponse
+from spylib.store import Store
+
 
 graphql_operation_name_query = '''
     query query1 {
@@ -58,7 +60,7 @@ async def test_store_graphql_operation_name_happypath(
 
     This checks just the successful queries.
     '''
-    store = TestStore(store_name='test-store', access_token='Te5tM3')
+    store = Store(store_name='test-store', access_token='Te5tM3')
 
     gql_response = {
         'extensions': {
@@ -112,7 +114,7 @@ params = [
 @pytest.mark.parametrize('query, operation_name, error', params)
 @pytest.mark.asyncio
 async def test_store_graphql_operation_name_badquery(query, operation_name, error, mocker):
-    '''
+    """
     Checks to see if passing an operation name works as expected.
     There is 3 possible outcomes when you pass in operation_name:
 
@@ -123,8 +125,8 @@ async def test_store_graphql_operation_name_badquery(query, operation_name, erro
 
     This tests the error cases.
 
-    '''
-    store = TestStore(store_name='test-store', access_token='Te5tM3')
+    """
+    store = Store(store_name='test-store', access_token='Te5tM3')
 
     gql_response = {
         'extensions': {

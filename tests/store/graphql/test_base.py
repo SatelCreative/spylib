@@ -2,12 +2,13 @@ from unittest.mock import AsyncMock
 
 import pytest
 
-from ..shared import MockHTTPResponse, TestStore
+from ..shared import MockHTTPResponse
+from spylib.store import Store
 
 
 @pytest.mark.asyncio
 async def test_store_graphql_happypath(mocker):
-    store = TestStore(store_name='test-store', access_token='Te5tM3')
+    store = Store(store_name='test-store', access_token='Te5tM3')
 
     query = '''
     {
@@ -46,7 +47,7 @@ async def test_store_graphql_happypath(mocker):
 
 @pytest.mark.asyncio
 async def test_store_graphql_badquery(mocker):
-    store = TestStore(store_name='test-store', access_token='Te5tM3')
+    store = Store(store_name='test-store', access_token='Te5tM3')
 
     query = '''
     {
@@ -84,7 +85,7 @@ async def test_store_graphql_badquery(mocker):
 
 @pytest.mark.asyncio
 async def test_store_graphql_tokeninvalid(mocker):
-    store = TestStore(store_name='test-store', access_token='INVALID')
+    store = Store(store_name='test-store', access_token='INVALID')
 
     query = '''
     {

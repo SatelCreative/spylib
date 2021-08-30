@@ -1,6 +1,6 @@
 import pytest
 
-from ..shared import TestStore
+from spylib.store import Store
 
 
 @pytest.mark.asyncio
@@ -11,9 +11,9 @@ async def test_online_happypath():
     """
 
     # We first save the token
-    TestStore.save_online_token(store_name='test-store', key='123')
+    Store.save_online_token(store_name='test-store', key='123')
 
-    store = TestStore.load(store_name='test-store', staff_id=1)
+    store = Store.load(store_name='test-store', staff_id=1)
 
     assert store.staff_id == 1
     assert store.store_name == 'test-store'
@@ -27,9 +27,9 @@ async def test_offline_happypath():
     information for an offline token.
     """
     # We first save the token
-    TestStore.save_offline_token(store_name='test-store', key='123')
+    Store.save_offline_token(store_name='test-store', key='123')
 
-    store = TestStore.load(store_name='test-store')
+    store = Store.load(store_name='test-store')
 
     assert store.store_name == 'test-store'
     assert store.access_token == '123'

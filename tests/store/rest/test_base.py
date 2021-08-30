@@ -5,12 +5,13 @@ import pytest
 
 from spylib.exceptions import ShopifyCallInvalidError
 
-from ..shared import MockHTTPResponse, TestStore
+from ..shared import MockHTTPResponse
+from spylib.store import Store
 
 
 @pytest.mark.asyncio
 async def test_store_rest_happypath(mocker):
-    store = TestStore(store_name='test-store', access_token='Te5tM3')
+    store = Store(store_name='test-store', access_token='Te5tM3')
 
     shopify_request_mock = mocker.patch(
         'httpx.AsyncClient.request',
@@ -32,7 +33,7 @@ async def test_store_rest_happypath(mocker):
 
 @pytest.mark.asyncio
 async def test_store_rest_badrequest(mocker):
-    store = TestStore(store_name='test-store', access_token='Te5tM3')
+    store = Store(store_name='test-store', access_token='Te5tM3')
 
     shopify_request_mock = mocker.patch(
         'httpx.AsyncClient.request',
@@ -66,7 +67,7 @@ params = [
 @pytest.mark.parametrize('init_tokens, time_passed, expected_tokens', params)
 @pytest.mark.asyncio
 async def test_store_rest_ratetokens(init_tokens, time_passed, expected_tokens, mocker):
-    store = TestStore(store_name='test-store', access_token='Te5tM3')
+    store = Store(store_name='test-store', access_token='Te5tM3')
 
     # Simulate that there is only 2 calls available before hitting the rate limit.
     # If we set this to zero, then the code will wait 1 sec which is not great to keep the tests
