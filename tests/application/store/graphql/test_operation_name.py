@@ -61,7 +61,7 @@ async def test_store_graphql_operation_name_happypath(
     This checks just the successful queries.
     '''
     store = Store(store_name='test-store')
-    store.add_offline_token(token='Te5tM3')
+    await store.add_offline_token(token='Te5tM3')
 
     gql_response = {
         'extensions': {
@@ -85,7 +85,7 @@ async def test_store_graphql_operation_name_happypath(
     )
 
     # Checks to see if it is properly handling inputs properly
-    real_result = await store.execute_gql(query=query, operation_name=operation_name)
+    real_result = await store.execute_gql_offline(query=query, operation_name=operation_name)
     for name in result_location:
         if isinstance(real_result, list):
             real_result = real_result[name]
@@ -128,7 +128,7 @@ async def test_store_graphql_operation_name_badquery(query, operation_name, erro
 
     """
     store = Store(store_name='test-store')
-    store.add_offline_token(token='Te5tM3')
+    await store.add_offline_token(token='Te5tM3')
 
     gql_response = {
         'extensions': {
@@ -152,6 +152,6 @@ async def test_store_graphql_operation_name_badquery(query, operation_name, erro
     )
     # Checks to see if it fails properly
     with pytest.raises(ShopifyCallInvalidError):
-        await store.execute_gql(query=query, operation_name=operation_name)
+        await store.execute_gql_offline(query=query, operation_name=operation_name)
 
     assert shopify_request_mock.call_count == 1

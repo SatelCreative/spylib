@@ -10,7 +10,7 @@ from spylib.store import Store
 @pytest.mark.asyncio
 async def test_store_graphql_happypath(mocker):
     store = Store(store_name='test-store')
-    store.add_offline_token('Te5tM3')
+    await store.add_offline_token('Te5tM3')
 
     query = '''
     {
@@ -40,7 +40,7 @@ async def test_store_graphql_happypath(mocker):
         return_value=MockHTTPResponse(status_code=200, jsondata=gql_response),
     )
 
-    jsondata = await store.execute_gql(query=query)
+    jsondata = await store.execute_gql_offline(query=query)
 
     shopify_request_mock.assert_called_once()
 
@@ -50,7 +50,7 @@ async def test_store_graphql_happypath(mocker):
 @pytest.mark.asyncio
 async def test_store_graphql_badquery(mocker):
     store = Store(store_name='test-store')
-    store.add_offline_token(token='Te5tM3')
+    await store.add_offline_token(token='Te5tM3')
 
     query = '''
     {
@@ -81,7 +81,7 @@ async def test_store_graphql_badquery(mocker):
     )
 
     with pytest.raises(ValueError, match=f'^GraphQL query is incorrect:\n{error_msg}$'):
-        await store.execute_gql(query=query)
+        await store.execute_gql_offline(query=query)
 
     shopify_request_mock.assert_called_once()
 
@@ -89,7 +89,7 @@ async def test_store_graphql_badquery(mocker):
 @pytest.mark.asyncio
 async def test_store_graphql_tokeninvalid(mocker):
     store = Store(store_name='test-store')
-    store.add_offline_token(token='INVALID')
+    await store.add_offline_token(token='INVALID')
     query = '''
     {
       shop {
@@ -107,6 +107,6 @@ async def test_store_graphql_tokeninvalid(mocker):
     )
 
     with pytest.raises(ConnectionRefusedError):
-        await store.execute_gql(query=query)
+        await store.execute_gql_offline(query=query)
 
     shopify_request_mock.assert_called_once()

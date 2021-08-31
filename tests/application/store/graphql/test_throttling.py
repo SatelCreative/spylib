@@ -59,7 +59,7 @@ async def test_store_graphql_throttling_happypath(mocker):
     This handles the first case (#1).
     """
     store = Store(store_name='test-store')
-    store.add_offline_token(token='Te5tM3')
+    await store.add_offline_token(token='Te5tM3')
 
     gql_response = {
         'extensions': {
@@ -95,7 +95,7 @@ async def test_store_graphql_throttling_happypath(mocker):
         new_callable=AsyncMock,
         return_value=MockHTTPResponse(status_code=200, jsondata=gql_response),
     )
-    await store.execute_gql(query=graphql_throttling_queries[0])
+    await store.execute_gql_offline(query=graphql_throttling_queries[0])
 
     assert shopify_request_mock.call_count == 1
 
@@ -111,7 +111,7 @@ async def test_store_graphql_throttling_catch_cap(mocker):
 
     """
     store = Store(store_name='test-store')
-    store.add_offline_token(token='Te5tM3')
+    await store.add_offline_token(token='Te5tM3')
 
     gql_failure = {
         'extensions': {
@@ -174,7 +174,7 @@ async def test_store_graphql_throttling_catch_cap(mocker):
         ],
     )
 
-    await store.execute_gql(query=graphql_throttling_queries[0])
+    await store.execute_gql_offline(query=graphql_throttling_queries[0])
 
     assert shopify_request_mock.call_count == 2
 
@@ -197,7 +197,7 @@ async def test_store_graphql_throttling_error_test(mocker):
         possible query size.
     """
     store = Store(store_name='test-store')
-    store.add_offline_token(token='Te5tM3')
+    await store.add_offline_token(token='Te5tM3')
 
     gql_response = {
         'errors': [
@@ -220,6 +220,6 @@ async def test_store_graphql_throttling_error_test(mocker):
     )
 
     with pytest.raises(ShopifyExceedingMaxCostError):
-        await store.execute_gql(query=graphql_throttling_queries[1])
+        await store.execute_gql_offline(query=graphql_throttling_queries[1])
 
     assert shopify_request_mock.call_count == 1
