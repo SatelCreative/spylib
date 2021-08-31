@@ -1,14 +1,15 @@
 from copy import deepcopy
 from dataclasses import dataclass
+from spylib.token import OfflineToken, Token
 from spylib.store import Store
 from fastapi import APIRouter, Depends, HTTPException, Query
 from inspect import isawaitable
+from operator import itemgetter
 from typing import Any, Callable, List, Optional, Tuple
 from types import MethodType
 from urllib.parse import parse_qsl
 
 from loguru import logger
-from pydantic.main import BaseModel
 from starlette.requests import Request
 from starlette.responses import RedirectResponse
 
@@ -55,7 +56,7 @@ class Auth:
         self.user_scopes = user_scopes
         self.callback_path = callback_path
         self.client_id = client_id
-        self.secret_key = client_secret
+        self.client_secret = client_secret
         self.app_handle = app_handle
         self.install_init_path = install_init_path
         self.callback_path = callback_path
@@ -67,11 +68,11 @@ class Auth:
         if post_login:
             self.post_login = MethodType(post_login, self)
 
-    def post_install(self, store: Store):
+    def post_install(self, token: Token):
         """This is a function that is called after the installation of the app on a store"""
         pass
 
-    def post_login(self, store: Store):
+    def post_login(self, token: Token):
         """This is a function that is called after the login of a user in the app."""
         pass
 
@@ -100,11 +101,11 @@ class Auth:
             storename=Store.domain_to_storename(store_domain),
             nonce=get_unique_id(),
         )
-        oauth_token = oauthjwt.encode_token(key=self.secret_key)
+        oauth_token = oauthjwt.encode_token(key=self.client_secret)
         access_mode = 'per-user' if is_login else ''
 
         return (
-            f'https://{self.app_domain}/admin/oauth/authorize?client_id={self.client_id}&'
+            f'https://{store_domain}/admin/oauth/authorize?client_id={self.client_id}&'
             f'scope={scopes}&redirect_uri={redirect_uri}&state={oauth_token}&'
             f'grant_options[]={access_mode}'
         )
@@ -112,12 +113,14 @@ class Auth:
     def app_redirect(self, jwtoken: Optional[JWTBaseModel], store_domain: str) -> RedirectResponse:
         """ """
         if jwtoken is None:
-            return RedirectResponse(f'https://{store_domain}/admin/apps/{self.app_handle}')
+            return RedirectResponse(
+                f'https://{store_domain}.myshopify.com/admin/apps/{self.app_handle}'
+            )
 
-        jwtarg, signature = jwtoken.encode_hp_s(key=self.jwt_key)
+        jwtarg, signature = jwtoken.encode_hp_s(key=self.client_secret)
 
         redir = RedirectResponse(
-            f'https://{store_domain}/admin/apps/{self.app_handle}?jwt={jwtarg}'
+            f'https://{store_domain}.myshopify.com/admin/apps/{self.app_handle}?jwt={jwtarg}'
         )
 
         # TODO set 'expires'
@@ -161,6 +164,15 @@ class Auth:
             # Try with the original ordering
             self._validate_callback_args(args=original_args)
 
+    def validate_oauthjwt(self, token: str, shop: str) -> OAuthJWT:
+        oauthjwt = OAuthJWT.decode_token(token=token, key=self.client_secret)
+
+        storename = Store.domain_to_storename(shop)
+        if oauthjwt.storename != storename:
+            raise ValueError('Token storename and query shop don\'t match')
+
+        return oauthjwt
+
 
 def init_oauth_router(auth: Auth) -> APIRouter:
     """
@@ -185,12 +197,11 @@ def init_oauth_router(auth: Auth) -> APIRouter:
     async def shopify_auth(shop: str):
         """Endpoint initiating the OAuth process on a Shopify store"""
         domain = Store.store_domain(shop)
-        return RedirectResponse(
-            auth.oauth_init_url(
-                store_domain=domain,
-                is_login=False,
-            ),
+        redirect_url = auth.oauth_init_url(
+            store_domain=domain,
+            is_login=False,
         )
+        return RedirectResponse(redirect_url)
 
     @router.get(auth.callback_path, include_in_schema=False)
     async def shopify_callback(request: Request, args: Callback = Depends(Callback)):
@@ -202,7 +213,8 @@ def init_oauth_router(auth: Auth) -> APIRouter:
                 query_string=request.scope['query_string'],
             )
             oauthjwt: OAuthJWT = auth.validate_oauthjwt(
-                token=args.state, shop=args.shop, jwt_key=auth.jwt_key
+                token=args.state,
+                shop=args.shop,
             )
         except Exception as e:
             raise HTTPException(status_code=400, detail=f'Validation failed: {e}')
@@ -212,13 +224,19 @@ def init_oauth_router(auth: Auth) -> APIRouter:
         if not oauthjwt.is_login:
             try:
                 # Get the offline token from Shopify
-                offline_token = await auth.OfflineToken.new(domain=args.shop, code=args.code)
+                offline_token = await OfflineToken.new(
+                    store_name=args.shop,
+                    scope=auth.app_scopes,
+                    client_id=auth.client_id,
+                    client_secret=auth.client_secret,
+                    code=args.code,
+                )
             except Exception as e:
                 logger.exception(f'Could not retrieve offline token for shop {args.shop}')
                 raise HTTPException(status_code=400, detail=str(e))
 
             # Await if the provided function is async
-            if isawaitable(pi_return := auth.post_install(oauthjwt.storename, offline_token)):
+            if isawaitable(pi_return := auth.post_install(offline_token)):
                 await pi_return  # type: ignore
 
             if auth.post_login is None:
@@ -232,7 +250,7 @@ def init_oauth_router(auth: Auth) -> APIRouter:
 
         # Await if the provided function is async
         jwtoken = None
-        pl_return = auth.post_login(oauthjwt.storename, online_token)
+        pl_return = auth.post_login(online_token)
         if isawaitable(pl_return):
             jwtoken = await pl_return  # type: ignore
         else:

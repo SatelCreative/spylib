@@ -1,3 +1,4 @@
+from typing import Tuple
 from spylib.store import Store
 from spylib.application import ShopifyApplication
 from unittest.mock import AsyncMock
@@ -7,7 +8,7 @@ import pytest
 from pydantic.dataclasses import dataclass
 from requests import Response
 
-from spylib.token import OfflineTokenResponse, OnlineTokenResponse
+from spylib.token import OfflineToken, OfflineTokenResponse, OnlineTokenResponse
 from spylib.utils import hmac, now_epoch
 
 from .shared import initialize_store
@@ -29,22 +30,22 @@ def check_oauth_redirect_url(
     client,
     path: str,
 ) -> str:
-    print(response.text)
+    assert response.text == ''
     assert response.status_code == 307
 
-    parsed_url = urlparse(client.get_redirect_target(response))
+    redirect_target = urlparse(client.get_redirect_target(response))
 
     expected_parsed_url = ParseResult(
         scheme='https',
         netloc=shopify_app.shopify_handle,
         path=path,
-        query=parsed_url.query,  # We check that separately
+        query=redirect_target.query,  # We check that separately
         params='',
         fragment='',
     )
-    assert parsed_url == expected_parsed_url
+    assert redirect_target == expected_parsed_url
 
-    return parsed_url.query
+    return redirect_target.query
 
 
 def check_oauth_redirect_query(
@@ -58,7 +59,7 @@ def check_oauth_redirect_query(
     expected_query = dict(
         client_id=[shopify_app.client_id],
         redirect_uri=[f'https://{shopify_app.app_domain}/callback'],
-        scope=shopify_app.app_scopes,
+        scope=[",".join(shopify_app.app_scopes)],
     )
     expected_query.update(query_extra)
 
@@ -67,13 +68,9 @@ def check_oauth_redirect_query(
     return state
 
 
-@pytest.mark.asyncio
-async def test_oauth(mocker):
-    """
-    Tests the initialization endpoint to be sure we only redirect if we have the app handle
-    """
-
-    shopify_app, app, client = initialize_store()
+def generate_token_data(
+    shopify_app: ShopifyApplication,
+) -> Tuple[OfflineTokenResponse, OnlineTokenResponse]:
 
     offlineTokenData = OfflineTokenResponse(
         access_token='OFFLINETOKEN',
@@ -96,12 +93,22 @@ async def test_oauth(mocker):
             "collaborator": False,
         },
     )
-    # --------- Test the initialization endpoint -----------
+
+    return offlineTokenData, onlineTokenData
+
+
+@pytest.mark.asyncio
+async def test_initialization_endpoint_missing_shop_argument(mocker):
+    """
+    Tests the initialization endpoint to be sure we only redirect if we have the app handle
+    """
+    shopify_app, app, client = initialize_store()
 
     # Missing shop argument
     response = client.get('/shopify/auth')
     assert response.status_code == 422
-    assert response.json() == {
+    body = response.json()
+    assert body == {
         'detail': [
             {
                 'loc': ['query', 'shop'],
@@ -111,9 +118,105 @@ async def test_oauth(mocker):
         ],
     }
 
+
+@pytest.mark.asyncio
+async def test_initialization_endpoint_happy_path(mocker):
     """
-    Check to see if we are able to initialize the redirect to oauth
+    Tests to be sure that the initial redirect is working and is going to the right
+    location.
     """
+    shopify_app, app, client = initialize_store()
+    response = client.get(
+        '/shopify/auth',
+        params=dict(shop=shopify_app.shopify_handle),
+        allow_redirects=False,
+    )
+    query = check_oauth_redirect_url(
+        shopify_app=shopify_app,
+        response=response,
+        client=client,
+        path='/admin/oauth/authorize',
+    )
+    check_oauth_redirect_query(
+        shopify_app=shopify_app,
+        query=query,
+    )
+
+
+@pytest.mark.asyncio
+async def test_get_offline_tokens_happy_path(mocker):
+    shopify_app, app, client = initialize_store()
+    offlineTokenData, onlineTokenData = generate_token_data(shopify_app)
+
+    response = client.get(
+        '/shopify/auth',
+        params=dict(shop=shopify_app.shopify_handle),
+        allow_redirects=False,
+    )
+    query = check_oauth_redirect_url(
+        shopify_app=shopify_app,
+        response=response,
+        client=client,
+        path='/admin/oauth/authorize',
+    )
+    state = check_oauth_redirect_query(
+        shopify_app=shopify_app,
+        query=query,
+    )
+
+    shopify_request_mock = mocker.patch('httpx.AsyncClient.request', new_callable=AsyncMock)
+    shopify_request_mock.side_effect = [
+        MockHTTPResponse(status_code=200, jsondata=offlineTokenData),
+        MockHTTPResponse(status_code=200, jsondata=onlineTokenData),
+    ]
+
+    query_str = urlencode(
+        dict(
+            shop=shopify_app.shopify_handle,
+            state=state,
+            timestamp=now_epoch(),
+            code='INSTALLCODE',
+        )
+    )
+    hmac_arg = hmac.calculate_from_message(secret=shopify_app.client_secret, message=query_str)
+    query_str += '&hmac=' + hmac_arg
+
+    response = client.get('/callback', params=query_str, allow_redirects=False)
+    query = check_oauth_redirect_url(
+        shopify_app=shopify_app,
+        response=response,
+        client=client,
+        path='/admin/oauth/authorize',
+    )
+    state = check_oauth_redirect_query(
+        shopify_app=shopify_app,
+        query=query,
+        query_extra={'grant_options[]': ['per-user']},
+    )
+
+    assert await shopify_request_mock.called_with(
+        method='post',
+        url=f'https://{shopify_app.shopify_handle}/admin/oauth/access_token',
+        json={
+            'client_id': shopify_app.shopify_handle,
+            'client_secret': shopify_app.client_secret,
+            'code': 'INSTALLCODE',
+        },
+    )
+
+    shopify_app.post_install.assert_called_once()
+    shopify_app.post_install.assert_called_with(
+        shopify_app,
+        shopify_app.stores['test-store'].offline_access_token,
+    )
+
+
+@pytest.mark.asyncio
+async def test_oauth(mocker):
+
+    shopify_app, app, client = initialize_store()
+    offlineTokenData, onlineTokenData = generate_token_data(shopify_app)
+
     response = client.get(
         '/shopify/auth',
         params=dict(shop=shopify_app.shopify_handle),
@@ -173,7 +276,7 @@ async def test_oauth(mocker):
     )
 
     shopify_app.post_install.assert_called_once()
-    shopify_app.post_install.assert_called_with('test', OfflineTokenResponse(**offlineTokenData))
+    shopify_app.post_install.assert_called_with('test', offlineTokenData)
 
     # --------- Test the callback endpoint for login -----------
     query_str = urlencode(

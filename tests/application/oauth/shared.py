@@ -1,8 +1,15 @@
+from unittest.mock import AsyncMock
 from spylib.store import Store
 from spylib.application import ShopifyApplication
 from typing import Dict, Tuple
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
+from spylib.utils import JWTBaseModel
+from spylib.token import OfflineToken
+
+
+async def post_install_offline(self: ShopifyApplication, token: OfflineToken):
+    self.stores[token.store_name].offline_access_token = token
 
 
 def initialize_store() -> Tuple[ShopifyApplication, FastAPI, TestClient]:
@@ -27,8 +34,9 @@ def initialize_store() -> Tuple[ShopifyApplication, FastAPI, TestClient]:
         app_domain='test.testing.com',
         shopify_handle='test.myshopify.com',
         app_scopes=['write_products', 'read_customers'],
-        client_id='test.testing.com',
+        client_id='API_KEY',
         client_secret='TESTPRIVATEKEY',
+        post_install=AsyncMock(post_install_offline),
         stores=[store],
     )
 

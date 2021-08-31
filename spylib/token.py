@@ -64,7 +64,7 @@ class Token(ABC):
     ) -> None:
 
         self.access_token_invalid = False
-
+        self.store_name = store_name
         self.url = f'https://{store_name}.shopify.com/admin/oauth/access_token'
         self.scope = scope
         self.access_token = access_token
@@ -74,6 +74,7 @@ class Token(ABC):
         if save_token:
             self.save_token = MethodType(save_token, self)
 
+    @classmethod
     async def new(
         cls,
         store_name: str,
@@ -88,7 +89,13 @@ class Token(ABC):
         Creates a new instance of the object and requests the token from the API
         as it requires an async call.
         """
-        token = cls(store_name, scope, save_token=save_token, load_token=load_token)
+        token = cls(
+            store_name,
+            scope,
+            None,
+            save_token,
+            load_token,
+        )
         await token.set_token(client_id, client_secret, code)
         return token
 
@@ -171,8 +178,8 @@ class OfflineToken(Token):
     async def set_token(self, client_id: str, client_secret: str, code: str):
 
         token: OfflineTokenResponse = await self._get_token(client_id, client_secret, code)
-        self.access_token = token.access_token
-        self.scope = token.scope
+        self.access_token = token['access_token']
+        self.scope = token['scope']
 
 
 class OnlineToken(Token):
