@@ -36,7 +36,7 @@ class OAuthJWT(JWTBaseModel):
     nonce: Optional[str] = None
 
 
-class Auth(BaseModel):
+class Auth:
     def __init__(
         self,
         app_domain: str,
@@ -75,7 +75,7 @@ class Auth(BaseModel):
         """This is a function that is called after the login of a user in the app."""
         pass
 
-    def oauth_init_url(self, store_domain: str, is_login: bool, jwt_key: str) -> str:
+    def oauth_init_url(self, store_domain: str, is_login: bool) -> str:
         """
         Create the URL and the parameters needed to start the oauth process to
         install an app or to log a user in.
@@ -84,7 +84,6 @@ class Auth(BaseModel):
         ----------
         store_domain: The domain of the requesting store.
         is_login: Specify if the oauth is to install the app or a user logging in
-        jwt_key: The session JWT token for the user
 
         Returns
         -------
@@ -101,7 +100,7 @@ class Auth(BaseModel):
             storename=Store.domain_to_storename(store_domain),
             nonce=get_unique_id(),
         )
-        oauth_token = oauthjwt.encode_token(key=jwt_key)
+        oauth_token = oauthjwt.encode_token(key=self.secret_key)
         access_mode = 'per-user' if is_login else ''
 
         return (
@@ -185,7 +184,13 @@ def init_oauth_router(auth: Auth) -> APIRouter:
     @router.get(auth.install_init_path, include_in_schema=False)
     async def shopify_auth(shop: str):
         """Endpoint initiating the OAuth process on a Shopify store"""
-        return RedirectResponse(auth.oauth_init_url(is_login=False, jwt_key=auth.private_key))
+        domain = Store.store_domain(shop)
+        return RedirectResponse(
+            auth.oauth_init_url(
+                store_domain=domain,
+                is_login=False,
+            ),
+        )
 
     @router.get(auth.callback_path, include_in_schema=False)
     async def shopify_callback(request: Request, args: Callback = Depends(Callback)):

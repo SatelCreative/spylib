@@ -58,7 +58,8 @@ async def test_store_graphql_throttling_happypath(mocker):
 
     This handles the first case (#1).
     """
-    store = Store(store_name='test-store', access_token='Te5tM3')
+    store = Store(store_name='test-store')
+    store.add_offline_token(token='Te5tM3')
 
     gql_response = {
         'extensions': {
@@ -109,7 +110,8 @@ async def test_store_graphql_throttling_catch_cap(mocker):
         the bucket to re-fill.
 
     """
-    store = Store(store_name='test-store', access_token='Te5tM3')
+    store = Store(store_name='test-store')
+    store.add_offline_token(token='Te5tM3')
 
     gql_failure = {
         'extensions': {
@@ -194,7 +196,8 @@ async def test_store_graphql_throttling_error_test(mocker):
     3. The query fails indefinitely due to it being in excess of the maximum
         possible query size.
     """
-    store = Store(store_name='test-store', access_token='Te5tM3')
+    store = Store(store_name='test-store')
+    store.add_offline_token(token='Te5tM3')
 
     gql_response = {
         'errors': [

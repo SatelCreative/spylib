@@ -28,7 +28,7 @@ from .exceptions import (
 from .token import OnlineToken, OfflineToken
 
 
-class Store(BaseModel):
+class Store:
     """
     This is an instance of a store, this contains the core logic for
     manipulating the shopifyAPI.
@@ -37,6 +37,7 @@ class Store(BaseModel):
     def __init__(
         self,
         store_name: str,
+        scopes: Optional[List[str]] = [],
         api_version: str = '2021-04',
         max_rest_bucket: int = 80,
         rest_refill_rate: int = 4,
@@ -62,9 +63,12 @@ class Store(BaseModel):
 
         self.online_access_tokens: Optional[Dict[str, OnlineToken]] = {}
         self.offline_access_token: Optional[OfflineToken] = None
+        self.load_token = None
+        self.save_token = None
 
         self.store_name = store_name
         self.api_version = api_version
+        self.scopes = scopes
 
         if load_token:
             self.load_token = MethodType(load_token, self)
@@ -84,31 +88,47 @@ class Store(BaseModel):
         self.client: AsyncClient = AsyncClient()
         self.updated_at: float = monotonic()
 
-    async def add_offline_token(self, token: OfflineToken):
+    async def add_offline_token(self, token: str):
         """
-        Adds an offline token to the store. There can be `n` tokens.
+        Adds an offline token to the store. There can only be `1` offline token.
         """
-        self.offline_access_token = token
+        self.offline_access_token = OfflineToken(
+            self.store_name,
+            self.scopes,
+            token,
+            self.save_token,
+            self.load_token,
+        )
 
-    async def add_online_token(self, token: OnlineToken):
+    async def add_online_token(self, token: str, associated_user: str, expires_in: str):
         """
-        Adds an online token to the store. There can only be 1 online token.
+        Adds an online token to the store. There can be `n` online tokens. A token
+        can be retrieved based on an associated user as there should only be one
+        token per user that is valid.
         """
-        self.online_access_tokens[token.access_token] = token
+        self.online_access_tokens[associated_user] = OnlineToken(
+            associated_user,
+            expires_in,
+            self.store_name,
+            self.scopes,
+            token,
+            self.save_token,
+            self.load_token,
+        )
 
     async def __wait_for_token(self):
         self.__add_new_tokens()
-        while self.tokens <= 1:
+        while self.rest_bucket <= 1:
             await sleep(1)
             self.__add_new_tokens()
-        self.tokens -= 1
+        self.rest_bucket -= 1
 
     def __add_new_tokens(self):
         now = monotonic()
         time_since_update = now - self.updated_at
-        new_tokens = floor(time_since_update * self.rate)
+        new_tokens = floor(time_since_update * self.rest_refill_rate)
         if new_tokens > 1:
-            self.tokens = min(self.tokens + new_tokens, self.max_tokens)
+            self.rest_bucket = min(self.rest_bucket + new_tokens, self.max_rest_bucket)
             self.updated_at = now
 
     async def __handle_error(self, debug: str, endpoint: str, response: Response):
@@ -135,7 +155,7 @@ class Store(BaseModel):
         raise ShopifyError(msg)
 
     @classmethod
-    def store_domain(shop: str) -> str:
+    def store_domain(cls, shop: str) -> str:
         """Very flexible conversion of a shop's subdomain or complete or incomplete url into a
         complete url"""
         result = search(r'^(https:\/\/)?([a-z1-9\-]+)(\.myshopify\.com[\/]?)?$', shop.lower())
@@ -148,7 +168,7 @@ class Store(BaseModel):
         return f'{storename}{domain}'
 
     @classmethod
-    def domain_to_storename(domain: str) -> str:
+    def domain_to_storename(cls, domain: str) -> str:
         result = search(r'(https:\/\/)?([^.]+)\.myshopify\.com[\/]?', domain)
         if result:
             return result.group(2)
@@ -159,7 +179,7 @@ class Store(BaseModel):
         """
         Makes a request to the REST endpoint using an online token for the store.
         """
-        self.__execute_rest(
+        return await self.__execute_rest(
             goodstatus, debug, endpoint, self.online_access_tokens[token], **kwargs
         )
 
@@ -167,7 +187,9 @@ class Store(BaseModel):
         """
         Makes a request to the REST endpoint using the offline token for the store.
         """
-        self.__execute_rest(goodstatus, debug, endpoint, self.offline_access_token, **kwargs)
+        return await self.__execute_rest(
+            goodstatus, debug, endpoint, self.offline_access_token, **kwargs
+        )
 
     @retry(
         reraise=True,
@@ -186,7 +208,7 @@ class Store(BaseModel):
             response = await self.client.request(**kwargs)
             if response.status_code == 429:
                 # We hit the limit, we are out of tokens
-                self.tokens = 0
+                self.rest_bucket = 0
                 continue
             elif 400 <= response.status_code or response.status_code != goodstatus:
                 # All errors are handled here
@@ -195,10 +217,10 @@ class Store(BaseModel):
                 jresp = response.json()
                 # Recalculate the rate to be sure we have the right one.
                 calllimit = response.headers['X-Shopify-Shop-Api-Call-Limit']
-                self.max_tokens = int(calllimit.split('/')[1])
+                self.max_rest_bucket = int(calllimit.split('/')[1])
                 # In Shopify the bucket is emptied after 20 seconds
                 # regardless of the bucket size.
-                self.rate = int(self.max_tokens / 20)
+                self.rest_refill_rate = int(self.max_rest_bucket / 20)
 
             return jresp
 
@@ -213,7 +235,7 @@ class Store(BaseModel):
         """
         Makes a request to the GQL endpoint using an online token for the store.
         """
-        self.__execute_gql(
+        return await self.__execute_gql(
             self.online_access_tokens[access_token].access_token,
             query,
             variables,
@@ -231,7 +253,7 @@ class Store(BaseModel):
         """
         Makes a request to the GQL endpoint using the offline token for the store.
         """
-        self.__execute_gql(
+        return await self.__execute_gql(
             self.offline_access_token.access_token,
             query,
             variables,

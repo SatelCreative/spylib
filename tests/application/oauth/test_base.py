@@ -1,17 +1,16 @@
 from spylib.store import Store
 from spylib.application import ShopifyApplication
-from typing import Dict, List, Tuple
 from unittest.mock import AsyncMock
 from urllib.parse import ParseResult, parse_qs, urlencode, urlparse
 
 import pytest
-from fastapi import FastAPI
-from fastapi.testclient import TestClient
 from pydantic.dataclasses import dataclass
 from requests import Response
 
 from spylib.token import OfflineTokenResponse, OnlineTokenResponse
 from spylib.utils import hmac, now_epoch
+
+from .shared import initialize_store
 
 
 @dataclass
@@ -68,45 +67,6 @@ def check_oauth_redirect_query(
     return state
 
 
-def initialize_store() -> Tuple[ShopifyApplication, FastAPI, TestClient]:
-    tokens: Dict[str, str] = {}
-
-    # These are the methods passed into the store to save the tokens
-    def save_token(self, store_name: str, key: str):
-        tokens[store_name] = key
-
-    def load_token(self, store_name: str):
-        return tokens[store_name]
-
-    # Create a store that we will be accessing
-    store = Store(
-        store_name='test-store',
-        save_token=save_token,
-        load_token=load_token,
-    )
-
-    # Generate our application which includes the store
-    shopify_app = ShopifyApplication(
-        app_domain='test.testing.com',
-        shopify_handle='test.myshopify.com',
-        app_scopes=['write_products', 'read_customers'],
-        client_id='test.testing.com',
-        client_secret='TESTPRIVATEKEY',
-        stores=[store],
-    )
-
-    # Generating the fastAPI routes, and the client for testing
-    app = FastAPI()
-
-    oauth_router = shopify_app.generate_oauth_routes()
-
-    app.include_router(oauth_router)
-
-    client = TestClient(app)
-
-    return (shopify_app, app, client)
-
-
 @pytest.mark.asyncio
 async def test_oauth(mocker):
     """
@@ -124,7 +84,7 @@ async def test_oauth(mocker):
         access_token='ONLINETOKEN',
         scope=','.join(shopify_app.app_scopes),
         expires_in=86399,
-        associated_user_scope=','.join(shopify_app.user_scopes),
+        associated_user_scope=','.join(shopify_app.app_scopes),
         associated_user={
             "id": 902541635,
             "first_name": "John",
@@ -161,10 +121,10 @@ async def test_oauth(mocker):
     )
 
     query = check_oauth_redirect_url(
+        shopify_app=shopify_app,
         response=response,
         client=client,
         path='/admin/oauth/authorize',
-        scope=shopify_app.app_scopes,
     )
     state = check_oauth_redirect_query(
         query=query,
@@ -191,10 +151,10 @@ async def test_oauth(mocker):
 
     response = client.get('/callback', params=query_str, allow_redirects=False)
     query = check_oauth_redirect_url(
+        shopify_app=shopify_app,
         response=response,
         client=client,
         path='/admin/oauth/authorize',
-        scope=shopify_app.user_scopes,
     )
     state = check_oauth_redirect_query(
         query=query,
@@ -233,10 +193,10 @@ async def test_oauth(mocker):
 
     response = client.get('/callback', params=query_str, allow_redirects=False)
     state = check_oauth_redirect_url(
+        shopify_app=shopify_app,
         response=response,
         client=client,
         path=f'/admin/apps/{shopify_app.shopify_handle}',
-        scope=shopify_app.user_scopes,
     )
 
     assert await shopify_request_mock.called_with(

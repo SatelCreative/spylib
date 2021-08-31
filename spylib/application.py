@@ -5,7 +5,7 @@ from .oauth import Auth, init_oauth_router
 from fastapi.routing import APIRouter
 
 
-class ShopifyApplication(BaseModel):
+class ShopifyApplication:
     """
     This class contains the logic for an app. This includes the oauth authentication
     along with the set of stores that are registered for the application.
@@ -18,8 +18,8 @@ class ShopifyApplication(BaseModel):
         client_id: str,
         client_secret: str,
         shopify_handle: str,
-        post_install: Optional[Callable],
-        post_login: Optional[Callable],
+        post_install: Optional[Callable] = None,
+        post_login: Optional[Callable] = None,
         user_scopes: Optional[List[str]] = None,
         install_init_path: Optional[str] = '/callback',
         callback_path: Optional[str] = '/shopify/auth',
@@ -68,6 +68,7 @@ class ShopifyApplication(BaseModel):
 
         for store in stores:
             if store.store_name not in self.stores:
+                store.scopes = self.app_scopes
                 self.stores[store.store_name] = store
 
     def get_store(self, name: str) -> Optional[Store]:

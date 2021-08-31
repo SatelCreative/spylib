@@ -48,7 +48,7 @@ class OnlineTokenResponse(BaseModel):
     associated_user: AssociatedUser
 
 
-class Token(BaseModel, ABC):
+class Token(ABC):
     """
     Abstract class for token objects. This should never be extended, as you
     should either be using the OfflineToken or the OnlineToken.

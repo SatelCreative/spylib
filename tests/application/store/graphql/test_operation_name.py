@@ -60,7 +60,8 @@ async def test_store_graphql_operation_name_happypath(
 
     This checks just the successful queries.
     '''
-    store = Store(store_name='test-store', access_token='Te5tM3')
+    store = Store(store_name='test-store')
+    store.add_offline_token(token='Te5tM3')
 
     gql_response = {
         'extensions': {
@@ -126,7 +127,8 @@ async def test_store_graphql_operation_name_badquery(query, operation_name, erro
     This tests the error cases.
 
     """
-    store = Store(store_name='test-store', access_token='Te5tM3')
+    store = Store(store_name='test-store')
+    store.add_offline_token(token='Te5tM3')
 
     gql_response = {
         'extensions': {

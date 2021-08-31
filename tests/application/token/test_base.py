@@ -11,13 +11,13 @@ async def test_online_happypath():
     """
 
     # We first save the token
-    Store.save_online_token(store_name='test-store', key='123')
+    store = Store(store_name='test-store')
+    await store.add_online_token(token='123', associated_user=1, expires_in=10000)
 
-    store = Store.load(store_name='test-store', staff_id=1)
-
-    assert store.staff_id == 1
     assert store.store_name == 'test-store'
-    assert store.access_token == '123'
+    assert 1 in store.online_access_tokens
+    assert store.online_access_tokens[1].access_token == "123"
+    assert store.online_access_tokens[1].associated_user == 1
 
 
 @pytest.mark.asyncio
@@ -27,10 +27,8 @@ async def test_offline_happypath():
     information for an offline token.
     """
     # We first save the token
-    Store.save_offline_token(store_name='test-store', key='123')
-
-    store = Store.load(store_name='test-store')
+    store = Store(store_name='test-store')
+    await store.add_offline_token(token='123')
 
     assert store.store_name == 'test-store'
-    assert store.access_token == '123'
-    assert not hasattr(store, 'staff_id')
+    assert store.offline_access_token.access_token == "123"
