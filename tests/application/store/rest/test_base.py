@@ -12,7 +12,7 @@ from spylib.store import Store
 @pytest.mark.asyncio
 async def test_store_rest_happypath(mocker):
     store = Store(store_name='test-store')
-    store.add_offline_token(token='Te5tM3')
+    await store.add_offline_token(token='Te5tM3')
 
     shopify_request_mock = mocker.patch(
         'httpx.AsyncClient.request',
@@ -35,7 +35,7 @@ async def test_store_rest_happypath(mocker):
 @pytest.mark.asyncio
 async def test_store_rest_badrequest(mocker):
     store = Store(store_name='test-store')
-    store.add_offline_token(token='Te5tM3')
+    await store.add_offline_token(token='Te5tM3')
 
     shopify_request_mock = mocker.patch(
         'httpx.AsyncClient.request',
@@ -70,7 +70,7 @@ params = [
 @pytest.mark.asyncio
 async def test_store_rest_ratetokens(init_tokens, time_passed, expected_tokens, mocker):
     store = Store(store_name='test-store')
-    store.add_offline_token(token='Te5tM3')
+    await store.add_offline_token(token='Te5tM3')
 
     # Simulate that there is only 2 calls available before hitting the rate limit.
     # If we set this to zero, then the code will wait 1 sec which is not great to keep the tests
