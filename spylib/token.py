@@ -5,7 +5,6 @@ from typing import Callable, List, Optional
 from loguru import logger
 
 from pydantic import BaseModel
-from pydantic import validator
 
 from httpx import AsyncClient
 
@@ -65,7 +64,7 @@ class Token(ABC):
 
         self.access_token_invalid = False
         self.store_name = store_name
-        self.url = f'https://{store_name}.shopify.com/admin/oauth/access_token'
+        self.url = f'https://{store_name}/admin/oauth/access_token'
         self.scope = scope
         self.access_token = access_token
 

@@ -118,14 +118,14 @@ class ShopifyApplication:
         """
         return init_oauth_router(self)
 
-    async def post_install(self, token: OfflineToken):
+    def post_install(self, token: OfflineToken):
         """
         This is a function that is called after the installation of the app on a store
         This by default just runs and stores the token in the store.
         """
         self.stores[token.store_name].offline_access_token = token
 
-    async def post_login(self, token: OnlineToken):
+    def post_login(self, token: OnlineToken):
         """
         This is a function that is called after the login of a user in the app.
         This by default just runs and stores the token in the store.
@@ -277,8 +277,8 @@ def init_oauth_router(app: ShopifyApplication) -> APIRouter:
         # === If installation ===
         # Setup the login obj and redirect to oauth_redirect
         if not oauthjwt.is_login:
+            # Get the offline token from Shopify
             try:
-                # Get the offline token from Shopify
                 offline_token = await OfflineToken.new(
                     store_name=args.shop,
                     scope=app.app_scopes,
@@ -286,10 +286,11 @@ def init_oauth_router(app: ShopifyApplication) -> APIRouter:
                     client_secret=app.client_secret,
                     code=args.code,
                 )
-                await app.post_install(offline_token)
             except Exception as e:
                 logger.exception(f'Could not retrieve offline token for shop {args.shop}')
                 raise HTTPException(status_code=400, detail=str(e))
+
+            app.post_install(offline_token)
 
             if app.post_login is None:
                 return app.app_redirect(store_domain=args.shop, jwtoken=None)
@@ -298,7 +299,7 @@ def init_oauth_router(app: ShopifyApplication) -> APIRouter:
 
         # === If login ===
         # Get the online token from Shopify
-        online_token = await app.OnlineToken.new(domain=args.shop, code=args.code)
+        online_token = await OnlineToken.new(domain=args.shop, code=args.code)
 
         # Await if the provided function is async
         jwtoken = None

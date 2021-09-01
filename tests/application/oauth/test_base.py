@@ -25,7 +25,7 @@ class MockHTTPResponse:
 
 
 def check_oauth_redirect_url(
-    shopify_app: ShopifyApplication,
+    shop_name: str,
     response: Response,
     client,
     path: str,
@@ -37,7 +37,7 @@ def check_oauth_redirect_url(
 
     expected_parsed_url = ParseResult(
         scheme='https',
-        netloc=shopify_app.shopify_handle,
+        netloc=shop_name,
         path=path,
         query=redirect_target.query,  # We check that separately
         params='',
@@ -102,7 +102,7 @@ async def test_initialization_endpoint_missing_shop_argument(mocker):
     """
     Tests the initialization endpoint to be sure we only redirect if we have the app handle
     """
-    shopify_app, app, client = initialize_store()
+    shopify_app, app, client, store_name = initialize_store()
 
     # Missing shop argument
     response = client.get('/shopify/auth')
@@ -125,14 +125,14 @@ async def test_initialization_endpoint_happy_path(mocker):
     Tests to be sure that the initial redirect is working and is going to the right
     location.
     """
-    shopify_app, app, client = initialize_store()
+    shopify_app, app, client, shop_name = initialize_store()
     response = client.get(
         '/shopify/auth',
-        params=dict(shop=shopify_app.shopify_handle),
+        params=dict(shop=shop_name),
         allow_redirects=False,
     )
     query = check_oauth_redirect_url(
-        shopify_app=shopify_app,
+        shop_name=shop_name,
         response=response,
         client=client,
         path='/admin/oauth/authorize',
@@ -145,16 +145,22 @@ async def test_initialization_endpoint_happy_path(mocker):
 
 @pytest.mark.asyncio
 async def test_get_offline_tokens_happy_path(mocker):
-    shopify_app, app, client = initialize_store()
+    """
+    Test to attempt to obtain a token for the user.
+    """
+
+    # Initialize the variables
+    shopify_app, app, client, shop_name = initialize_store()
     offlineTokenData, onlineTokenData = generate_token_data(shopify_app)
 
+    # First we run the redirection, allowing us to get the state
     response = client.get(
         '/shopify/auth',
-        params=dict(shop=shopify_app.shopify_handle),
+        params=dict(shop=shop_name),
         allow_redirects=False,
     )
     query = check_oauth_redirect_url(
-        shopify_app=shopify_app,
+        shop_name=shop_name,
         response=response,
         client=client,
         path='/admin/oauth/authorize',
@@ -164,15 +170,17 @@ async def test_get_offline_tokens_happy_path(mocker):
         query=query,
     )
 
+    # This sets up a fake endpoint for the online and offline tokens
     shopify_request_mock = mocker.patch('httpx.AsyncClient.request', new_callable=AsyncMock)
     shopify_request_mock.side_effect = [
         MockHTTPResponse(status_code=200, jsondata=offlineTokenData),
         MockHTTPResponse(status_code=200, jsondata=onlineTokenData),
     ]
 
+    #
     query_str = urlencode(
         dict(
-            shop=shopify_app.shopify_handle,
+            shop=shop_name,
             state=state,
             timestamp=now_epoch(),
             code='INSTALLCODE',
@@ -183,7 +191,7 @@ async def test_get_offline_tokens_happy_path(mocker):
 
     response = client.get('/callback', params=query_str, allow_redirects=False)
     query = check_oauth_redirect_url(
-        shopify_app=shopify_app,
+        shop_name=shop_name,
         response=response,
         client=client,
         path='/admin/oauth/authorize',
@@ -196,9 +204,9 @@ async def test_get_offline_tokens_happy_path(mocker):
 
     assert await shopify_request_mock.called_with(
         method='post',
-        url=f'https://{shopify_app.shopify_handle}/admin/oauth/access_token',
+        url=f'https://{shop_name}/admin/oauth/access_token',
         json={
-            'client_id': shopify_app.shopify_handle,
+            'client_id': shopify_app.client_id,
             'client_secret': shopify_app.client_secret,
             'code': 'INSTALLCODE',
         },
@@ -207,7 +215,7 @@ async def test_get_offline_tokens_happy_path(mocker):
     shopify_app.post_install.assert_called_once()
     shopify_app.post_install.assert_called_with(
         shopify_app,
-        shopify_app.stores['test-store'].offline_access_token,
+        shopify_app.stores[shop_name].offline_access_token,
     )
 
 
