@@ -91,7 +91,7 @@ class Token(ABC):
         token = cls(
             store_name,
             scope,
-            None,
+            client_id,
             save_token,
             load_token,
         )
@@ -122,7 +122,9 @@ class Token(ABC):
         """
         pass
 
-    async def _get_token(self, client_id: str, client_secret: str, code: str) -> dict:
+    async def _get_token(
+        self, client_id: str, client_secret: str, authorization_code: str
+    ) -> dict:
         """
         Makes a request to the access_token endpoint using the API key,
         client secret, store_name, and the code.
@@ -133,7 +135,7 @@ class Token(ABC):
         jsondata = {
             'client_id': client_id,
             'client_secret': client_secret,
-            'code': code,
+            'code': authorization_code,
         }
 
         response = await httpclient.request(
@@ -171,8 +173,15 @@ class OfflineToken(Token):
     Offline tokens are used for long term access, and do not have a set expiry.
     """
 
-    def __init__(self, *args) -> None:
-        super().__init__(*args)
+    def __init__(
+        self,
+        store_name: str,
+        scope: List[str],
+        client_id: str,
+        save_token: Optional[Callable] = None,
+        load_token: Optional[Callable] = None,
+    ) -> None:
+        super().__init__(store_name, scope, client_id, save_token, load_token)
 
     async def set_token(self, client_id: str, client_secret: str, code: str):
 
@@ -188,10 +197,21 @@ class OnlineToken(Token):
     in a user, its scope and an expiry time.
     """
 
-    def __init__(self, associated_user: AssociatedUser, expires_in: int, *args) -> None:
-        super().__init__(*args)
+    def __init__(
+        self,
+        store_name: str,
+        scope: List[str],
+        client_id: str,
+        associated_user: Optional[AssociatedUser] = None,
+        expires_in: Optional[int] = None,
+        save_token: Optional[Callable] = None,
+        load_token: Optional[Callable] = None,
+    ) -> None:
+        super().__init__(store_name, scope, client_id, save_token, load_token)
+
         self.associated_user: AssociatedUser = associated_user
-        self.expires_at: int = datetime.now() + timedelta(days=0, seconds=expires_in)
+        if expires_in:
+            self.expires_at: int = datetime.now() + timedelta(days=0, seconds=expires_in)
 
     async def update_token(self):
         """
@@ -203,8 +223,8 @@ class OnlineToken(Token):
     async def set_token(self, client_id: str, client_secret: str, code: str):
 
         token: OnlineTokenResponse = await self._get_token(client_id, client_secret, code)
-        self.access_token = token.access_token
-        self.scope = token.scope
-        self.associated_user: AssociatedUser = token.associated_user
-        self.associated_user_scope = token.associated_user_scope
-        self.expires_at = datetime.now() + timedelta(days=0, seconds=token.expires_in)
+        self.access_token = token['access_token']
+        self.scope = token['scope']
+        self.associated_user: AssociatedUser = token['associated_user']
+        self.associated_user_scope = token['associated_user_scope']
+        self.expires_at = datetime.now() + timedelta(days=0, seconds=token['expires_in'])

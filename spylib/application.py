@@ -130,21 +130,21 @@ class ShopifyApplication:
         This is a function that is called after the login of a user in the app.
         This by default just runs and stores the token in the store.
         """
-        self.stores[token.store_name].online_access_tokens[token.associated_user] = token
+        self.stores[token.store_name].online_access_tokens[token.associated_user.id] = token
 
     def oauth_init_url(self, store_domain: str, is_login: bool) -> str:
         """
         Create the URL and the parameters needed to start the oauth process to
         install an app or to log a user in.
 
-        Parameters
-        ----------
-        store_domain: The domain of the requesting store.
-        is_login: Specify if the oauth is to install the app or a user logging in
+        Parameters:
 
-        Returns
-        -------
-        string: Redirect URL to trigger the oauth process
+        - `store_domain`: The domain of the requesting store.
+        - `is_login`: Specify if the oauth is to install the app or a user logging in
+
+        Returns:
+
+        - `string`: Redirect URL to trigger the oauth process
         """
 
         # Gets the scopes for the application in string format
@@ -167,7 +167,11 @@ class ShopifyApplication:
         )
 
     def app_redirect(self, jwtoken: Optional[JWTBaseModel], store_domain: str) -> RedirectResponse:
-        """ """
+        """
+        Redirects the app based on the type of request. If we are using the offline
+        token, the app is constantly auth'ed until it is revoked. If it is Online
+        then we encode and send the JWT token along.
+        """
         if jwtoken is None:
             return RedirectResponse(f'https://{store_domain}/admin/apps/{self.shopify_handle}')
 
@@ -231,15 +235,8 @@ class ShopifyApplication:
 
 def init_oauth_router(app: ShopifyApplication) -> APIRouter:
     """
-    This generates the routing functions for the Shopify OAuth endpoint. I wanted
-    this to be a method within the auth class, but this causes a number of problems.
-    So it is easier to just pass in an instance of the Auth class, which would have
-    all of the related functions.
-
-    This could also be reformed to take in the Store class later on if there is
-    no need to separate the Authentication process and the Application, as this
-    largely takes in parameters for the application.
-
+    This generates the routing functions for the Shopify OAuth endpoint. This
+    can then be bound to the FastAPI object.
     """
     router = APIRouter()
 
@@ -260,7 +257,11 @@ def init_oauth_router(app: ShopifyApplication) -> APIRouter:
 
     @router.get(app.callback_path, include_in_schema=False)
     async def shopify_callback(request: Request, args: Callback = Depends(Callback)):
-        """REST endpoint called by Shopify during the OAuth process for installation and login"""
+        """
+        REST endpoint called by Shopify during the OAuth process for installation
+        and login
+        """
+        # Checks the validity of the token
         try:
             app.validate_callback(
                 shop=args.shop,
@@ -274,10 +275,9 @@ def init_oauth_router(app: ShopifyApplication) -> APIRouter:
         except Exception as e:
             raise HTTPException(status_code=400, detail=f'Validation failed: {e}')
 
-        # === If installation ===
-        # Setup the login obj and redirect to oauth_redirect
+        # If we are generating an offline token
         if not oauthjwt.is_login:
-            # Get the offline token from Shopify
+            # Generate a new offline token, which is stored in the apps store
             try:
                 offline_token = await OfflineToken.new(
                     store_name=args.shop,
@@ -290,16 +290,24 @@ def init_oauth_router(app: ShopifyApplication) -> APIRouter:
                 logger.exception(f'Could not retrieve offline token for shop {args.shop}')
                 raise HTTPException(status_code=400, detail=str(e))
 
-            app.post_install(offline_token)
+            # We then call the callback on the offline token
+            result = app.post_install(offline_token)
+            if isawaitable(result):
+                await result
 
             if app.post_login is None:
                 return app.app_redirect(store_domain=args.shop, jwtoken=None)
-            # Initiate the oauth loop for login
+
             return RedirectResponse(app.oauth_init_url(args.shop, is_login=True))
 
-        # === If login ===
-        # Get the online token from Shopify
-        online_token = await OnlineToken.new(domain=args.shop, code=args.code)
+        # Else we are generating an online token
+        online_token = await OnlineToken.new(
+            store_name=args.shop,
+            scope=app.app_scopes,
+            client_id=app.client_id,
+            client_secret=app.client_secret,
+            code=args.code,
+        )
 
         # Await if the provided function is async
         jwtoken = None

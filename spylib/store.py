@@ -107,13 +107,13 @@ class Store:
         token per user that is valid.
         """
         self.online_access_tokens[associated_user] = OnlineToken(
-            associated_user,
-            expires_in,
-            self.store_name,
-            self.scopes,
-            token,
-            self.save_token,
-            self.load_token,
+            associated_user=associated_user,
+            expires_in=expires_in,
+            store_name=self.store_name,
+            scopes=self.scopes,
+            access_token=token,
+            save_token=self.save_token,
+            load_token=self.load_token,
         )
 
     async def __wait_for_token(self):

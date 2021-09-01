@@ -1,14 +1,14 @@
-from unittest.mock import AsyncMock, MagicMock
 from spylib.store import Store
 from spylib.application import ShopifyApplication
-from typing import Dict, Tuple
+from typing import Callable, Dict, Optional, Tuple
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
-from spylib.utils import JWTBaseModel
-from spylib.token import OfflineToken
 
 
-def initialize_store() -> Tuple[ShopifyApplication, FastAPI, TestClient]:
+def initialize_store(
+    post_install: Optional[Callable] = None,
+    post_login: Optional[Callable] = None,
+) -> Tuple[ShopifyApplication, FastAPI, TestClient]:
     tokens: Dict[str, str] = {}
 
     # These are the methods passed into the store to save the tokens
@@ -33,8 +33,10 @@ def initialize_store() -> Tuple[ShopifyApplication, FastAPI, TestClient]:
         app_domain='test.testing.com',
         shopify_handle='HANDLE',
         app_scopes=['write_products', 'read_customers'],
-        client_id='TESTCLIENTID',
+        client_id='API_KEY',
         client_secret='TESTPRIVATEKEY',
+        post_install=post_install,
+        post_login=post_login,
         stores=[store],
     )
 
