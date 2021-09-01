@@ -2,15 +2,14 @@ from abc import ABC, abstractmethod
 from datetime import datetime, timedelta
 from types import MethodType
 from typing import Callable, List, Optional
-from loguru import logger
-
-from pydantic import BaseModel
 
 from httpx import AsyncClient
+from loguru import logger
+from pydantic import BaseModel
 
 
 class HTTPClient(AsyncClient):
-    __instance: AsyncClient = None
+    __instance: Optional[AsyncClient] = None
 
     def __new__(cls):
         if HTTPClient.__instance is None:
@@ -69,9 +68,9 @@ class Token(ABC):
         self.access_token = access_token
 
         if load_token:
-            self.load_token = MethodType(load_token, self)
+            self.load_token: MethodType = MethodType(load_token, self)
         if save_token:
-            self.save_token = MethodType(save_token, self)
+            self.save_token: MethodType = MethodType(save_token, self)
 
     @classmethod
     async def new(
@@ -185,9 +184,11 @@ class OfflineToken(Token):
 
     async def set_token(self, client_id: str, client_secret: str, code: str):
 
-        token: OfflineTokenResponse = await self._get_token(client_id, client_secret, code)
-        self.access_token = token['access_token']
-        self.scope = token['scope']
+        token: OfflineTokenResponse = OfflineTokenResponse(
+            **await self._get_token(client_id, client_secret, code)
+        )
+        self.access_token = token.access_token
+        self.scope = token.scope.split(',')
 
 
 class OnlineToken(Token):
@@ -209,9 +210,9 @@ class OnlineToken(Token):
     ) -> None:
         super().__init__(store_name, scope, access_token, save_token, load_token)
 
-        self.associated_user: AssociatedUser = associated_user
+        self.associated_user = associated_user
         if expires_in:
-            self.expires_at: int = datetime.now() + timedelta(days=0, seconds=expires_in)
+            self.expires_at = datetime.now() + timedelta(days=0, seconds=expires_in)
 
     async def update_token(self):
         """
@@ -222,9 +223,11 @@ class OnlineToken(Token):
 
     async def set_token(self, client_id: str, client_secret: str, code: str):
 
-        token: OnlineTokenResponse = await self._get_token(client_id, client_secret, code)
-        self.access_token = token['access_token']
-        self.scope = token['scope']
-        self.associated_user: AssociatedUser = token['associated_user']
-        self.associated_user_scope = token['associated_user_scope']
-        self.expires_at = datetime.now() + timedelta(days=0, seconds=token['expires_in'])
+        token: OnlineTokenResponse = OnlineTokenResponse(
+            **await self._get_token(client_id, client_secret, code)
+        )
+        self.access_token = token.access_token
+        self.scope = token.scope.split(',')
+        self.associated_user = token.associated_user
+        self.associated_user_scope = token.associated_user_scope.split(',')
+        self.expires_at = datetime.now() + timedelta(days=0, seconds=token.expires_in)

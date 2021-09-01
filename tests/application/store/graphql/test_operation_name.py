@@ -3,10 +3,9 @@ from unittest.mock import AsyncMock
 import pytest
 
 from spylib.exceptions import ShopifyCallInvalidError
-
-from ..shared import MockHTTPResponse
 from spylib.store import Store
 
+from ..shared import MockHTTPResponse
 
 graphql_operation_name_query = '''
     query query1 {

@@ -1,14 +1,13 @@
 from typing import Tuple
-from spylib.store import Store
-from spylib.application import ShopifyApplication
-from unittest.mock import AsyncMock, patch
+from unittest.mock import AsyncMock
 from urllib.parse import ParseResult, parse_qs, urlencode, urlparse
 
 import pytest
 from pydantic.dataclasses import dataclass
 from requests import Response
 
-from spylib.token import OfflineToken, OfflineTokenResponse, OnlineToken, OnlineTokenResponse
+from spylib.application import ShopifyApplication
+from spylib.token import OfflineTokenResponse, OnlineToken, OnlineTokenResponse
 from spylib.utils import hmac, now_epoch
 
 from .shared import initialize_store
@@ -98,7 +97,8 @@ def generate_token_data(
 
 
 def post_login(self: ShopifyApplication, token: OnlineToken):
-    self.stores[token.store_name].online_access_tokens[token.associated_user.id] = token
+    if token.associated_user:
+        self.stores[token.store_name].online_access_tokens[token.associated_user.id] = token
 
 
 @pytest.mark.asyncio

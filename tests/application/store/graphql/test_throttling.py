@@ -3,9 +3,9 @@ from unittest.mock import AsyncMock
 import pytest
 
 from spylib.exceptions import ShopifyExceedingMaxCostError
+from spylib.store import Store
 
 from ..shared import MockHTTPResponse
-from spylib.store import Store
 
 graphql_throttling_queries = [
     """    {

@@ -1,21 +1,20 @@
 from copy import deepcopy
 from dataclasses import dataclass
-from urllib.parse import parse_qsl
-from starlette.responses import RedirectResponse
-from spylib.token import OfflineToken, OnlineToken, Token
-from types import MethodType
-from spylib.store import Store
-from typing import Any, Callable, List, Optional, Tuple
-from fastapi import APIRouter, Depends, HTTPException, Query
 from inspect import isawaitable
 from operator import itemgetter
+from types import MethodType
+from typing import Any, Callable, List, Optional, Tuple
+from urllib.parse import parse_qsl
 
+from fastapi import APIRouter, Depends, HTTPException, Query
 from loguru import logger
 from starlette.requests import Request
+from starlette.responses import RedirectResponse
 
+from spylib.store import Store
+from spylib.token import OfflineToken, OnlineToken
 
-from .utils import get_unique_id, now_epoch
-from .utils import JWTBaseModel
+from .utils import JWTBaseModel, get_unique_id, now_epoch
 from .utils.hmac import validate as validate_hmac
 
 
@@ -54,9 +53,9 @@ class ShopifyApplication:
         post_install: Optional[Callable] = None,
         post_login: Optional[Callable] = None,
         user_scopes: Optional[List[str]] = None,
-        install_init_path: Optional[str] = '/shopify/auth',
-        callback_path: Optional[str] = '/callback',
-        stores: Optional[Store] = [],
+        install_init_path: str = '/shopify/auth',
+        callback_path: str = '/callback',
+        stores: List[Store] = [],
     ) -> None:
         """
         - `app_domain` - This is the domain of the app where the application is hosted
@@ -64,11 +63,14 @@ class ShopifyApplication:
         - `client_id` - This is the identifier for the application used in OAuth flow
             also occasionally refereed to as the api_key
         - `client_secret` - This is the secret for the application used in OAuth flow
-        - `shopify_handle` -
+        - `shopify_handle` - Name of the app on shopify, this is where it is accessed in admin
         - `post_install` - This is a function that gets called after the app is installed
         - `post_login` - This is a function that gets called after a user logs into the app
-        - `callback_path` - This is the location of the calback endpoint for OAuth
+        - `user_scopes` - Scopes for the users if not the same as the application scopes
         - `install_init_path` - This is the location of the initial request to trigger OAuth
+        - `callback_path` - This is the location of the calback endpoint for OAuth
+        - `stores` - This is an array of all of the stores that will be initialized in this
+            application
         """
 
         # Assign all constants for the application
@@ -83,11 +85,11 @@ class ShopifyApplication:
 
         # Binds the functions to the instance of the object
         if post_install:
-            self.post_install = MethodType(post_install, self)
+            self.post_install: Optional[MethodType] = MethodType(post_install, self)
 
         # We don't redirect if the person is logged in
         if post_login:
-            self.post_login = MethodType(post_login, self)
+            self.post_login: Optional[MethodType] = MethodType(post_login, self)
         else:
             self.post_login = None
 
@@ -99,7 +101,7 @@ class ShopifyApplication:
                 store.scopes = self.app_scopes
                 self.stores[store.store_name] = store
 
-    def get_store(self, name: str) -> Optional[Store]:
+    def get_store(self, name: str) -> Store:
         if name not in self.stores:
             raise ValueError(f"Store {name} does not exist. Is it spelled properly?")
         return self.stores[name]
@@ -124,13 +126,6 @@ class ShopifyApplication:
         This by default just runs and stores the token in the store.
         """
         self.stores[token.store_name].offline_access_token = token
-
-    def post_login(self, token: OnlineToken):
-        """
-        This is a function that is called after the login of a user in the app.
-        This by default just runs and stores the token in the store.
-        """
-        self.stores[token.store_name].online_access_tokens[token.associated_user.id] = token
 
     def oauth_init_url(self, store_domain: str, is_login: bool) -> str:
         """
@@ -311,7 +306,8 @@ def init_oauth_router(app: ShopifyApplication) -> APIRouter:
 
         # Await if the provided function is async
         jwtoken = None
-        pl_return = app.post_login(online_token)
+        if app.post_login:
+            pl_return = app.post_login(online_token)
         if isawaitable(pl_return):
             jwtoken = await pl_return  # type: ignore
         else:

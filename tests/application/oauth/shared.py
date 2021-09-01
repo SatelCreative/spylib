@@ -1,14 +1,16 @@
-from spylib.store import Store
-from spylib.application import ShopifyApplication
 from typing import Callable, Dict, Optional, Tuple
+
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
+
+from spylib.application import ShopifyApplication
+from spylib.store import Store
 
 
 def initialize_store(
     post_install: Optional[Callable] = None,
     post_login: Optional[Callable] = None,
-) -> Tuple[ShopifyApplication, FastAPI, TestClient]:
+) -> Tuple[ShopifyApplication, FastAPI, TestClient, str]:
     tokens: Dict[str, str] = {}
 
     # These are the methods passed into the store to save the tokens

@@ -1,7 +1,7 @@
-from spylib.token import AssociatedUser
 import pytest
 
 from spylib.store import Store
+from spylib.token import AssociatedUser
 
 
 @pytest.mark.asyncio

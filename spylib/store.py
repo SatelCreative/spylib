@@ -1,16 +1,16 @@
 from asyncio import sleep
 from math import ceil, floor
+from re import search
 from time import monotonic
 from types import MethodType
+from typing import Any, Callable, Dict, List, Optional
+
 from httpx import AsyncClient, Response
 from loguru import logger
-from re import search
-from pydantic.main import BaseModel
 from tenacity import retry
 from tenacity.retry import retry_if_exception, retry_if_exception_type
 from tenacity.stop import stop_after_attempt
 from tenacity.wait import wait_random
-from typing import Any, Callable, Dict, List, Optional
 
 from .constants import (
     MAX_COST_EXCEEDED_ERROR_CODE,
@@ -25,7 +25,7 @@ from .exceptions import (
     ShopifyThrottledError,
     not_our_fault,
 )
-from .token import AssociatedUser, OnlineToken, OfflineToken
+from .token import AssociatedUser, OfflineToken, OnlineToken
 
 
 class Store:
@@ -37,7 +37,7 @@ class Store:
     def __init__(
         self,
         store_name: str,
-        scopes: Optional[List[str]] = [],
+        scopes: List[str] = [],
         api_version: str = '2021-04',
         max_rest_bucket: int = 80,
         rest_refill_rate: int = 4,
@@ -61,7 +61,7 @@ class Store:
             with self as a parameter.
         """
 
-        self.online_access_tokens: Optional[Dict[str, OnlineToken]] = {}
+        self.online_access_tokens: Dict[int, OnlineToken] = {}
         self.offline_access_token: Optional[OfflineToken] = None
         self.load_token = None
         self.save_token = None
@@ -200,6 +200,13 @@ class Store:
     async def __execute_rest(
         self, goodstatus, debug, endpoint, access_token, **kwargs
     ) -> Dict[str, Any]:
+        if not access_token:
+            raise NameError(
+                (
+                    "Access token has not been defined. Are you sure the"
+                    "token is valid for this store?"
+                )
+            )
         while True:
             await self.__wait_for_token()
             kwargs['url'] = f'{self.api_url}{endpoint}'
@@ -226,7 +233,7 @@ class Store:
 
     async def execute_gql_online(
         self,
-        access_token: str,
+        user_id: int,
         query: str,
         variables: Dict[str, Any] = {},
         operation_name: Optional[str] = None,
@@ -236,11 +243,10 @@ class Store:
         Makes a request to the GQL endpoint using an online token for the store.
         """
         return await self.__execute_gql(
-            self.online_access_tokens[access_token].access_token,
+            self.online_access_tokens[user_id].access_token,
             query,
             variables,
             operation_name,
-            **kwargs,
         )
 
     async def execute_gql_offline(
@@ -248,17 +254,22 @@ class Store:
         query: str,
         variables: Dict[str, Any] = {},
         operation_name: Optional[str] = None,
-        **kwargs,
     ):
         """
         Makes a request to the GQL endpoint using the offline token for the store.
         """
+        if not self.offline_access_token:
+            raise NameError(
+                (
+                    "Access token has not been defined. Are you sure the"
+                    "token is valid for this store?"
+                )
+            )
         return await self.__execute_gql(
             self.offline_access_token.access_token,
             query,
             variables,
             operation_name,
-            **kwargs,
         )
 
     @retry(
@@ -268,12 +279,20 @@ class Store:
     )
     async def __execute_gql(
         self,
-        access_token: str,
+        access_token: Optional[str],
         query: str,
         variables: Dict[str, Any] = {},
         operation_name: Optional[str] = None,
     ) -> Dict[str, Any]:
         """Simple graphql query executor because python has no decent graphql client"""
+
+        if not access_token:
+            raise NameError(
+                (
+                    "Access token has not been defined. Are you sure the"
+                    "token is valid for this store?"
+                )
+            )
 
         url = f'{self.api_url}/graphql.json'
         headers = {

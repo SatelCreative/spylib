@@ -1,10 +1,10 @@
-from spylib.token import OfflineToken
 from unittest.mock import AsyncMock
 
 import pytest
 
-from ..shared import MockHTTPResponse
 from spylib.store import Store
+
+from ..shared import MockHTTPResponse
 
 
 @pytest.mark.asyncio
