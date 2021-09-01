@@ -91,7 +91,7 @@ class Token(ABC):
         token = cls(
             store_name,
             scope,
-            client_id,
+            None,
             save_token,
             load_token,
         )
@@ -177,11 +177,11 @@ class OfflineToken(Token):
         self,
         store_name: str,
         scope: List[str],
-        client_id: str,
+        access_token: Optional[str] = None,
         save_token: Optional[Callable] = None,
         load_token: Optional[Callable] = None,
     ) -> None:
-        super().__init__(store_name, scope, client_id, save_token, load_token)
+        super().__init__(store_name, scope, access_token, save_token, load_token)
 
     async def set_token(self, client_id: str, client_secret: str, code: str):
 
@@ -201,13 +201,13 @@ class OnlineToken(Token):
         self,
         store_name: str,
         scope: List[str],
-        client_id: str,
+        access_token: str,
         associated_user: Optional[AssociatedUser] = None,
         expires_in: Optional[int] = None,
         save_token: Optional[Callable] = None,
         load_token: Optional[Callable] = None,
     ) -> None:
-        super().__init__(store_name, scope, client_id, save_token, load_token)
+        super().__init__(store_name, scope, access_token, save_token, load_token)
 
         self.associated_user: AssociatedUser = associated_user
         if expires_in:

@@ -25,7 +25,7 @@ from .exceptions import (
     ShopifyThrottledError,
     not_our_fault,
 )
-from .token import OnlineToken, OfflineToken
+from .token import AssociatedUser, OnlineToken, OfflineToken
 
 
 class Store:
@@ -100,17 +100,17 @@ class Store:
             self.load_token,
         )
 
-    async def add_online_token(self, token: str, associated_user: str, expires_in: str):
+    async def add_online_token(self, token: str, associated_user: AssociatedUser, expires_in: int):
         """
         Adds an online token to the store. There can be `n` online tokens. A token
         can be retrieved based on an associated user as there should only be one
         token per user that is valid.
         """
-        self.online_access_tokens[associated_user] = OnlineToken(
+        self.online_access_tokens[associated_user.id] = OnlineToken(
+            store_name=self.store_name,
+            scope=self.scopes,
             associated_user=associated_user,
             expires_in=expires_in,
-            store_name=self.store_name,
-            scopes=self.scopes,
             access_token=token,
             save_token=self.save_token,
             load_token=self.load_token,
