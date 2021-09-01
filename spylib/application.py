@@ -85,7 +85,7 @@ class ShopifyApplication:
 
         # Binds the functions to the instance of the object
         if post_install:
-            self.post_install: Optional[MethodType] = MethodType(post_install, self)
+            self.post_install = MethodType(post_install, self)  # type: ignore
 
         # We don't redirect if the person is logged in
         if post_login:

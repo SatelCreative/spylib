@@ -68,9 +68,9 @@ class Token(ABC):
         self.access_token = access_token
 
         if load_token:
-            self.load_token: MethodType = MethodType(load_token, self)
+            self.load_token: MethodType = MethodType(load_token, self)  # type: ignore
         if save_token:
-            self.save_token: MethodType = MethodType(save_token, self)
+            self.save_token: MethodType = MethodType(save_token, self)  # type: ignore
 
     @classmethod
     async def new(
