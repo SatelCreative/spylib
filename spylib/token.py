@@ -8,20 +8,6 @@ from loguru import logger
 from pydantic import BaseModel
 
 
-class HTTPClient(AsyncClient):
-    __instance: Optional[AsyncClient] = None
-
-    def __new__(cls):
-        if HTTPClient.__instance is None:
-            HTTPClient.__instance = AsyncClient()
-        return HTTPClient.__instance
-
-    @classmethod
-    async def close(cls):
-        # graceful shutdown
-        await HTTPClient.__instance.aclose()
-
-
 class AssociatedUser(BaseModel):
     id: int
     first_name: str
@@ -129,7 +115,7 @@ class Token(ABC):
         client secret, store_name, and the code.
         """
 
-        httpclient = HTTPClient()
+        httpclient = AsyncClient()
 
         jsondata = {
             'client_id': client_id,

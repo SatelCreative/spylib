@@ -50,6 +50,7 @@ class Store:
         Creates a new instance of a store. Takes in:
 
         - `store_name` - The name of the store specified by shopify.
+        - `scopes` - The scopes required by the app for this store.
         - `api_version` - The version of the shopify API that the store is using
         - `max_rest_bucket` - This is the max number of rest tokens allowed by the store.
         - `rest_refill_rate` - The rate at which the tokens refill (per second)
@@ -80,6 +81,7 @@ class Store:
         self.max_rest_bucket: int = max_rest_bucket
         self.rest_refill_rate: int = rest_refill_rate
 
+        # Unused right now, but defines the graphql bucket
         self.graphql_bucket = max_graphql_bucket
         self.max_graphql_bucket = max_graphql_bucket
         self.graphql_refill_rate = graphql_refill_rate
@@ -175,12 +177,12 @@ class Store:
 
         raise ValueError(f'{domain} is not a shopify domain')
 
-    async def execute_rest_online(self, goodstatus, debug, endpoint, token, **kwargs):
+    async def execute_rest_online(self, goodstatus, debug, endpoint, user_id, **kwargs):
         """
         Makes a request to the REST endpoint using an online token for the store.
         """
         return await self.__execute_rest(
-            goodstatus, debug, endpoint, self.online_access_tokens[token], **kwargs
+            goodstatus, debug, endpoint, self.online_access_tokens[user_id], **kwargs
         )
 
     async def execute_rest_offline(self, goodstatus, debug, endpoint, **kwargs):

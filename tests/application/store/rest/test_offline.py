@@ -10,7 +10,7 @@ from ..shared import MockHTTPResponse
 
 
 @pytest.mark.asyncio
-async def test_store_rest_happypath(mocker):
+async def test_rest(mocker):
     store = Store(store_name='test-store')
     await store.add_offline_token(token='Te5tM3')
 
@@ -33,7 +33,7 @@ async def test_store_rest_happypath(mocker):
 
 
 @pytest.mark.asyncio
-async def test_store_rest_badrequest(mocker):
+async def test_rest_badrequest(mocker):
     store = Store(store_name='test-store')
     await store.add_offline_token(token='Te5tM3')
 
@@ -68,7 +68,7 @@ params = [
 
 @pytest.mark.parametrize('init_tokens, time_passed, expected_tokens', params)
 @pytest.mark.asyncio
-async def test_store_rest_ratetokens(init_tokens, time_passed, expected_tokens, mocker):
+async def test_rest_ratetokens(init_tokens, time_passed, expected_tokens, mocker):
     store = Store(store_name='test-store')
     await store.add_offline_token(token='Te5tM3')
 
@@ -84,7 +84,10 @@ async def test_store_rest_ratetokens(init_tokens, time_passed, expected_tokens, 
         return_value=MockHTTPResponse(status_code=200, jsondata={'success': True}),
     )
     await store.execute_rest_offline(
-        goodstatus=200, debug='Test failed', endpoint='/test.json', method='get'
+        goodstatus=200,
+        debug='Test failed',
+        endpoint='/test.json',
+        method='get',
     )
 
     shopify_request_mock.assert_called_once()
