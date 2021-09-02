@@ -6,6 +6,7 @@ from typing import Callable, List, Optional
 from httpx import AsyncClient
 from loguru import logger
 from pydantic import BaseModel
+from shortuuid.main import ShortUUID  # type: ignore
 
 
 class AssociatedUser(BaseModel):
@@ -143,6 +144,10 @@ class Token(ABC):
         """Use this function to initialize a new access token for this store"""
         await self.set_token(client_id, client_secret, code)
         self.access_token_invalid = False
+
+    @classmethod
+    def get_unique_id(cls) -> str:
+        return ShortUUID().random(length=10)
 
     def __new__(cls, *args, **kwargs):
         """

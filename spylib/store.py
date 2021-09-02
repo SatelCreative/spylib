@@ -12,20 +12,39 @@ from tenacity.retry import retry_if_exception, retry_if_exception_type
 from tenacity.stop import stop_after_attempt
 from tenacity.wait import wait_random
 
-from .constants import (
-    MAX_COST_EXCEEDED_ERROR_CODE,
-    OPERATION_NAME_REQUIRED_ERROR_MESSAGE,
-    THROTTLED_ERROR_CODE,
-    WRONG_OPERATION_NAME_ERROR_MESSAGE,
-)
 from .exceptions import (
     ShopifyCallInvalidError,
     ShopifyError,
     ShopifyExceedingMaxCostError,
     ShopifyThrottledError,
+    UndefinedTokenError,
     not_our_fault,
 )
 from .token import AssociatedUser, OfflineToken, OnlineToken
+
+
+class GQLErrors:
+    """
+    The following are the text error codes thrown by the GraphQL API. Although
+    some errors throw a code e.g.
+
+        "errors": [
+            {
+                "message": "Throttled",
+                "extensions": {
+                    "code": "THROTTLED"
+                }
+            }
+
+    Not all provide the `code` parameter. Although you could just handle errors
+    based on the message, this becomes very difficult as some of the messages
+    are very long (see the max_cost_exceeded error output, which is ~350 characters)
+    """
+
+    THROTTLED: str = 'THROTTLED'
+    MAX_COST_EXCEEDED: str = 'MAX_COST_EXCEEDED'
+    OPERATION_NAME_REQUIRED: str = 'An operation name is required'
+    WRONG_OPERATION_NAME: str = 'No operation named "{}"'
 
 
 class Store:
@@ -118,6 +137,11 @@ class Store:
             load_token=self.load_token,
         )
 
+    def get_online_token(self, user_id: int):
+        if user_id not in self.online_access_tokens:
+            raise UndefinedTokenError(user_id=user_id)
+        return self.online_access_tokens[user_id]
+
     async def __wait_for_token(self):
         self.__add_new_tokens()
         while self.rest_bucket <= 1:
@@ -181,6 +205,8 @@ class Store:
         """
         Makes a request to the REST endpoint using an online token for the store.
         """
+        if user_id not in self.online_access_tokens:
+            raise UndefinedTokenError
         return await self.__execute_rest(
             goodstatus, debug, endpoint, self.online_access_tokens[user_id], **kwargs
         )
@@ -203,12 +229,7 @@ class Store:
         self, goodstatus, debug, endpoint, access_token, **kwargs
     ) -> Dict[str, Any]:
         if not access_token:
-            raise NameError(
-                (
-                    "Access token has not been defined. Are you sure the"
-                    "token is valid for this store?"
-                )
-            )
+            raise UndefinedTokenError
         while True:
             await self.__wait_for_token()
             kwargs['url'] = f'{self.api_url}{endpoint}'
@@ -244,6 +265,8 @@ class Store:
         """
         Makes a request to the GQL endpoint using an online token for the store.
         """
+        if user_id not in self.online_access_tokens:
+            raise UndefinedTokenError
         return await self.__execute_gql(
             self.online_access_tokens[user_id].access_token,
             query,
@@ -261,12 +284,7 @@ class Store:
         Makes a request to the GQL endpoint using the offline token for the store.
         """
         if not self.offline_access_token:
-            raise NameError(
-                (
-                    "Access token has not been defined. Are you sure the"
-                    "token is valid for this store?"
-                )
-            )
+            raise UndefinedTokenError
         return await self.__execute_gql(
             self.offline_access_token.access_token,
             query,
@@ -289,12 +307,7 @@ class Store:
         """Simple graphql query executor because python has no decent graphql client"""
 
         if not access_token:
-            raise NameError(
-                (
-                    "Access token has not been defined. Are you sure the"
-                    "token is valid for this store?"
-                )
-            )
+            raise UndefinedTokenError
 
         url = f'{self.api_url}/graphql.json'
         headers = {
@@ -329,27 +342,27 @@ class Store:
                     if 'extensions' in err and 'code' in err['extensions']
                 ]
             )
-            if MAX_COST_EXCEEDED_ERROR_CODE in error_code_list:
+            if GQLErrors.MAX_COST_EXCEEDED in error_code_list:
                 raise ShopifyExceedingMaxCostError(
                     f'Store {self.store_name}: This query was rejected by the Shopify'
                     f' API, and will never run as written, as the query cost'
                     f' is larger than the max possible query size (>{self.max_graphql_bucket})'
                     ' for Shopify.'
                 )
-            elif THROTTLED_ERROR_CODE in error_code_list:  # This should be the last condition
+            elif GQLErrors.THROTTLED in error_code_list:  # This should be the last condition
                 query_cost = jsondata['extensions']['cost']['requestedQueryCost']
                 available = jsondata['extensions']['cost']['throttleStatus']['currentlyAvailable']
                 rate = jsondata['extensions']['cost']['throttleStatus']["restoreRate"]
                 sleep_time = ceil((query_cost - available) / rate)
                 await sleep(sleep_time)
                 raise ShopifyThrottledError
-            elif OPERATION_NAME_REQUIRED_ERROR_MESSAGE in errorlist:
+            elif GQLErrors.OPERATION_NAME_REQUIRED in errorlist:
                 raise ShopifyCallInvalidError(
                     f'Store {self.store_name}: Operation name was required for this query.'
                     'This likely means you have multiple queries within one call '
                     'and you must specify which to run.'
                 )
-            elif WRONG_OPERATION_NAME_ERROR_MESSAGE.format(operation_name) in errorlist:
+            elif GQLErrors.WRONG_OPERATION_NAME.format(operation_name) in errorlist:
                 raise ShopifyCallInvalidError(
                     f'Store {self.store_name}: Operation name {operation_name}'
                     'does not exist in the query.'

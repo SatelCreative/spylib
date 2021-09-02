@@ -11,11 +11,12 @@ from loguru import logger
 from starlette.requests import Request
 from starlette.responses import RedirectResponse
 
+from spylib.exceptions import UndefinedStoreError
 from spylib.store import Store
-from spylib.token import OfflineToken, OnlineToken
+from spylib.token import OfflineToken, OnlineToken, Token
 
-from .utils import JWTBaseModel, get_unique_id, now_epoch
 from .utils.hmac import validate as validate_hmac
+from .utils.JWT import JWT
 
 
 @dataclass
@@ -27,10 +28,7 @@ class Callback:
     shop: str = Query(...)
 
 
-class OAuthJWT(JWTBaseModel):
-    """
-    OAuth JWT token. Contains
-    """
+class OAuthJWT(JWT):
 
     is_login: bool
     storename: str
@@ -103,16 +101,13 @@ class ShopifyApplication:
 
     def get_store(self, name: str) -> Store:
         if name not in self.stores:
-            raise ValueError(f"Store {name} does not exist. Is it spelled properly?")
+            raise UndefinedStoreError(store=name)
         return self.stores[name]
 
     def remove_store(self, name: str) -> None:
         if name not in self.stores:
-            raise ValueError(f"Store {name} does not exist. Is it spelled properly?")
+            raise UndefinedStoreError(store=name)
         del self.stores[name]
-
-    def get_all_stores(self) -> dict:
-        return self.stores
 
     def generate_oauth_routes(self) -> APIRouter:
         """
@@ -150,7 +145,7 @@ class ShopifyApplication:
         oauthjwt = OAuthJWT(
             is_login=is_login,
             storename=Store.domain_to_storename(store_domain),
-            nonce=get_unique_id(),
+            nonce=Token.get_unique_id(),
         )
         oauth_token = oauthjwt.encode_token(key=self.client_secret)
         access_mode = 'per-user' if is_login else ''
@@ -161,7 +156,7 @@ class ShopifyApplication:
             f'grant_options[]={access_mode}'
         )
 
-    def app_redirect(self, jwtoken: Optional[JWTBaseModel], store_domain: str) -> RedirectResponse:
+    def app_redirect(self, jwtoken: Optional[JWT], store_domain: str) -> RedirectResponse:
         """
         Redirects the app based on the type of request. If we are using the offline
         token, the app is constantly auth'ed until it is revoked. If it is Online
@@ -202,7 +197,7 @@ class ShopifyApplication:
         Store.domain_to_storename(shop)
 
         # 2) Check the timestamp. Must not be more than 5min old
-        if now_epoch() - timestamp > 300:
+        if JWT.now_epoch() - timestamp > 300:
             raise ValueError('Timestamp is too old')
 
         # 3) Check the hmac

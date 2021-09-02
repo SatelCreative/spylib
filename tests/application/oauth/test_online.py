@@ -3,7 +3,8 @@ from urllib.parse import urlencode
 
 import pytest
 
-from spylib.utils import hmac, now_epoch
+from spylib.utils import hmac
+from spylib.utils.JWT import JWT
 
 from ..shared import MockHTTPResponse
 from .shared import (
@@ -60,7 +61,7 @@ async def test_online_token(mocker):
         dict(
             shop=shop_name,
             state=state,
-            timestamp=now_epoch(),
+            timestamp=JWT.now_epoch(),
             code='INSTALLCODE',
         )
     )
@@ -91,7 +92,7 @@ async def test_online_token(mocker):
         dict(
             shop=shop_name,
             state=state,
-            timestamp=now_epoch(),
+            timestamp=JWT.now_epoch(),
             code='LOGINCODE',
         ),
         safe='=,&/[]:',
