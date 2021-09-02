@@ -42,7 +42,7 @@ class Token(ABC):
     def __init__(
         self,
         store_name: str,
-        scope: List[str],
+        scope: List[str] = [],
         access_token: Optional[str] = None,
         save_token: Optional[Callable] = None,
         load_token: Optional[Callable] = None,
@@ -63,7 +63,6 @@ class Token(ABC):
     async def new(
         cls,
         store_name: str,
-        scope: List[str],
         client_id: str,
         client_secret: str,
         code: str,
@@ -75,11 +74,9 @@ class Token(ABC):
         as it requires an async call.
         """
         token = cls(
-            store_name,
-            scope,
-            None,
-            save_token,
-            load_token,
+            store_name=store_name,
+            save_token=save_token,
+            load_token=load_token,
         )
         await token.set_token(client_id, client_secret, code)
         return token
@@ -166,7 +163,7 @@ class OfflineToken(Token):
     def __init__(
         self,
         store_name: str,
-        scope: List[str],
+        scope: List[str] = [],
         access_token: Optional[str] = None,
         save_token: Optional[Callable] = None,
         load_token: Optional[Callable] = None,
@@ -192,8 +189,8 @@ class OnlineToken(Token):
     def __init__(
         self,
         store_name: str,
-        scope: List[str],
-        access_token: str,
+        access_token: str = None,
+        scope: List[str] = [],
         associated_user: Optional[AssociatedUser] = None,
         expires_in: Optional[int] = None,
         save_token: Optional[Callable] = None,
