@@ -59,7 +59,7 @@ class ShopifyApplication:
         - `app_domain` - This is the domain of the app where the application is hosted
         - `app_scopes` - The required scopes for shopify for our shopify app
         - `client_id` - This is the identifier for the application used in OAuth flow
-            also occasionally refereed to as the api_key
+            also occasionally referred to as the api_key
         - `client_secret` - This is the secret for the application used in OAuth flow
         - `shopify_handle` - Name of the app on shopify, this is where it is accessed in admin
         - `post_install` - This is a function that gets called after the app is installed
