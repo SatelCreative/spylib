@@ -189,7 +189,7 @@ class OnlineToken(Token):
     def __init__(
         self,
         store_name: str,
-        access_token: str = None,
+        access_token: Optional[str] = None,
         scope: List[str] = [],
         associated_user: Optional[AssociatedUser] = None,
         expires_in: Optional[int] = None,
