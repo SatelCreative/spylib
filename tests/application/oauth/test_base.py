@@ -38,11 +38,11 @@ async def test_initialization_endpoint(mocker):
     shopify_app, app, client, shop_name = initialize_store()
     response = client.get(
         '/shopify/auth',
-        params=dict(shop=shop_name),
+        params=dict(shop=f'{shop_name}.myshopify.com'),
         allow_redirects=False,
     )
     query = check_oauth_redirect_url(
-        shop_name=shop_name,
+        shop_domain=f'{shop_name}.myshopify.com',
         response=response,
         client=client,
         path='/admin/oauth/authorize',

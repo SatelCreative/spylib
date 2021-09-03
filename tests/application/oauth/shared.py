@@ -11,7 +11,7 @@ from spylib.token import OfflineTokenResponse, OnlineToken, OnlineTokenResponse
 
 
 def check_oauth_redirect_url(
-    shop_name: str,
+    shop_domain: str,
     response: Response,
     client,
     path: str,
@@ -23,7 +23,7 @@ def check_oauth_redirect_url(
 
     expected_parsed_url = ParseResult(
         scheme='https',
-        netloc=shop_name,
+        netloc=shop_domain,
         path=path,
         query=redirect_target.query,  # We check that separately
         params='',
@@ -103,7 +103,7 @@ def initialize_store(
 
     # Create a store that we will be accessing
 
-    store_name = 'test.myshopify.com'
+    store_name = 'test'
 
     store = Store(
         store_name=store_name,

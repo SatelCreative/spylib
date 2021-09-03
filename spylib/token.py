@@ -50,7 +50,7 @@ class Token(ABC):
 
         self.access_token_invalid = False
         self.store_name = store_name
-        self.url = f'https://{store_name}/admin/oauth/access_token'
+        self.url = f'https://{store_name}.myshopify.com/admin/oauth/access_token'
         self.scope = scope
         self.access_token = access_token
 
@@ -191,6 +191,7 @@ class OnlineToken(Token):
         store_name: str,
         access_token: Optional[str] = None,
         scope: List[str] = [],
+        associated_user_scope: List[str] = [],
         associated_user: Optional[AssociatedUser] = None,
         expires_in: Optional[int] = None,
         save_token: Optional[Callable] = None,
@@ -198,6 +199,7 @@ class OnlineToken(Token):
     ) -> None:
         super().__init__(store_name, scope, access_token, save_token, load_token)
 
+        self.associated_user_scope = associated_user_scope
         self.associated_user = associated_user
         if expires_in:
             self.expires_at = datetime.now() + timedelta(days=0, seconds=expires_in)

@@ -33,11 +33,11 @@ async def test_online_token(mocker):
 
     response = client.get(
         '/shopify/auth',
-        params=dict(shop=shop_name),
+        params=dict(shop=f'{shop_name}.myshopify.com'),
         allow_redirects=False,
     )
     query = check_oauth_redirect_url(
-        shop_name=shop_name,
+        shop_domain=f'{shop_name}.myshopify.com',
         response=response,
         client=client,
         path='/admin/oauth/authorize',
@@ -59,7 +59,7 @@ async def test_online_token(mocker):
     # can then be exchanged for a long term auth code
     query_str = urlencode(
         dict(
-            shop=shop_name,
+            shop=f'{shop_name}.myshopify.com',
             state=state,
             timestamp=JWT.now_epoch(),
             code='INSTALLCODE',
@@ -75,7 +75,7 @@ async def test_online_token(mocker):
     # As the Token object triggers the request for the code we can check to see
     # if it redirects back to the proper location.
     query = check_oauth_redirect_url(
-        shop_name=shop_name,
+        shop_domain=f'{shop_name}.myshopify.com',
         response=response,
         client=client,
         path='/admin/oauth/authorize',
@@ -90,7 +90,7 @@ async def test_online_token(mocker):
     # approving an online token
     query_str = urlencode(
         dict(
-            shop=shop_name,
+            shop=f'{shop_name}.myshopify.com',
             state=state,
             timestamp=JWT.now_epoch(),
             code='LOGINCODE',
@@ -107,7 +107,7 @@ async def test_online_token(mocker):
 
     # We can then check to see if redirected with appropriate info
     state = check_oauth_redirect_url(
-        shop_name=shop_name,
+        shop_domain=f'{shop_name}.myshopify.com',
         response=response,
         client=client,
         path=f'/admin/apps/{shopify_app.shopify_handle}',
@@ -115,7 +115,7 @@ async def test_online_token(mocker):
 
     assert await shopify_request_mock.called_with(
         method='post',
-        url=f'https://{shop_name}/admin/oauth/access_token',
+        url=f'https://{shop_name}.myshopify.com/admin/oauth/access_token',
         json={
             'client_id': shopify_app.client_id,
             'client_secret': shopify_app.client_secret,

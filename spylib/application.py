@@ -270,7 +270,7 @@ def init_oauth_router(app: ShopifyApplication) -> APIRouter:
             # Generate a new offline token, which is stored in the apps store
             try:
                 offline_token = await OfflineToken.new(
-                    store_name=args.shop,
+                    store_name=Store.domain_to_storename(args.shop),
                     client_id=app.client_id,
                     client_secret=app.client_secret,
                     code=args.code,
@@ -291,7 +291,7 @@ def init_oauth_router(app: ShopifyApplication) -> APIRouter:
 
         # Else we are generating an online token
         online_token = await OnlineToken.new(
-            store_name=args.shop,
+            store_name=Store.domain_to_storename(args.shop),
             client_id=app.client_id,
             client_secret=app.client_secret,
             code=args.code,
