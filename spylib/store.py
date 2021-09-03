@@ -352,7 +352,7 @@ class Store:
             elif GQLErrors.THROTTLED in error_code_list:  # This should be the last condition
                 query_cost = jsondata['extensions']['cost']['requestedQueryCost']
                 available = jsondata['extensions']['cost']['throttleStatus']['currentlyAvailable']
-                rate = jsondata['extensions']['cost']['throttleStatus']["restoreRate"]
+                rate = jsondata['extensions']['cost']['throttleStatus']['restoreRate']
                 sleep_time = ceil((query_cost - available) / rate)
                 await sleep(sleep_time)
                 raise ShopifyThrottledError
