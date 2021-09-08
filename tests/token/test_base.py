@@ -7,7 +7,6 @@ import pytest
 
 # Constants
 store_name = "Test-Store"
-associated_user = "Test-User"
 client_id = 1
 client_secret = 2
 code = 3
@@ -59,7 +58,7 @@ class OnlineToken(OnlineTokenABC):
 
     @classmethod
     async def load_token(cls, store_name, user_id):
-        return OnlineToken(**json.loads(database['online'][store_name][user_id]))
+        return database['online'][store_name][user_id]
 
 
 class OfflineToken(OfflineTokenABC):
@@ -69,7 +68,7 @@ class OfflineToken(OfflineTokenABC):
 
     @classmethod
     async def load_token(cls, store_name: str):
-        return OfflineToken(**json.loads(database['offline'][store_name]))
+        return database['offline'][store_name]
 
 
 @pytest.mark.asyncio
@@ -101,5 +100,7 @@ async def test_token(mocker):
     await online_token.save_token()
 
     # Load the token
-    online_token = OnlineToken.load_token(store_name, associated_user)
-    offline_token = OfflineToken.load_token(store_name)
+    offline_token = await OfflineToken.load_token(store_name)
+    online_token = await OnlineToken.load_token(
+        store_name, online_token_data['associated_user']['id']
+    )
