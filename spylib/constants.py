@@ -1,9 +1,3 @@
-API_VERSION: str = '2021-04'
-# Default assumes Shopify Plus rate
-RATE = 4
-MAX_TOKENS = 80
-GRAPH_MAX = 1000  # Max rate for GraphQL
-
 """
 These are the text error codes thrown by the GraphQL API. Although some errors
 throw a code e.g.
