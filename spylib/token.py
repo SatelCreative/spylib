@@ -1,4 +1,4 @@
-from abc import ABC, abstractmethod
+from abc import ABC, abstractclassmethod, abstractmethod
 from asyncio import sleep
 from datetime import datetime, timedelta
 from time import monotonic
@@ -70,11 +70,11 @@ class Token(ABC, BaseModel):
     client: AsyncClient
     oauth_url: str
     api_url: str
-    api_version: str = '2021-04'
-    rest_bucket_max: int = 80
-    rest_leak_rate: int = 4
-    graphql_bucket_max: int = 1000
-    graphql_leak_rate: int = 50
+    api_version: str
+    rest_bucket_max: int
+    rest_leak_rate: int
+    graphql_bucket_max: int
+    graphql_leak_rate: int
 
     class Config:
         arbitrary_types_allowed = True
@@ -133,9 +133,8 @@ class Token(ABC, BaseModel):
         """
         raise NotImplementedError("Please Implement the save_token method")
 
-    @classmethod
-    @abstractmethod
-    def load_token(self):
+    @abstractclassmethod
+    async def load_token(self):
         """
         This method handles loading the token. By default this does nothing,
         therefore the developer should override this.
@@ -335,32 +334,11 @@ class Token(ABC, BaseModel):
             raise TypeError(f'Can\'t instantiate abstract class {cls.__name__} directly')
         return object.__new__(cls)
 
-    def save_json(self):
-        json.dumps(
-            {
-                'store_name': self.store_name,
-                'scope': self.scope,
-                'access_token': self.access_token,
-                'access_token_invalid': self.access_token_invalid,
-                'client': self.client,
-                'oauth_url': self.oauth_url,
-                'api_url': self.api_url,
-                'api_version': self.api_version,
-                'rest_bucket_max': self.rest_bucket_max,
-                'rest_leak_rate': self.rest_leak_rate,
-                'graphql_bucket_max': self.graphql_bucket_max,
-                'graphql_leak_rate': self.graphql_leak_rate,
-            }
-        )
-
 
 class OfflineTokenABC(Token, ABC):
     """
     Offline tokens are used for long term access, and do not have a set expiry.
     """
-
-    def __init__(self, **kwargs) -> None:
-        super().__init__(**kwargs)
 
     async def reset_token(self, client_id: str, client_secret: str, code: str):
 
@@ -371,8 +349,7 @@ class OfflineTokenABC(Token, ABC):
         self.scope = token.scope.split(',')
 
 
-@dataclass
-class OnlineTokenABC(Token):
+class OnlineTokenABC(Token, ABC):
     """
     Online tokens are used to implement applications that are authenticated with
     a specific user's credentials. These extend on the original token, adding
@@ -388,18 +365,13 @@ class OnlineTokenABC(Token):
         associated_user_scope: Optional[List[str]] = [],
         associated_user: Optional[AssociatedUser] = None,
         expires_in: int = 0,
+        *args,
         **kwargs,
     ) -> None:
-        super().__init__(
-            **dict(
-                **kwargs,
-                **{
-                    'associated_user_scope': associated_user_scope,
-                    'associated_user': associated_user,
-                    'expires_at': datetime.now() + timedelta(days=0, seconds=expires_in),
-                },
-            )
-        )
+        super().__init__(*args, **kwargs)
+        self.associated_user_scope = associated_user_scope
+        self.associated_user = associated_user
+        self.expires_at = datetime.now() + timedelta(days=0, seconds=expires_in)
 
     async def reset_token(self, client_id: str, client_secret: str, code: str):
 
@@ -412,17 +384,16 @@ class OnlineTokenABC(Token):
         self.associated_user_scope = token.associated_user_scope.split(',')
         self.expires_at = datetime.now() + timedelta(days=0, seconds=token.expires_in)
 
+    @abstractmethod
     async def save_token(self):
         """
         This method handles saving the token. By default this does nothing,
         therefore the developer should override this.
         """
-        pass
 
-    @classmethod
+    @abstractclassmethod
     def load_token(cls, store_name: str, associated_user: str):
         """
         This method handles loading the token. By default this does nothing,
         therefore the developer should override this.
         """
-        pass

@@ -1,25 +1,24 @@
+from tests.token.test_base import OfflineToken
 from time import monotonic
 from unittest.mock import AsyncMock
 
 import pytest
 
-from spylib import Store
 from spylib.exceptions import ShopifyCallInvalidError
 
-from ..shared import MockHTTPResponse
+from ..shared import MockHTTPResponse, OnlineToken, OfflineToken
 
 
 @pytest.mark.asyncio
 async def test_store_rest_happypath(mocker):
-    store = Store(store_id='TEST', name='test-store', access_token='Te5tM3')
-
+    token = OfflineToken()
     shopify_request_mock = mocker.patch(
         'httpx.AsyncClient.request',
         new_callable=AsyncMock,
         return_value=MockHTTPResponse(status_code=200, jsondata={'success': True}),
     )
 
-    jsondata = await store.shoprequest(
+    jsondata = await token.execute_rest(
         goodstatus=200, debug='Test failed', endpoint='/test.json', method='get'
     )
 
@@ -28,7 +27,7 @@ async def test_store_rest_happypath(mocker):
     assert jsondata == {'success': True}
 
     # 80 from assuming Shopify plus then 1 used just now.
-    assert store.tokens == 79
+    assert token.rest_bucket == 79
 
 
 @pytest.mark.asyncio
