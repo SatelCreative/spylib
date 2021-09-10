@@ -2,14 +2,16 @@ from unittest.mock import AsyncMock
 
 import pytest
 
-from spylib import Store
-
-from ..shared import MockHTTPResponse
+from ..shared import MockHTTPResponse, OfflineToken, store_name, offline_token_data
 
 
 @pytest.mark.asyncio
 async def test_store_graphql_happypath(mocker):
-    store = Store(store_id='TEST', name='test-store', access_token='Te5tM3')
+    token = OfflineToken(
+        store_name=store_name,
+        access_token=offline_token_data.access_token,
+        scope=offline_token_data.scope.split(','),
+    )
 
     query = '''
     {
@@ -39,7 +41,7 @@ async def test_store_graphql_happypath(mocker):
         return_value=MockHTTPResponse(status_code=200, jsondata=gql_response),
     )
 
-    jsondata = await store.execute_gql(query=query)
+    jsondata = await token.execute_gql(query=query)
 
     shopify_request_mock.assert_called_once()
 
@@ -48,7 +50,11 @@ async def test_store_graphql_happypath(mocker):
 
 @pytest.mark.asyncio
 async def test_store_graphql_badquery(mocker):
-    store = Store(store_id='TEST', name='test-store', access_token='Te5tM3')
+    token = OfflineToken(
+        store_name=store_name,
+        access_token=offline_token_data.access_token,
+        scope=offline_token_data.scope.split(','),
+    )
 
     query = '''
     {
@@ -79,14 +85,18 @@ async def test_store_graphql_badquery(mocker):
     )
 
     with pytest.raises(ValueError, match=f'^GraphQL query is incorrect:\n{error_msg}$'):
-        await store.execute_gql(query=query)
+        await token.execute_gql(query=query)
 
     shopify_request_mock.assert_called_once()
 
 
 @pytest.mark.asyncio
 async def test_store_graphql_tokeninvalid(mocker):
-    store = Store(store_id='TEST', name='test-store', access_token='INVALID')
+    token = OfflineToken(
+        store_name=store_name,
+        access_token=offline_token_data.access_token,
+        scope=offline_token_data.scope.split(','),
+    )
 
     query = '''
     {
@@ -105,6 +115,6 @@ async def test_store_graphql_tokeninvalid(mocker):
     )
 
     with pytest.raises(ConnectionRefusedError):
-        await store.execute_gql(query=query)
+        await token.execute_gql(query=query)
 
     shopify_request_mock.assert_called_once()

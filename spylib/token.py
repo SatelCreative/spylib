@@ -71,10 +71,13 @@ class Token(ABC, BaseModel):
     oauth_url: str
     api_url: str
     api_version: str
+    rest_bucket: int
     rest_bucket_max: int
     rest_leak_rate: int
+    graphql_bucket: int
     graphql_bucket_max: int
     graphql_leak_rate: int
+    updated_at: Optional[int]
 
     class Config:
         arbitrary_types_allowed = True
@@ -98,14 +101,17 @@ class Token(ABC, BaseModel):
                 'scope': scope,
                 'access_token': access_token,
                 'api_version': api_version,
+                'rest_bucket': rest_bucket_max,
                 'rest_bucket_max': rest_bucket_max,
                 'rest_leak_rate': rest_leak_rate,
+                'graphql_bucket': graphql_bucket_max,
                 'graphql_bucket_max': graphql_bucket_max,
                 'graphql_leak_rate': graphql_leak_rate,
                 'access_token_invalid': False,
                 'client': AsyncClient(),
                 'oauth_url': f'https://{store_name}.myshopify.com/admin/oauth/access_token',
                 'api_url': f'https://{store_name}.myshopify.com/admin/api/{api_version}',
+                'updated_at': monotonic(),
             }
         )
 
@@ -186,7 +192,7 @@ class Token(ABC, BaseModel):
 
     async def __wait_for_token(self):
         self.__add_new_tokens()
-        while self.tokens <= 1:
+        while self.rest_bucket <= 1:
             await sleep(1)
             self.__add_new_tokens()
         self.rest_bucket -= 1
@@ -194,7 +200,7 @@ class Token(ABC, BaseModel):
     def __add_new_tokens(self):
         now = monotonic()
         time_since_update = now - self.updated_at
-        new_tokens = floor(time_since_update * self.rate)
+        new_tokens = floor(time_since_update * self.rest_leak_rate)
         if new_tokens > 1:
             self.rest_bucket = min(self.rest_bucket + new_tokens, self.rest_bucket_max)
             self.updated_at = now
@@ -249,7 +255,7 @@ class Token(ABC, BaseModel):
                 self.rest_bucket_max = int(calllimit.split('/')[1])
                 # In Shopify the bucket is emptied after 20 seconds
                 # regardless of the bucket size.
-                self.rate = int(self.rest_bucket_max / 20)
+                self.rest_leak_rate = int(self.rest_bucket_max / 20)
 
             return jresp
 

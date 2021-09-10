@@ -1,4 +1,3 @@
-from tests.token.test_base import OfflineToken
 from time import monotonic
 from unittest.mock import AsyncMock
 
@@ -6,12 +5,17 @@ import pytest
 
 from spylib.exceptions import ShopifyCallInvalidError
 
-from ..shared import MockHTTPResponse, OnlineToken, OfflineToken
+from ..shared import MockHTTPResponse, OfflineToken, store_name, offline_token_data
 
 
 @pytest.mark.asyncio
 async def test_store_rest_happypath(mocker):
-    token = OfflineToken()
+    token = OfflineToken(
+        store_name=store_name,
+        access_token=offline_token_data.access_token,
+        scope=offline_token_data.scope.split(','),
+    )
+
     shopify_request_mock = mocker.patch(
         'httpx.AsyncClient.request',
         new_callable=AsyncMock,
@@ -32,7 +36,11 @@ async def test_store_rest_happypath(mocker):
 
 @pytest.mark.asyncio
 async def test_store_rest_badrequest(mocker):
-    store = Store(store_id='TEST', name='test-store', access_token='Te5tM3')
+    token = OfflineToken(
+        store_name=store_name,
+        access_token=offline_token_data.access_token,
+        scope=offline_token_data.scope.split(','),
+    )
 
     shopify_request_mock = mocker.patch(
         'httpx.AsyncClient.request',
@@ -43,7 +51,7 @@ async def test_store_rest_badrequest(mocker):
     )
 
     with pytest.raises(ShopifyCallInvalidError):
-        await store.shoprequest(
+        await token.execute_rest(
             goodstatus=201,
             debug='Test failed',
             endpoint='/products.json',
@@ -66,23 +74,27 @@ params = [
 @pytest.mark.parametrize('init_tokens, time_passed, expected_tokens', params)
 @pytest.mark.asyncio
 async def test_store_rest_ratetokens(init_tokens, time_passed, expected_tokens, mocker):
-    store = Store(store_id='TEST', name='test-store', access_token='Te5tM3')
+    token = OfflineToken(
+        store_name=store_name,
+        access_token=offline_token_data.access_token,
+        scope=offline_token_data.scope.split(','),
+    )
 
     # Simulate that there is only 2 calls available before hitting the rate limit.
     # If we set this to zero, then the code will wait 1 sec which is not great to keep the tests
     # fast
-    store.tokens = init_tokens
-    store.updated_at = monotonic() - time_passed  # A looooong time ago
+    token.rest_bucket = init_tokens
+    token.updated_at = monotonic() - time_passed  # A looooong time ago
 
     shopify_request_mock = mocker.patch(
         'httpx.AsyncClient.request',
         new_callable=AsyncMock,
         return_value=MockHTTPResponse(status_code=200, jsondata={'success': True}),
     )
-    await store.shoprequest(
+    await token.execute_rest(
         goodstatus=200, debug='Test failed', endpoint='/test.json', method='get'
     )
 
     shopify_request_mock.assert_called_once()
 
-    assert store.tokens == expected_tokens
+    assert token.rest_bucket == expected_tokens

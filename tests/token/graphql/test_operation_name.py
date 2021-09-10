@@ -2,10 +2,9 @@ from unittest.mock import AsyncMock
 
 import pytest
 
-from spylib import Store
 from spylib.exceptions import ShopifyCallInvalidError
 
-from ..shared import MockHTTPResponse
+from ..shared import MockHTTPResponse, OfflineToken, store_name, offline_token_data
 
 graphql_operation_name_query = '''
     query query1 {
@@ -59,7 +58,11 @@ async def test_store_graphql_operation_name_happypath(
 
     This checks just the successful queries.
     '''
-    store = Store(store_id='TEST', name='test-store', access_token='Te5tM3')
+    token = OfflineToken(
+        store_name=store_name,
+        access_token=offline_token_data.access_token,
+        scope=offline_token_data.scope.split(','),
+    )
 
     gql_response = {
         'extensions': {
@@ -83,7 +86,7 @@ async def test_store_graphql_operation_name_happypath(
     )
 
     # Checks to see if it is properly handling inputs properly
-    real_result = await store.execute_gql(query=query, operation_name=operation_name)
+    real_result = await token.execute_gql(query=query, operation_name=operation_name)
     for name in result_location:
         if isinstance(real_result, list):
             real_result = real_result[name]
@@ -125,7 +128,11 @@ async def test_store_graphql_operation_name_badquery(query, operation_name, erro
     This tests the error cases.
 
     '''
-    store = Store(store_id='TEST', name='test-store', access_token='Te5tM3')
+    token = OfflineToken(
+        store_name=store_name,
+        access_token=offline_token_data.access_token,
+        scope=offline_token_data.scope.split(','),
+    )
 
     gql_response = {
         'extensions': {
@@ -149,6 +156,6 @@ async def test_store_graphql_operation_name_badquery(query, operation_name, erro
     )
     # Checks to see if it fails properly
     with pytest.raises(ShopifyCallInvalidError):
-        await store.execute_gql(query=query, operation_name=operation_name)
+        await token.execute_gql(query=query, operation_name=operation_name)
 
     assert shopify_request_mock.call_count == 1
