@@ -2,7 +2,7 @@ from unittest.mock import AsyncMock
 
 import pytest
 
-from ..shared import MockHTTPResponse, OfflineToken, store_name, offline_token_data
+from ...shared import MockHTTPResponse, OfflineToken, store_name, offline_token_data
 
 
 @pytest.mark.asyncio

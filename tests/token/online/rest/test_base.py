@@ -5,15 +5,18 @@ import pytest
 
 from spylib.exceptions import ShopifyCallInvalidError
 
-from ..shared import MockHTTPResponse, OfflineToken, store_name, offline_token_data
+from ...shared import MockHTTPResponse, OnlineToken, store_name, online_token_data
 
 
 @pytest.mark.asyncio
 async def test_store_rest_happypath(mocker):
-    token = OfflineToken(
+    token = OnlineToken(
         store_name=store_name,
-        access_token=offline_token_data.access_token,
-        scope=offline_token_data.scope.split(','),
+        access_token=online_token_data.access_token,
+        scope=online_token_data.scope.split(','),
+        expires_in=online_token_data.expires_in,
+        associated_user_scope=online_token_data.associated_user_scope.split(','),
+        associated_user=online_token_data.associated_user,
     )
 
     shopify_request_mock = mocker.patch(
@@ -36,10 +39,13 @@ async def test_store_rest_happypath(mocker):
 
 @pytest.mark.asyncio
 async def test_store_rest_badrequest(mocker):
-    token = OfflineToken(
+    token = OnlineToken(
         store_name=store_name,
-        access_token=offline_token_data.access_token,
-        scope=offline_token_data.scope.split(','),
+        access_token=online_token_data.access_token,
+        scope=online_token_data.scope.split(','),
+        expires_in=online_token_data.expires_in,
+        associated_user_scope=online_token_data.associated_user_scope.split(','),
+        associated_user=online_token_data.associated_user,
     )
 
     shopify_request_mock = mocker.patch(
@@ -74,10 +80,13 @@ params = [
 @pytest.mark.parametrize('init_tokens, time_passed, expected_tokens', params)
 @pytest.mark.asyncio
 async def test_store_rest_ratetokens(init_tokens, time_passed, expected_tokens, mocker):
-    token = OfflineToken(
+    token = OnlineToken(
         store_name=store_name,
-        access_token=offline_token_data.access_token,
-        scope=offline_token_data.scope.split(','),
+        access_token=online_token_data.access_token,
+        scope=online_token_data.scope.split(','),
+        expires_in=online_token_data.expires_in,
+        associated_user_scope=online_token_data.associated_user_scope.split(','),
+        associated_user=online_token_data.associated_user,
     )
 
     # Simulate that there is only 2 calls available before hitting the rate limit.

@@ -4,7 +4,7 @@ import pytest
 
 from spylib.exceptions import ShopifyExceedingMaxCostError
 
-from ..shared import MockHTTPResponse, OfflineToken, store_name, offline_token_data
+from ...shared import MockHTTPResponse, OfflineToken, store_name, offline_token_data
 
 graphql_throttling_queries = [
     """    {
