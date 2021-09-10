@@ -1,5 +1,5 @@
 from asyncio import sleep
-from math import floor
+from math import ceil, floor
 from time import monotonic
 from typing import Any, Dict, Optional
 
@@ -10,10 +10,20 @@ from tenacity.retry import retry_if_exception, retry_if_exception_type
 from tenacity.stop import stop_after_attempt
 from tenacity.wait import wait_random
 
-from .constants import API_VERSION, MAX_TOKENS, RATE, THROTTLED_ERROR_MESSAGE
+from .constants import (
+    API_VERSION,
+    GRAPH_MAX,
+    MAX_COST_EXCEEDED_ERROR_CODE,
+    MAX_TOKENS,
+    OPERATION_NAME_REQUIRED_ERROR_MESSAGE,
+    RATE,
+    THROTTLED_ERROR_CODE,
+    WRONG_OPERATION_NAME_ERROR_MESSAGE,
+)
 from .exceptions import (
     ShopifyCallInvalidError,
     ShopifyError,
+    ShopifyExceedingMaxCostError,
     ShopifyThrottledError,
     not_our_fault,
 )
@@ -134,11 +144,12 @@ class Store:
 
     @retry(
         reraise=True,
-        wait=wait_random(min=1, max=2),
         stop=stop_after_attempt(5),
         retry=retry_if_exception_type(ShopifyThrottledError),
     )
-    async def execute_gql(self, query: str, variables: Dict[str, Any] = {}) -> Dict[str, Any]:
+    async def execute_gql(
+        self, query: str, variables: Dict[str, Any] = {}, operation_name: Optional[str] = None
+    ) -> Dict[str, Any]:
         """Simple graphql query executor because python has no decent graphql client"""
 
         url = f'{self.url}/graphql.json'
@@ -146,8 +157,12 @@ class Store:
             'Content-type': 'application/json',
             'X-Shopify-Access-Token': self.access_token,
         }
+        body = {'query': query, 'variables': variables, 'operationName': operation_name}
+
         resp = await self.client.post(
-            url=url, json={'query': query, 'variables': variables}, headers=headers
+            url=url,
+            json=body,
+            headers=headers,
         )
         jsondata = resp.json()
         if type(jsondata) is not dict:
@@ -163,9 +178,37 @@ class Store:
             errorlist = '\n'.join(
                 [err['message'] for err in jsondata['errors'] if 'message' in err]
             )
-            if THROTTLED_ERROR_MESSAGE in errorlist:
-                raise ShopifyThrottledError(
-                    f'Store {self.name}: The Shopify API token is throttling. '
+            error_code_list = '\n'.join(
+                [
+                    err['extensions']['code']
+                    for err in jsondata['errors']
+                    if 'extensions' in err and 'code' in err['extensions']
+                ]
+            )
+            if MAX_COST_EXCEEDED_ERROR_CODE in error_code_list:
+                raise ShopifyExceedingMaxCostError(
+                    f'Store {self.name}: This query was rejected by the Shopify'
+                    f' API, and will never run as written, as the query cost'
+                    f' is larger than the max possible query size (>{GRAPH_MAX})'
+                    ' for Shopify.'
+                )
+            elif THROTTLED_ERROR_CODE in error_code_list:  # This should be the last condition
+                query_cost = jsondata['extensions']['cost']['requestedQueryCost']
+                available = jsondata['extensions']['cost']['throttleStatus']['currentlyAvailable']
+                rate = jsondata['extensions']['cost']['throttleStatus']["restoreRate"]
+                sleep_time = ceil((query_cost - available) / rate)
+                await sleep(sleep_time)
+                raise ShopifyThrottledError
+            elif OPERATION_NAME_REQUIRED_ERROR_MESSAGE in errorlist:
+                raise ShopifyCallInvalidError(
+                    f'Store {self.name}: Operation name was required for this query.'
+                    'This likely means you have multiple queries within one call '
+                    'and you must specify which to run.'
+                )
+            elif WRONG_OPERATION_NAME_ERROR_MESSAGE.format(operation_name) in errorlist:
+                raise ShopifyCallInvalidError(
+                    f'Store {self.name}: Operation name {operation_name}'
+                    'does not exist in the query.'
                 )
             else:
                 raise ValueError(f'GraphQL query is incorrect:\n{errorlist}')
