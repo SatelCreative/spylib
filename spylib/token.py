@@ -2,13 +2,9 @@ from abc import ABC, abstractclassmethod, abstractmethod
 from asyncio import sleep
 from datetime import datetime, timedelta
 from time import monotonic
-from typing import Any, Dict, List, Optional
-import json
+from typing import Any, ClassVar, Dict, List, Optional
 from loguru import logger
-from pydantic import BaseModel, root_validator, MissingError
-from pydantic.dataclasses import dataclass
-from pydantic.main import validate_model
-from shortuuid.main import ShortUUID  # type: ignore
+from pydantic import BaseModel
 
 from math import ceil, floor
 from httpx import AsyncClient, Response
@@ -64,56 +60,34 @@ class Token(ABC, BaseModel):
     """
 
     store_name: str
-    scope: List[str]
+    scope: List[str] = []
     access_token: Optional[str]
-    access_token_invalid: bool
-    client: AsyncClient
-    oauth_url: str
-    api_url: str
-    api_version: str
-    rest_bucket: int
-    rest_bucket_max: int
-    rest_leak_rate: int
-    graphql_bucket: int
-    graphql_bucket_max: int
-    graphql_leak_rate: int
-    updated_at: Optional[int]
+    access_token_invalid: bool = False
+
+    api_version: ClassVar[str] = '2021-04'
+
+    rest_bucket_max: int = 80
+    rest_bucket: int = rest_bucket_max
+    rest_leak_rate: int = 4
+
+    graphql_bucket_max: int = 1000
+    graphql_bucket: int = graphql_bucket_max
+    graphql_leak_rate: int = 50
+
+    updated_at: int = monotonic()
+
+    client: ClassVar[AsyncClient] = AsyncClient()
+
+    @property
+    def oauth_url(self) -> str:
+        return f'https://{self.store_name}.myshopify.com/admin/oauth/access_token'
+
+    @property
+    def api_url(self) -> str:
+        return f'https://{self.store_name}.myshopify.com/admin/api/{self.api_version}'
 
     class Config:
         arbitrary_types_allowed = True
-
-    def __init__(
-        self,
-        store_name: str,
-        scope: List[str] = [],
-        access_token: Optional[str] = None,
-        api_version: str = '2021-04',
-        rest_bucket_max: int = 80,
-        rest_leak_rate: int = 4,
-        graphql_bucket_max: int = 1000,
-        graphql_leak_rate: int = 50,
-        **kwargs,
-    ) -> None:
-
-        super().__init__(
-            **{
-                'store_name': store_name,
-                'scope': scope,
-                'access_token': access_token,
-                'api_version': api_version,
-                'rest_bucket': rest_bucket_max,
-                'rest_bucket_max': rest_bucket_max,
-                'rest_leak_rate': rest_leak_rate,
-                'graphql_bucket': graphql_bucket_max,
-                'graphql_bucket_max': graphql_bucket_max,
-                'graphql_leak_rate': graphql_leak_rate,
-                'access_token_invalid': False,
-                'client': AsyncClient(),
-                'oauth_url': f'https://{store_name}.myshopify.com/admin/oauth/access_token',
-                'api_url': f'https://{store_name}.myshopify.com/admin/api/{api_version}',
-                'updated_at': monotonic(),
-            }
-        )
 
     @classmethod
     async def new(
@@ -130,22 +104,6 @@ class Token(ABC, BaseModel):
         token = cls(store_name=store_name)
         await token.reset_token(client_id, client_secret, code)
         return token
-
-    @abstractmethod
-    async def save_token(self):
-        """
-        This method handles saving the token. By default this does nothing,
-        therefore the developer should override this.
-        """
-        raise NotImplementedError("Please Implement the save_token method")
-
-    @abstractclassmethod
-    async def load_token(self):
-        """
-        This method handles loading the token. By default this does nothing,
-        therefore the developer should override this.
-        """
-        raise NotImplementedError("Please Implement the load_token method.")
 
     async def _get_token(
         self, client_id: str, client_secret: str, authorization_code: str
@@ -184,20 +142,16 @@ class Token(ABC, BaseModel):
         await self._get_token(client_id, client_secret, code)
         self.access_token_invalid = False
 
-    @classmethod
-    def get_unique_id(cls) -> str:
-        return ShortUUID().random(length=10)
-
     # Methods for querying the store
 
-    async def __wait_for_token(self):
-        self.__add_new_tokens()
+    async def __await_rest_bucket_refill(self):
+        self.__fill_rest_bucket()
         while self.rest_bucket <= 1:
             await sleep(1)
-            self.__add_new_tokens()
+            self.__fill_rest_bucket()
         self.rest_bucket -= 1
 
-    def __add_new_tokens(self):
+    def __fill_rest_bucket(self):
         now = monotonic()
         time_since_update = now - self.updated_at
         new_tokens = floor(time_since_update * self.rest_leak_rate)
@@ -236,7 +190,7 @@ class Token(ABC, BaseModel):
     )
     async def execute_rest(self, goodstatus, debug, endpoint, **kwargs) -> Dict[str, Any]:
         while True:
-            await self.__wait_for_token()
+            await self.__await_rest_bucket_refill()
             kwargs['url'] = f'{self.api_url}{endpoint}'
             kwargs['headers'] = {'X-Shopify-Access-Token': self.access_token}
 
@@ -255,7 +209,7 @@ class Token(ABC, BaseModel):
                 self.rest_bucket_max = int(calllimit.split('/')[1])
                 # In Shopify the bucket is emptied after 20 seconds
                 # regardless of the bucket size.
-                self.rest_leak_rate = int(self.rest_bucket_max / 20)
+                Token.rest_leak_rate = int(self.rest_bucket_max / 20)
 
             return jresp
 
@@ -346,6 +300,14 @@ class OfflineTokenABC(Token, ABC):
     Offline tokens are used for long term access, and do not have a set expiry.
     """
 
+    @abstractmethod
+    async def save_token(self):
+        pass
+
+    @abstractclassmethod
+    def load_token(cls, store_name: str):
+        pass
+
     async def reset_token(self, client_id: str, client_secret: str, code: str):
 
         token: OfflineTokenResponse = OfflineTokenResponse(
@@ -364,20 +326,8 @@ class OnlineTokenABC(Token, ABC):
 
     associated_user_scope: Optional[List[str]]
     associated_user: Optional[AssociatedUser]
-    expires_at: Optional[datetime]
-
-    def __init__(
-        self,
-        associated_user_scope: Optional[List[str]] = [],
-        associated_user: Optional[AssociatedUser] = None,
-        expires_in: int = 0,
-        *args,
-        **kwargs,
-    ) -> None:
-        super().__init__(*args, **kwargs)
-        self.associated_user_scope = associated_user_scope
-        self.associated_user = associated_user
-        self.expires_at = datetime.now() + timedelta(days=0, seconds=expires_in)
+    expires_in: datetime = 0
+    expires_at: datetime = datetime.now() + timedelta(days=0, seconds=expires_in)
 
     async def reset_token(self, client_id: str, client_secret: str, code: str):
 
@@ -388,6 +338,7 @@ class OnlineTokenABC(Token, ABC):
         self.scope = token.scope.split(',')
         self.associated_user = token.associated_user
         self.associated_user_scope = token.associated_user_scope.split(',')
+        self.expires_in = token.expires_in
         self.expires_at = datetime.now() + timedelta(days=0, seconds=token.expires_in)
 
     @abstractmethod
