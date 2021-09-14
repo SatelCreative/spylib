@@ -1,13 +1,13 @@
 from abc import ABC, abstractclassmethod, abstractmethod
 from asyncio import sleep
 from datetime import datetime, timedelta
+from math import ceil, floor
 from time import monotonic
 from typing import Any, ClassVar, Dict, List, Optional
+
+from httpx import AsyncClient, Response
 from loguru import logger
 from pydantic import BaseModel
-
-from math import ceil, floor
-from httpx import AsyncClient, Response
 from tenacity import retry
 from tenacity.retry import retry_if_exception, retry_if_exception_type
 from tenacity.stop import stop_after_attempt
@@ -19,7 +19,6 @@ from spylib.constants import (
     THROTTLED_ERROR_CODE,
     WRONG_OPERATION_NAME_ERROR_MESSAGE,
 )
-
 from spylib.exceptions import (
     ShopifyCallInvalidError,
     ShopifyError,
@@ -285,14 +284,6 @@ class Token(ABC, BaseModel):
                 raise ValueError(f'GraphQL query is incorrect:\n{errorlist}')
 
         return jsondata['data']
-
-    def __new__(cls, *args, **kwargs):
-        """
-        Function to keep user from instantiating an instance of this class.
-        """
-        if cls is Token:
-            raise TypeError(f'Can\'t instantiate abstract class {cls.__name__} directly')
-        return object.__new__(cls)
 
 
 class OfflineTokenABC(Token, ABC):

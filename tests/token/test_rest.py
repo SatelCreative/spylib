@@ -3,20 +3,23 @@ from unittest.mock import AsyncMock
 
 import pytest
 
+from spylib import Token
 from spylib.exceptions import ShopifyCallInvalidError
-
-from ...shared import MockHTTPResponse, OnlineToken, store_name, online_token_data
+from spylib.token import OfflineTokenResponse
+from tests.token.conftest import AppInformation
 
 
 @pytest.mark.asyncio
-async def test_store_rest_happypath(mocker):
-    token = OnlineToken(
-        store_name=store_name,
-        access_token=online_token_data.access_token,
-        scope=online_token_data.scope.split(','),
-        expires_in=online_token_data.expires_in,
-        associated_user_scope=online_token_data.associated_user_scope.split(','),
-        associated_user=online_token_data.associated_user,
+async def test_store_rest_happypath(
+    mocker,
+    offline_token_data: OfflineTokenResponse,
+    app_information: AppInformation,
+    MockHTTPResponse,
+):
+    token = Token(
+        store_name=app_information.store_name,
+        access_token=offline_token_data.access_token,
+        scope=offline_token_data.scope.split(','),
     )
 
     shopify_request_mock = mocker.patch(
@@ -38,14 +41,16 @@ async def test_store_rest_happypath(mocker):
 
 
 @pytest.mark.asyncio
-async def test_store_rest_badrequest(mocker):
-    token = OnlineToken(
-        store_name=store_name,
-        access_token=online_token_data.access_token,
-        scope=online_token_data.scope.split(','),
-        expires_in=online_token_data.expires_in,
-        associated_user_scope=online_token_data.associated_user_scope.split(','),
-        associated_user=online_token_data.associated_user,
+async def test_store_rest_badrequest(
+    mocker,
+    offline_token_data: OfflineTokenResponse,
+    app_information: AppInformation,
+    MockHTTPResponse,
+):
+    token = Token(
+        store_name=app_information.store_name,
+        access_token=offline_token_data.access_token,
+        scope=offline_token_data.scope.split(','),
     )
 
     shopify_request_mock = mocker.patch(
@@ -79,14 +84,19 @@ params = [
 
 @pytest.mark.parametrize('init_tokens, time_passed, expected_tokens', params)
 @pytest.mark.asyncio
-async def test_store_rest_ratetokens(init_tokens, time_passed, expected_tokens, mocker):
-    token = OnlineToken(
-        store_name=store_name,
-        access_token=online_token_data.access_token,
-        scope=online_token_data.scope.split(','),
-        expires_in=online_token_data.expires_in,
-        associated_user_scope=online_token_data.associated_user_scope.split(','),
-        associated_user=online_token_data.associated_user,
+async def test_store_rest_ratetokens(
+    init_tokens,
+    time_passed,
+    expected_tokens,
+    mocker,
+    offline_token_data: OfflineTokenResponse,
+    app_information: AppInformation,
+    MockHTTPResponse,
+):
+    token = Token(
+        store_name=app_information.store_name,
+        access_token=offline_token_data.access_token,
+        scope=offline_token_data.scope.split(','),
     )
 
     # Simulate that there is only 2 calls available before hitting the rate limit.

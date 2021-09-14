@@ -3,6 +3,6 @@
 __version__ = '0.2.1'
 
 
-from .token import OfflineTokenABC, OnlineTokenABC
+from .token import OfflineTokenABC, OnlineTokenABC, Token
 
-__all__ = ['OfflineTokenABC', 'OnlineTokenABC']
+__all__ = ['OfflineTokenABC', 'OnlineTokenABC', 'Token']

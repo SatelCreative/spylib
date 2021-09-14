@@ -3,8 +3,8 @@ from unittest.mock import AsyncMock
 import pytest
 
 from spylib.exceptions import ShopifyExceedingMaxCostError
-
-from ...shared import MockHTTPResponse, OfflineToken, store_name, offline_token_data
+from spylib.token import OfflineTokenResponse, Token
+from tests.token.conftest import AppInformation
 
 graphql_throttling_queries = [
     """    {
@@ -44,7 +44,12 @@ graphql_throttling_queries = [
 
 
 @pytest.mark.asyncio
-async def test_store_graphql_throttling_happypath(mocker):
+async def test_store_graphql_throttling_happypath(
+    mocker,
+    offline_token_data: OfflineTokenResponse,
+    app_information: AppInformation,
+    MockHTTPResponse,
+):
     """
     Tests the throttling of the graphQL requests. There are 3 possible outcomes
     when running a test in regards to the throttling:
@@ -57,8 +62,8 @@ async def test_store_graphql_throttling_happypath(mocker):
 
     This handles the first case (#1).
     """
-    token = OfflineToken(
-        store_name=store_name,
+    token = Token(
+        store_name=app_information.store_name,
         access_token=offline_token_data.access_token,
         scope=offline_token_data.scope.split(','),
     )
@@ -103,7 +108,12 @@ async def test_store_graphql_throttling_happypath(mocker):
 
 
 @pytest.mark.asyncio
-async def test_store_graphql_throttling_catch_cap(mocker):
+async def test_store_graphql_throttling_catch_cap(
+    mocker,
+    offline_token_data: OfflineTokenResponse,
+    app_information: AppInformation,
+    MockHTTPResponse,
+):
     """
     Tests the throttling of the graphQL requests. There are 3 possible outcomes
     when running a test in regards to the throttling. This test covers:
@@ -112,8 +122,8 @@ async def test_store_graphql_throttling_catch_cap(mocker):
         the bucket to re-fill.
 
     """
-    token = OfflineToken(
-        store_name=store_name,
+    token = Token(
+        store_name=app_information.store_name,
         access_token=offline_token_data.access_token,
         scope=offline_token_data.scope.split(','),
     )
@@ -193,7 +203,12 @@ params = [
 
 
 @pytest.mark.asyncio
-async def test_store_graphql_throttling_error_test(mocker):
+async def test_store_graphql_throttling_error_test(
+    mocker,
+    offline_token_data: OfflineTokenResponse,
+    app_information: AppInformation,
+    MockHTTPResponse,
+):
     """
     Tests the throttling of the graphQL requests. There are 3 possible outcomes
     when running a test in regards to the throttling, this handles
@@ -201,8 +216,8 @@ async def test_store_graphql_throttling_error_test(mocker):
     3. The query fails indefinitely due to it being in excess of the maximum
         possible query size.
     """
-    token = OfflineToken(
-        store_name=store_name,
+    token = Token(
+        store_name=app_information.store_name,
         access_token=offline_token_data.access_token,
         scope=offline_token_data.scope.split(','),
     )

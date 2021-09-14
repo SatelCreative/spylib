@@ -3,8 +3,8 @@ from unittest.mock import AsyncMock
 import pytest
 
 from spylib.exceptions import ShopifyCallInvalidError
-
-from ...shared import MockHTTPResponse, OfflineToken, store_name, offline_token_data
+from spylib.token import OfflineTokenResponse, Token
+from tests.token.conftest import AppInformation
 
 graphql_operation_name_query = '''
     query query1 {
@@ -45,7 +45,15 @@ params = [
 @pytest.mark.parametrize('query, operation_name, expected_result, result_location, data', params)
 @pytest.mark.asyncio
 async def test_store_graphql_operation_name_happypath(
-    query, operation_name, expected_result, result_location, data, mocker
+    query,
+    operation_name,
+    expected_result,
+    result_location,
+    data,
+    mocker,
+    offline_token_data: OfflineTokenResponse,
+    app_information: AppInformation,
+    MockHTTPResponse,
 ):
     '''
     Checks to see if passing an operation name works as expected.
@@ -58,8 +66,8 @@ async def test_store_graphql_operation_name_happypath(
 
     This checks just the successful queries.
     '''
-    token = OfflineToken(
-        store_name=store_name,
+    token = Token(
+        store_name=app_information.store_name,
         access_token=offline_token_data.access_token,
         scope=offline_token_data.scope.split(','),
     )
@@ -115,7 +123,15 @@ params = [
 
 @pytest.mark.parametrize('query, operation_name, error', params)
 @pytest.mark.asyncio
-async def test_store_graphql_operation_name_badquery(query, operation_name, error, mocker):
+async def test_store_graphql_operation_name_badquery(
+    query,
+    operation_name,
+    error,
+    mocker,
+    offline_token_data: OfflineTokenResponse,
+    app_information: AppInformation,
+    MockHTTPResponse,
+):
     '''
     Checks to see if passing an operation name works as expected.
     There is 3 possible outcomes when you pass in operation_name:
@@ -128,8 +144,8 @@ async def test_store_graphql_operation_name_badquery(query, operation_name, erro
     This tests the error cases.
 
     '''
-    token = OfflineToken(
-        store_name=store_name,
+    token = Token(
+        store_name=app_information.store_name,
         access_token=offline_token_data.access_token,
         scope=offline_token_data.scope.split(','),
     )

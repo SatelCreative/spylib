@@ -2,13 +2,19 @@ from unittest.mock import AsyncMock
 
 import pytest
 
-from ...shared import MockHTTPResponse, OfflineToken, store_name, offline_token_data
+from spylib.token import OfflineTokenResponse, Token
+from tests.token.conftest import AppInformation
 
 
 @pytest.mark.asyncio
-async def test_store_graphql_happypath(mocker):
-    token = OfflineToken(
-        store_name=store_name,
+async def test_store_graphql_happypath(
+    mocker,
+    offline_token_data: OfflineTokenResponse,
+    app_information: AppInformation,
+    MockHTTPResponse,
+):
+    token = Token(
+        store_name=app_information.store_name,
         access_token=offline_token_data.access_token,
         scope=offline_token_data.scope.split(','),
     )
@@ -49,9 +55,14 @@ async def test_store_graphql_happypath(mocker):
 
 
 @pytest.mark.asyncio
-async def test_store_graphql_badquery(mocker):
-    token = OfflineToken(
-        store_name=store_name,
+async def test_store_graphql_badquery(
+    mocker,
+    offline_token_data: OfflineTokenResponse,
+    app_information: AppInformation,
+    MockHTTPResponse,
+):
+    token = Token(
+        store_name=app_information.store_name,
         access_token=offline_token_data.access_token,
         scope=offline_token_data.scope.split(','),
     )
@@ -91,9 +102,14 @@ async def test_store_graphql_badquery(mocker):
 
 
 @pytest.mark.asyncio
-async def test_store_graphql_tokeninvalid(mocker):
-    token = OfflineToken(
-        store_name=store_name,
+async def test_store_graphql_tokeninvalid(
+    mocker,
+    offline_token_data: OfflineTokenResponse,
+    app_information: AppInformation,
+    MockHTTPResponse,
+):
+    token = Token(
+        store_name=app_information.store_name,
         access_token=offline_token_data.access_token,
         scope=offline_token_data.scope.split(','),
     )
