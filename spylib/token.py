@@ -73,7 +73,7 @@ class Token(ABC, BaseModel):
     graphql_bucket: int = graphql_bucket_max
     graphql_leak_rate: int = 50
 
-    updated_at: int = monotonic()
+    updated_at: float = monotonic()
 
     client: ClassVar[AsyncClient] = AsyncClient()
 
@@ -317,7 +317,7 @@ class OnlineTokenABC(Token, ABC):
 
     associated_user_scope: Optional[List[str]]
     associated_user: Optional[AssociatedUser]
-    expires_in: datetime = 0
+    expires_in: int = 0
     expires_at: datetime = datetime.now() + timedelta(days=0, seconds=expires_in)
 
     async def reset_token(self, client_id: str, client_secret: str, code: str):

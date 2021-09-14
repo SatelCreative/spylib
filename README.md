@@ -160,7 +160,8 @@ the install and callback endpoints ready to handle the whole OAuth process.
 You just need to call `init_oauth_router` such that:
 
 ```python
-from spylib.oauth import init_oauth_router, OfflineToken, OnlineToken
+from spylib.oauth import OfflineToken, OnlineToken, init_oauth_router
+
 
 async def my_post_install(storename: str, offline_token: OfflineToken):
     """Function handling the offline token obtained at the end of the installation"""

@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from typing import Dict
+
 import pytest
 from pydantic import validator
 from pydantic.dataclasses import dataclass
@@ -12,7 +14,7 @@ from spylib.token import (
     OnlineTokenResponse,
 )
 
-database = {
+test_database: Dict[str, Dict] = {
     "online": {},
     "offline": {},
 }
@@ -23,44 +25,44 @@ database = {
 
 @pytest.fixture(scope='session', autouse=True)
 def database():
-    return database
+    return test_database
 
 
 @pytest.fixture(scope='session', autouse=True)
 def OnlineToken():
-    global database
-    database = {"offline": {}, "online": {}}
+    global test_database
+    test_database = {"offline": {}, "online": {}}
 
     class OnlineToken(OnlineTokenABC):
         async def save_token(self):
-            database['online'][self.store_name] = {}
-            database['online'][self.store_name][self.associated_user.id] = self
+            test_database['online'][self.store_name] = {}
+            test_database['online'][self.store_name][self.associated_user.id] = self
 
         @classmethod
         async def load_token(cls, store_name: str, user_id: str) -> OnlineToken:
-            return database['online'][store_name][user_id]
+            return test_database['online'][store_name][user_id]
 
     yield OnlineToken
 
-    database = {"offline": {}, "online": {}}
+    test_database = {"offline": {}, "online": {}}
 
 
 @pytest.fixture(scope='session', autouse=True)
 def OfflineToken():
-    global database
-    database = {"offline": {}, "online": {}}
+    global test_database
+    test_database = {"offline": {}, "online": {}}
 
     class OfflineToken(OfflineTokenABC):
         async def save_token(self):
-            database['offline'][self.store_name] = self
+            test_database['offline'][self.store_name] = self
 
         @classmethod
         async def load_token(cls, store_name: str) -> OfflineToken:
-            return database['offline'][store_name]
+            return test_database['offline'][store_name]
 
     yield OfflineToken
 
-    database = {"offline": {}, "online": {}}
+    test_database = {"offline": {}, "online": {}}
 
 
 @pytest.fixture(scope='session', autouse=True)
@@ -84,7 +86,7 @@ def online_token_data() -> OnlineTokenResponse:
 
 
 @pytest.fixture(scope='session', autouse=True)
-def offline_token_data() -> OnlineTokenResponse:
+def offline_token_data() -> OfflineTokenResponse:
     return OfflineTokenResponse(
         access_token='OFFLINETOKEN',
         scope=','.join(['write_products', 'read_customers']),

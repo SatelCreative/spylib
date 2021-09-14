@@ -64,10 +64,10 @@ async def test_online_token(
 
 
 @pytest.mark.asyncio
-async def test_new_token(
+async def test_new_online_token(
     mocker,
     OnlineToken,
-    online_token_data: OfflineTokenResponse,
+    online_token_data: OnlineTokenResponse,
     app_information: AppInformation,
     MockHTTPResponse,
 ):
