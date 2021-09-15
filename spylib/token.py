@@ -222,11 +222,16 @@ class Token(ABC, BaseModel):
     ) -> Dict[str, Any]:
         """Simple graphql query executor because python has no decent graphql client"""
 
+        if not self.access_token:
+            raise ValueError("Token Undefined")
+
         url = f'{self.api_url}/graphql.json'
+
         headers = {
             'Content-type': 'application/json',
             'X-Shopify-Access-Token': self.access_token,
         }
+
         body = {'query': query, 'variables': variables, 'operationName': operation_name}
 
         resp = await self.client.post(
