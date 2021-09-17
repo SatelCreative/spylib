@@ -91,7 +91,7 @@ async def test_oauth(mocker):
     query_str = urlencode(
         dict(shop=TEST_STORE, state=state, timestamp=now_epoch(), code='INSTALLCODE')
     )
-    hmac_arg = hmac.calculate_from_message(secret=conf.secret_key, message=query_str)
+    hmac_arg = hmac.calculate_hmac_from_message(secret=conf.secret_key, message=query_str)
     query_str += '&hmac=' + hmac_arg
 
     response = client.get('/callback', params=query_str, allow_redirects=False)
@@ -120,7 +120,7 @@ async def test_oauth(mocker):
     query_str = urlencode(
         dict(shop=TEST_STORE, state=state, timestamp=now_epoch(), code='LOGINCODE'), safe='=,&/[]:'
     )
-    hmac_arg = hmac.calculate_from_message(secret=conf.secret_key, message=query_str)
+    hmac_arg = hmac.calculate_hmac_from_message(secret=conf.secret_key, message=query_str)
     query_str += '&hmac=' + hmac_arg
 
     response = client.get('/callback', params=query_str, allow_redirects=False)

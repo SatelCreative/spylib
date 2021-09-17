@@ -1,16 +1,15 @@
 from copy import deepcopy
 from operator import itemgetter
 from typing import Any, List, Tuple
-from urllib.parse import parse_qsl
+from urllib.parse import parse_qs
 
 from ..utils import domain_to_storename, now_epoch
-from ..utils import validate as validate_hmac
+from ..utils import validate_hmac
 from .config import conf
 from .tokens import OAuthJWT
 
 
-def validate_callback(shop: str, timestamp: int, query_string: Any) -> None:
-    q_str = query_string.decode('utf-8')
+def validate_callback(shop: str, timestamp: int, query_string: bytes) -> None:
     # 1) Check that the shop is a valid Shopify URL
     domain_to_storename(shop)
 
@@ -19,16 +18,12 @@ def validate_callback(shop: str, timestamp: int, query_string: Any) -> None:
         raise ValueError('Timestamp is too old')
 
     # 3) Check the hmac
-    # Extract HMAC
-    args = parse_qsl(q_str)
-    original_args = deepcopy(args)
-    try:
-        # Let's assume alphabetical sorting to avoid issues with scrambled args when using bonnette
-        args.sort(key=itemgetter(0))
-        validate_callback_args(args=args)
-    except ValueError:
-        # Try with the original ordering
-        validate_callback_args(args=original_args)
+    args = parse_qs(query_string.decode('utf-8')) 
+
+    hmac_actual = args.pop('hmac')[0]
+    message = '&'.join([f'{arg}={",".join(args.get(arg))}' for arg in args.keys()])
+    
+    validate_hmac(secret=conf.secret_key, sent_hmac=hmac_actual, message=message)
 
 
 def validate_callback_args(args: List[Tuple[str, str]]) -> None:
