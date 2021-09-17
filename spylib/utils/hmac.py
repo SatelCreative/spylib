@@ -3,7 +3,7 @@ from hashlib import sha256
 from hmac import compare_digest, new
 
 
-def calculate_hmac_from_message(secret: str, message: str, is_base64: bool = False) -> str:
+def calculate_message_hmac(secret: str, message: str, is_base64: bool = False) -> str:
     hmac_hash = new(secret.encode('utf-8'), message.encode('utf-8'), sha256)
     if is_base64:
         # TODO fix bytes / str union issue
@@ -13,7 +13,7 @@ def calculate_hmac_from_message(secret: str, message: str, is_base64: bool = Fal
 
 def validate_hmac(secret: str, sent_hmac: str, message: str, is_base64: bool = False):
 
-    hmac_calculated = calculate_hmac_from_message(secret, message, is_base64)
+    hmac_calculated = calculate_message_hmac(secret, message, is_base64)
 
     if not compare_digest(sent_hmac, hmac_calculated):
         raise ValueError('HMAC verification failed')
