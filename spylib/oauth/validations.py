@@ -1,6 +1,4 @@
 from copy import deepcopy
-from operator import itemgetter
-from typing import Any, List, Tuple
 from urllib.parse import parse_qs
 
 from ..utils import domain_to_storename, now_epoch
@@ -24,16 +22,6 @@ def validate_callback(shop: str, timestamp: int, query_string: bytes) -> None:
     message = '&'.join([f'{arg}={",".join(args.get(arg))}' for arg in args.keys()])
     
     validate_hmac(secret=conf.secret_key, sent_hmac=hmac_actual, message=message)
-
-
-def validate_callback_args(args: List[Tuple[str, str]]) -> None:
-    # We assume here that the arguments were validated prior to calling
-    # this function.
-    hmac_arg = [arg[1] for arg in args if arg[0] == 'hmac'][0]
-    message = '&'.join([f'{arg[0]}={arg[1]}' for arg in args if arg[0] != 'hmac'])
-    # Check HMAC
-    validate_hmac(secret=conf.secret_key, sent_hmac=hmac_arg, message=message)
-
 
 def validate_oauthjwt(token: str, shop: str, jwt_key: str) -> OAuthJWT:
     oauthjwt = OAuthJWT.decode_token(token=token, key=jwt_key)
