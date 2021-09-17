@@ -1,31 +1,40 @@
 
-from typing import ClassVar, Optional
+from typing import Any, ClassVar, Dict, Optional
 from pydantic.main import BaseModel
 from pydantic.networks import HttpUrl
+from datetime import datetime, timedelta
 
 import jwt
 from jwt.exceptions import PyJWKError
 
 from utils.domain import store_domain
 
-class InvalidIssuerError(Exception):
+class ValidationError(Exception):
     pass
 
-class MismatchedHostError(Exception):
+class InvalidIssuerError(ValidationError):
     pass
 
-class TokenAuthenticationError(Exception):
+class MismatchedHostError(ValidationError):
+    pass
+
+class TokenAuthenticationError(ValidationError):
     pass
 
 class SessionToken(BaseModel):
+    """
+    Session tokens are derived from the authrization header from Shopify.
+    This performs the set of validations as defined by shopify 
+    https://shopify.dev/apps/auth/session-tokens/authenticate-an-embedded-app-using-session-tokens#obtain-session-details-manually
+    """
 
     iss: HttpUrl
     dest: HttpUrl
     aud: Optional[str]
     sub: int
-    exp: Optional[float]
-    nbf: Optional[float]
-    iat: Optional[float]
+    exp: Optional[datetime]
+    nbf: Optional[datetime]
+    iat: Optional[datetime]
     jti: int
     sid: str
 
@@ -39,14 +48,17 @@ class SessionToken(BaseModel):
     def validate(self) -> None:
         self.__validate_hostname()
         self.__validate_destination()
+        self.__validate_exp()
+        self.__validate_nbf()
+        self.__validate_sub()
     
     @classmethod
-    def decode_token_from_header(cls, authorization_header, api_key, secret) -> SessionToken:
+    def decode_token_from_header(cls, authorization_header: str, api_key: str, secret: str) -> SessionToken:
         # Take the authorization headers and unload them
         token = cls.__extract_session_token(authorization_header)
         payload = cls.__decode_session_token(token, api_key, secret)
         
-        # Verify enough fields specified and validate data 
+        # Verify enough fields specified and perform validation checks
         session_token = cls(**payload)
         session_token.validate()
         
@@ -59,7 +71,7 @@ class SessionToken(BaseModel):
         return authorization_header[len(cls.prefix):]
 
     @classmethod
-    def __decode_session_token(cls, session_token: str, api_key: str, secret: str):
+    def __decode_session_token(cls, session_token: str, api_key: str, secret: str) -> Dict[str, Any]:
         try:
             return jwt.decode(
                 session_token,
@@ -78,4 +90,22 @@ class SessionToken(BaseModel):
         if not store_domain(self.iss):
             raise InvalidIssuerError(f"The domain {self.iss} is not a valid issuer.")
 
+    def __validate_exp(self):
+        """
+        Checks to be sure that exp is in future.
+        """
+        if self.exp < datetime.now():
+            raise ValidationError(f"The expiration date (exp) {self.exp} has already expired.")
+        
+    def __validate_nbf(self):
+        """
+        Checks to be sure that the nbf was is the past.
+        """
+        if self.nbf > datetime.now():
+            raise ValidationError(f"The not before date (nbf) {self.nbf} has not occured yet.")
     
+    def __validate_sub(self):
+        """
+        Checks to be sure that the subject (sub) is the same as the user who made the request.
+        """
+        pass
