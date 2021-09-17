@@ -49,7 +49,6 @@ class SessionToken(BaseModel):
     def validate(self) -> None:
         self.__validate_hostname()
         self.__validate_destination()
-        self.__validate_exp()
         self.__validate_nbf()
         self.__validate_sub()
     
@@ -73,6 +72,10 @@ class SessionToken(BaseModel):
 
     @classmethod
     def __decode_session_token(cls, session_token: str, api_key: str, secret: str) -> Dict[str, Any]:
+        """
+        By default the JWT.decode method automatically checks to see if the
+        exp is in the past, 
+        """
         try:
             return jwt.decode(
                 session_token,
@@ -90,13 +93,6 @@ class SessionToken(BaseModel):
     def __validate_hostname(self):
         if not store_domain(self.iss):
             raise InvalidIssuerError(f"The domain {self.iss} is not a valid issuer.")
-
-    def __validate_exp(self):
-        """
-        Checks to be sure that exp is in future.
-        """
-        if self.exp < datetime.now():
-            raise ValidationError(f"The expiration date (exp) {self.exp} has already expired.")
         
     def __validate_nbf(self):
         """
