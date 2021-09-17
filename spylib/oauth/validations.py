@@ -1,4 +1,3 @@
-from copy import deepcopy
 from urllib.parse import parse_qs
 
 from ..utils import domain_to_storename, now_epoch
@@ -16,12 +15,9 @@ def validate_callback(shop: str, timestamp: int, query_string: bytes) -> None:
         raise ValueError('Timestamp is too old')
 
     # 3) Check the hmac
-    args = parse_qs(query_string.decode('utf-8')) 
-
-    hmac_actual = args.pop('hmac')[0]
-    message = '&'.join([f'{arg}={",".join(args.get(arg))}' for arg in args.keys()])
+    message = parse_qs(query_string.decode('utf-8')) 
     
-    validate_hmac(secret=conf.secret_key, sent_hmac=hmac_actual, message=message)
+    validate_hmac(secret=conf.secret_key, message=message)
 
 def validate_oauthjwt(token: str, shop: str, jwt_key: str) -> OAuthJWT:
     oauthjwt = OAuthJWT.decode_token(token=token, key=jwt_key)
