@@ -16,7 +16,6 @@ def validate_callback(shop: str, timestamp: int, query_string: bytes) -> None:
 
     # 3) Check the hmac
     message = parse_qs(query_string.decode('utf-8')) 
-    
     validate_hmac(secret=conf.secret_key, message=message)
 
 def validate_oauthjwt(token: str, shop: str, jwt_key: str) -> OAuthJWT:
