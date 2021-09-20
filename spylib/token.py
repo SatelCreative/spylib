@@ -155,7 +155,7 @@ class Token(ABC, BaseModel):
                 self.rest_bucket_max = int(calllimit.split('/')[1])
                 # In Shopify the bucket is emptied after 20 seconds
                 # regardless of the bucket size.
-                Token.rest_leak_rate = int(self.rest_bucket_max / 20)
+                self.rest_leak_rate = int(self.rest_bucket_max / 20)
 
             return jresp
 
