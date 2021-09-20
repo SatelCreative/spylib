@@ -43,13 +43,13 @@ async def test_online_token(
         scope=online_token_data.scope.split(','),
         expires_in=online_token_data.expires_in,
         associated_user_scope=online_token_data.associated_user_scope.split(','),
-        associated_user=online_token_data.associated_user,
+        associated_user_id=online_token_data.associated_user.id,
     )
 
     assert online_token.access_token == online_token_data.access_token
     assert not online_token.access_token_invalid
     assert online_token.scope == online_token_data.scope.split(',')
-    assert online_token.associated_user == online_token_data.associated_user
+    assert online_token.associated_user_id == online_token_data.associated_user.id
     assert online_token.associated_user_scope == online_token_data.associated_user_scope.split(',')
     assert online_token.api_url == (
         f'https://{app_information.store_name}.myshopify.com/admin/'
@@ -76,12 +76,12 @@ async def test_save_token(
         scope=online_token_data.scope.split(','),
         expires_in=online_token_data.expires_in,
         associated_user_scope=online_token_data.associated_user_scope.split(','),
-        associated_user=online_token_data.associated_user,
+        associated_user_id=online_token_data.associated_user.id,
     )
 
     await online_token.save()
 
-    new_online_token = database['online'][online_token.store_name][online_token.associated_user.id]
+    new_online_token = database['online'][online_token.store_name][online_token.associated_user_id]
 
     # Check to see if the saved token is the same as the original
     assert new_online_token == online_token
@@ -102,11 +102,11 @@ async def test_load_token(
         scope=online_token_data.scope.split(','),
         expires_in=online_token_data.expires_in,
         associated_user_scope=online_token_data.associated_user_scope.split(','),
-        associated_user=online_token_data.associated_user,
+        associated_user_id=online_token_data.associated_user.id,
     )
 
     database['online'][app_information.store_name] = {}
-    database['online'][app_information.store_name][online_token.associated_user.id] = online_token
+    database['online'][app_information.store_name][online_token.associated_user_id] = online_token
 
     new_online_token = await online_token.load(
         app_information.store_name, online_token_data.associated_user.id

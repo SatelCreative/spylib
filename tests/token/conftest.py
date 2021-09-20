@@ -36,7 +36,7 @@ def OnlineToken():
     class OnlineToken(OnlineTokenABC):
         async def save(self):
             test_database['online'][self.store_name] = {}
-            test_database['online'][self.store_name][self.associated_user.id] = self
+            test_database['online'][self.store_name][self.associated_user_id] = self
 
         @classmethod
         async def load(cls, store_name: str, user_id: str) -> OnlineToken:
