@@ -244,11 +244,11 @@ class OfflineTokenABC(Token, ABC):
     """
 
     @abstractmethod
-    async def save_token(self):
+    async def save(self):
         pass
 
     @abstractclassmethod
-    def load_token(cls, store_name: str):
+    def load(cls, store_name: str):
         pass
 
 
@@ -265,14 +265,14 @@ class OnlineTokenABC(Token, ABC):
     expires_at: datetime = datetime.now() + timedelta(days=0, seconds=expires_in)
 
     @abstractmethod
-    async def save_token(self):
+    async def save(self):
         """
         This method handles saving the token. By default this does nothing,
         therefore the developer should override this.
         """
 
     @abstractclassmethod
-    def load_token(cls, store_name: str, associated_user: str):
+    def load(cls, store_name: str, associated_user: str):
         """
         This method handles loading the token. By default this does nothing,
         therefore the developer should override this.

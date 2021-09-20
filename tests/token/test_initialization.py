@@ -79,7 +79,7 @@ async def test_save_token(
         associated_user=online_token_data.associated_user,
     )
 
-    await online_token.save_token()
+    await online_token.save()
 
     new_online_token = database['online'][online_token.store_name][online_token.associated_user.id]
 
@@ -108,7 +108,7 @@ async def test_load_token(
     database['online'][app_information.store_name] = {}
     database['online'][app_information.store_name][online_token.associated_user.id] = online_token
 
-    new_online_token = await online_token.load_token(
+    new_online_token = await online_token.load(
         app_information.store_name, online_token_data.associated_user.id
     )
 
@@ -157,7 +157,7 @@ async def test_save_offline_token(
         scope=offline_token_data.scope.split(','),
     )
 
-    await offline_token.save_token()
+    await offline_token.save()
 
     new_offline_token = database['offline'][offline_token.store_name]
 
@@ -181,7 +181,7 @@ async def test_load_offline_token(
 
     database['offline'][app_information.store_name] = offline_token
 
-    new_offline_token = await offline_token.load_token(app_information.store_name)
+    new_offline_token = await offline_token.load(app_information.store_name)
 
     # Check to see if the loaded token is the same as the original
     assert new_offline_token == offline_token

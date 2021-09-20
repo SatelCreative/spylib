@@ -34,12 +34,12 @@ def OnlineToken():
     test_database = {"offline": {}, "online": {}}
 
     class OnlineToken(OnlineTokenABC):
-        async def save_token(self):
+        async def save(self):
             test_database['online'][self.store_name] = {}
             test_database['online'][self.store_name][self.associated_user.id] = self
 
         @classmethod
-        async def load_token(cls, store_name: str, user_id: str) -> OnlineToken:
+        async def load(cls, store_name: str, user_id: str) -> OnlineToken:
             return test_database['online'][store_name][user_id]
 
     yield OnlineToken
@@ -53,11 +53,11 @@ def OfflineToken():
     test_database = {"offline": {}, "online": {}}
 
     class OfflineToken(OfflineTokenABC):
-        async def save_token(self):
+        async def save(self):
             test_database['offline'][self.store_name] = self
 
         @classmethod
-        async def load_token(cls, store_name: str) -> OfflineToken:
+        async def load(cls, store_name: str) -> OfflineToken:
             return test_database['offline'][store_name]
 
     yield OfflineToken
