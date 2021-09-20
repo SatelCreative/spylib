@@ -71,7 +71,7 @@ def online_token_data() -> OnlineTokenResponse:
         access_token='ONLINETOKEN',
         scope=','.join(['write_products', 'read_customers']),
         expires_in=86399,
-        associated_user_scope=','.join(['write_orders', 'read_products']),
+        associated_user_scope=','.join(['read_products']),
         associated_user={
             "id": 902541635,
             "first_name": "John",
