@@ -195,4 +195,22 @@ result of the installation and the login processes respectivaly. They are meant 
 particular to record the offline and online tokens in your app's database.
 They can be synchronous or asynchronous functions taking the storename and the token
 as arguments.
+
+### Session Tokens
+
+The session token functionality can be used to verify the session for the user.
+The suggested syntax is to define a partial function:
+
+```python
+from spylib.utils import SessionToken
+
+decode_session_token = partial(SessionToken.decode_token_from_header, api_key=api_key, secret=secret)
+```
+
+Then this can be used as a dependency in FastAPI by doing the following:
+
+```python
+@app.get("/items/")
+async def read_items(session: SessionToken = Depends(decode_session_token)):
+  # Some api code
 ```
