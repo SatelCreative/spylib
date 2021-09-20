@@ -115,7 +115,7 @@ def app_information() -> AppInformation:
 @pytest.fixture(scope='session', autouse=True)
 def MockHTTPResponse():
     @dataclass
-    class MockHTTPResponse:
+    class MockHTTPResponseCls:
         status_code: int
         jsondata: dict
         headers: dict = None  # type: ignore
@@ -127,4 +127,4 @@ def MockHTTPResponse():
         def json(self):
             return self.jsondata
 
-    return MockHTTPResponse
+    return MockHTTPResponseCls
