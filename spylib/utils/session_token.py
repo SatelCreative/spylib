@@ -5,7 +5,7 @@ from pydantic.main import BaseModel
 from pydantic.networks import HttpUrl
 from datetime import datetime
 
-import jwt
+from jwt import decode
 from jwt.exceptions import PyJWKError
 
 from utils.domain import store_domain
@@ -87,7 +87,7 @@ class SessionToken(BaseModel):
         exp is in the past,
         """
         try:
-            return jwt.decode(session_token, secret, audience=api_key, algorithms=[cls.algorithm])
+            return decode(session_token, secret, audience=api_key, algorithms=[cls.algorithm])
         except PyJWKError as e:
             raise e("Error decoding session token")
 
