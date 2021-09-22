@@ -1,15 +1,18 @@
 import pytest
 
 from spylib import Token
-from spylib.token import OfflineTokenResponse, OnlineTokenResponse
-from tests.token.conftest import AppInformation
+
+from ..token_classes import (
+    OnlineToken,
+    OfflineToken,
+    online_token_data,
+    offline_token_data,
+    app_information,
+)
 
 
 @pytest.mark.asyncio
-async def test_token(
-    offline_token_data: OfflineTokenResponse,
-    app_information: AppInformation,
-):
+async def test_token():
     # Create a new token
     token = Token(
         store_name=app_information.store_name,
@@ -31,19 +34,11 @@ async def test_token(
 
 
 @pytest.mark.asyncio
-async def test_online_token(
-    OnlineToken,
-    online_token_data: OnlineTokenResponse,
-    app_information: AppInformation,
-):
+async def test_online_token():
     # Create a new token
-    online_token = OnlineToken(
+    online_token = await OnlineToken.load(
         store_name=app_information.store_name,
-        access_token=online_token_data.access_token,
-        scope=online_token_data.scope.split(','),
-        expires_in=online_token_data.expires_in,
-        associated_user_scope=online_token_data.associated_user_scope.split(','),
-        associated_user_id=online_token_data.associated_user.id,
+        user_id=online_token_data.associated_user.id,
     )
 
     assert online_token.access_token == online_token_data.access_token
@@ -62,17 +57,9 @@ async def test_online_token(
 
 
 @pytest.mark.asyncio
-async def test_offline_token(
-    OfflineToken,
-    offline_token_data: OfflineTokenResponse,
-    app_information: AppInformation,
-):
+async def test_offline_token():
     # Create a new token
-    offline_token = OfflineToken(
-        store_name=app_information.store_name,
-        access_token=offline_token_data.access_token,
-        scope=offline_token_data.scope.split(','),
-    )
+    offline_token = await OfflineToken.load(store_name=app_information.store_name)
 
     assert offline_token.access_token == offline_token_data.access_token
     assert offline_token.scope == offline_token_data.scope.split(',')
