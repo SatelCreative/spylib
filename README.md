@@ -196,3 +196,24 @@ particular to record the offline and online tokens in your app's database.
 They can be synchronous or asynchronous functions taking the storename and the token
 as arguments.
 ```
+
+## Maintenance
+
+We use [poetry](https://python-poetry.org/) to manage the dependencies and
+[flit](https://flit.readthedocs.io/en/latest/index.html) to build and publish to pypi
+because unlike poetry it allows to set the metadata on pypi such as author or homepage.
+
+### Howto publish
+
+1. Change the version in the pyproject and spylib/__init__.py files
+    * you can use `poetry version XXXXX` to change pyproject
+2. Commit
+3. Run `flit publish`
+4. Tag the release in git
+
+**Notes**:
+* It's better to tag after publishing in case there is an issue while publishing
+* `flit` will try to use the system's keyring if the keyring package is installed.
+  Run `flit` in a virtual environment without keyring if you prefer to bypass the
+  keyring put your password whenever you publish
+
