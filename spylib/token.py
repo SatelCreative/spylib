@@ -170,7 +170,7 @@ class Token(ABC, BaseModel):
         """Simple graphql query executor because python has no decent graphql client"""
 
         if not self.access_token:
-            raise ValueError("Token Undefined")
+            raise ValueError('Token Undefined')
 
         url = f'{self.api_url}/graphql.json'
 
@@ -217,7 +217,7 @@ class Token(ABC, BaseModel):
             elif THROTTLED_ERROR_CODE in error_code_list:  # This should be the last condition
                 query_cost = jsondata['extensions']['cost']['requestedQueryCost']
                 available = jsondata['extensions']['cost']['throttleStatus']['currentlyAvailable']
-                rate = jsondata['extensions']['cost']['throttleStatus']["restoreRate"]
+                rate = jsondata['extensions']['cost']['throttleStatus']['restoreRate']
                 sleep_time = ceil((query_cost - available) / rate)
                 await sleep(sleep_time)
                 raise ShopifyThrottledError

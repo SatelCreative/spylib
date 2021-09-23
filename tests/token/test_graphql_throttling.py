@@ -5,11 +5,7 @@ import pytest
 from spylib.exceptions import ShopifyExceedingMaxCostError
 from spylib.token import Token
 
-from ..token_classes import (
-    MockHTTPResponse,
-    app_information,
-    offline_token_data,
-)
+from ..token_classes import MockHTTPResponse, app_information, offline_token_data
 
 graphql_throttling_queries = [
     """    {

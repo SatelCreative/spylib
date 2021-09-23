@@ -6,13 +6,9 @@ import pytest
 from spylib.exceptions import ShopifyCallInvalidError
 from spylib.token import Token
 
-from ..token_classes import (
-    MockHTTPResponse,
-    app_information,
-    offline_token_data,
-)
+from ..token_classes import MockHTTPResponse, app_information, offline_token_data
 
-graphql_operation_name_query = '''
+graphql_operation_name_query = """
     query query1 {
         shop {
             name
@@ -26,7 +22,7 @@ graphql_operation_name_query = '''
             }
         }
     }
-    '''
+    """
 
 params = [
     pytest.param(
@@ -58,7 +54,7 @@ async def test_store_graphql_operation_name_happypath(
     data,
     mocker,
 ):
-    '''
+    """
     Checks to see if passing an operation name works as expected.
     There is 3 possible outcomes when you pass in operation_name:
 
@@ -68,7 +64,7 @@ async def test_store_graphql_operation_name_happypath(
         one should have been specified (2 named queries)
 
     This checks just the successful queries.
-    '''
+    """
     token = Token(
         store_name=app_information.store_name,
         access_token=offline_token_data.access_token,
@@ -133,7 +129,7 @@ async def test_store_graphql_operation_name_badquery(
     error,
     mocker,
 ):
-    '''
+    """
     Checks to see if passing an operation name works as expected.
     There is 3 possible outcomes when you pass in operation_name:
 
@@ -144,7 +140,7 @@ async def test_store_graphql_operation_name_badquery(
 
     This tests the error cases.
 
-    '''
+    """
     token = Token(
         store_name=app_information.store_name,
         access_token=offline_token_data.access_token,

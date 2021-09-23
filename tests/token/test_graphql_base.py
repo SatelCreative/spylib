@@ -2,13 +2,9 @@ from unittest.mock import AsyncMock
 
 import pytest
 
-from spylib.token import OfflineTokenResponse, Token
+from spylib.token import Token
 
-from ..token_classes import (
-    MockHTTPResponse,
-    app_information,
-    offline_token_data,
-)
+from ..token_classes import MockHTTPResponse, app_information, offline_token_data
 
 
 @pytest.mark.asyncio
@@ -19,12 +15,12 @@ async def test_store_graphql_happypath(mocker):
         scope=offline_token_data.scope.split(','),
     )
 
-    query = '''
+    query = """
     {
       shop {
         name
       }
-    }'''
+    }"""
     data = {'shop': {'name': 'graphql-admin'}}
     gql_response = {
         'data': data,
@@ -62,12 +58,14 @@ async def test_store_graphql_badquery(mocker):
         scope=offline_token_data.scope.split(','),
     )
 
-    query = '''
+    query = """
     {
       shopp {
         name
       }
-    }'''
+    }
+    """
+
     error_msg = "Field 'shopp' doesn't exist on type 'QueryRoot'"
     gql_response = {
         'errors': [
@@ -104,12 +102,12 @@ async def test_store_graphql_tokeninvalid(mocker):
         scope=offline_token_data.scope.split(','),
     )
 
-    query = '''
+    query = """
     {
       shop {
         name
       }
-    }'''
+    }"""
     gql_response = {
         'errors': '[API] Invalid API key or access token (unrecognized login or wrong password)'
     }

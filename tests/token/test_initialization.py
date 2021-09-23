@@ -3,11 +3,11 @@ import pytest
 from spylib import Token
 
 from ..token_classes import (
-    OnlineToken,
     OfflineToken,
-    online_token_data,
-    offline_token_data,
+    OnlineToken,
     app_information,
+    offline_token_data,
+    online_token_data,
 )
 
 

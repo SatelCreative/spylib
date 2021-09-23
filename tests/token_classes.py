@@ -1,11 +1,14 @@
 from __future__ import annotations
-from typing import List
 
 from pydantic.class_validators import validator
 from pydantic.main import BaseModel
 
-from spylib.token import OfflineTokenABC, OfflineTokenResponse, OnlineTokenABC, OnlineTokenResponse
-
+from spylib.token import (
+    OfflineTokenABC,
+    OfflineTokenResponse,
+    OnlineTokenABC,
+    OnlineTokenResponse,
+)
 
 online_token_data = OnlineTokenResponse(
     access_token='ONLINETOKEN',
@@ -13,14 +16,14 @@ online_token_data = OnlineTokenResponse(
     expires_in=86399,
     associated_user_scope=','.join(['read_products']),
     associated_user={
-        "id": 902541635,
-        "first_name": "John",
-        "last_name": "Smith",
-        "email": "john@example.com",
-        "email_verified": True,
-        "account_owner": True,
-        "locale": "en",
-        "collaborator": False,
+        'id': 902541635,
+        'first_name': 'John',
+        'last_name': 'Smith',
+        'email': 'john@example.com',
+        'email_verified': True,
+        'account_owner': True,
+        'locale': 'en',
+        'collaborator': False,
     },
 )
 
@@ -49,7 +52,7 @@ class AppInformation(BaseModel):
     """
 
     api_version: str = '2021-04'
-    store_name: str = "Test-Store"
+    store_name: str = 'Test-Store'
     client_id: int = 1
     client_secret: int = 2
     code: int = 3

@@ -6,11 +6,7 @@ import pytest
 from spylib import Token
 from spylib.exceptions import ShopifyCallInvalidError
 
-from ..token_classes import (
-    MockHTTPResponse,
-    app_information,
-    offline_token_data,
-)
+from ..token_classes import MockHTTPResponse, app_information, offline_token_data
 
 
 @pytest.mark.asyncio

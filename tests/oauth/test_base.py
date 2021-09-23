@@ -31,14 +31,14 @@ ONLINETOKEN_DATA = dict(
     expires_in=86399,
     associated_user_scope=','.join(TEST_DATA.user_scopes),
     associated_user={
-        "id": 902541635,
-        "first_name": "John",
-        "last_name": "Smith",
-        "email": "john@example.com",
-        "email_verified": True,
-        "account_owner": True,
-        "locale": "en",
-        "collaborator": False,
+        'id': 902541635,
+        'first_name': 'John',
+        'last_name': 'Smith',
+        'email': 'john@example.com',
+        'email_verified': True,
+        'account_owner': True,
+        'locale': 'en',
+        'collaborator': False,
     },
 )
 
