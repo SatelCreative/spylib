@@ -27,7 +27,7 @@ class ShopifyExceedingMaxCostError(ShopifyError):
     pass
 
 
-def not_our_fault(exception: Exception):
+def not_our_fault(exception: BaseException):
     """Simple function to identify invalid Shopify calls, i.e. our mistake.
 
     Probably the only way to make sure we retry for any other exception but those.

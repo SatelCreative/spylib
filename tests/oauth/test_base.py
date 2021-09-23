@@ -7,7 +7,7 @@ from box import Box  # type: ignore
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 from pydantic.dataclasses import dataclass
-from requests import Response
+from requests import Response  # type: ignore
 
 from spylib.oauth import OfflineToken, OnlineToken, conf, init_oauth_router
 from spylib.utils import JWTBaseModel, hmac, now_epoch
