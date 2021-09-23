@@ -30,7 +30,7 @@ offline_token_data = OfflineTokenResponse(
 )
 
 
-class MockHTTPResponse:
+class MockHTTPResponse(BaseModel):
     status_code: int
     jsondata: dict
     headers: dict = None  # type: ignore

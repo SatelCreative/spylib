@@ -5,17 +5,16 @@ import pytest
 
 from spylib import Token
 from spylib.exceptions import ShopifyCallInvalidError
-from spylib.token import OfflineTokenResponse
-from tests.token.conftest import AppInformation
+
+from ..token_classes import (
+    MockHTTPResponse,
+    app_information,
+    offline_token_data,
+)
 
 
 @pytest.mark.asyncio
-async def test_store_rest_happypath(
-    mocker,
-    offline_token_data: OfflineTokenResponse,
-    app_information: AppInformation,
-    MockHTTPResponse,
-):
+async def test_store_rest_happypath(mocker):
     token = Token(
         store_name=app_information.store_name,
         access_token=offline_token_data.access_token,
@@ -41,12 +40,7 @@ async def test_store_rest_happypath(
 
 
 @pytest.mark.asyncio
-async def test_store_rest_badrequest(
-    mocker,
-    offline_token_data: OfflineTokenResponse,
-    app_information: AppInformation,
-    MockHTTPResponse,
-):
+async def test_store_rest_badrequest(mocker):
     token = Token(
         store_name=app_information.store_name,
         access_token=offline_token_data.access_token,
@@ -89,9 +83,6 @@ async def test_store_rest_ratetokens(
     time_passed,
     expected_tokens,
     mocker,
-    offline_token_data: OfflineTokenResponse,
-    app_information: AppInformation,
-    MockHTTPResponse,
 ):
     token = Token(
         store_name=app_information.store_name,
