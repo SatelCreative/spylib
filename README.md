@@ -48,20 +48,20 @@ are `OnlineTokenABC` or `OfflineTokenABC`:
 #### Implement Token Classes 
 
 ```python
-class OnlineToken(OnlineTokenABC):
-  async def save(self):
-      # Some code to save the token to a database
-
-  @classmethod
-  async def load(cls, store_name: str, user_id: str):
-      # Some code to load the token from the database
-
 class OfflineToken(OfflineTokenABC):
   async def save(self):
       # Some code to save the token to a database
 
   @classmethod
   async def load(cls, store_name: str):
+      # Some code to load the token from the database
+
+class OnlineToken(OnlineTokenABC):
+  async def save(self):
+      # Some code to save the token to a database
+
+  @classmethod
+  async def load(cls, store_name: str, user_id: str):
       # Some code to load the token from the database
 ```
 
@@ -71,6 +71,12 @@ Once you have defined these methods, we can create an instance of a token using
 one of the following:
 
 ```python
+token = OfflineToken(
+  store_name,
+  access_token,
+  scope
+)
+
 token = OnlineToken(
   store_name,
   access_token,
@@ -78,12 +84,6 @@ token = OnlineToken(
   expires_in,
   associated_user_scope,
   associated_user_id
-)
-
-token = OfflineToken(
-  store_name,
-  access_token,
-  scope
 )
 ```
 
