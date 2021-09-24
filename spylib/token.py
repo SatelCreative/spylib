@@ -55,7 +55,7 @@ class OnlineTokenResponse(BaseModel):
 class Token(ABC, BaseModel):
     """
     Abstract class for token objects. This should never be extended, as you
-    should either be using the OfflineToken or the OnlineToken.
+    should either be using the OfflineTokenABC or the OnlineTokenABC.
     """
 
     store_name: str
