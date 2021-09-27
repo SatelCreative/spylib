@@ -46,7 +46,7 @@ class MockHTTPResponse(BaseModel):
         return self.jsondata
 
 
-class AppInformation(BaseModel):
+class TestInformation(BaseModel):
     """
     Information about the store for tests.
     """
@@ -60,7 +60,7 @@ class AppInformation(BaseModel):
     private_key: str = 'TESTPRIVATEKEY'
 
 
-app_information = AppInformation()
+test_information = TestInformation()
 
 
 class OnlineToken(OnlineTokenABC):
@@ -75,7 +75,7 @@ class OnlineToken(OnlineTokenABC):
             associated_user_id=online_token_data.associated_user.id,
             associated_user_scope=online_token_data.associated_user_scope.split(','),
             expires_in=online_token_data.expires_in,
-            store_name=app_information.store_name,
+            store_name=test_information.store_name,
         )
 
 
@@ -88,5 +88,5 @@ class OfflineToken(OfflineTokenABC):
         return OfflineToken(
             access_token=offline_token_data.access_token,
             scope=offline_token_data.scope.split(','),
-            store_name=app_information.store_name,
+            store_name=test_information.store_name,
         )

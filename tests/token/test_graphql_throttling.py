@@ -5,7 +5,7 @@ import pytest
 from spylib.exceptions import ShopifyExceedingMaxCostError
 from spylib.token import Token
 
-from ..token_classes import MockHTTPResponse, app_information, offline_token_data
+from ..token_classes import MockHTTPResponse, test_information, offline_token_data
 
 graphql_throttling_queries = [
     """    {
@@ -59,7 +59,7 @@ async def test_store_graphql_throttling_happypath(mocker):
     This handles the first case (#1).
     """
     token = Token(
-        store_name=app_information.store_name,
+        store_name=test_information.store_name,
         access_token=offline_token_data.access_token,
         scope=offline_token_data.scope.split(','),
     )
@@ -114,7 +114,7 @@ async def test_store_graphql_throttling_catch_cap(mocker):
 
     """
     token = Token(
-        store_name=app_information.store_name,
+        store_name=test_information.store_name,
         access_token=offline_token_data.access_token,
         scope=offline_token_data.scope.split(','),
     )
@@ -203,7 +203,7 @@ async def test_store_graphql_throttling_error_test(mocker):
         possible query size.
     """
     token = Token(
-        store_name=app_information.store_name,
+        store_name=test_information.store_name,
         access_token=offline_token_data.access_token,
         scope=offline_token_data.scope.split(','),
     )

@@ -4,13 +4,13 @@ import pytest
 
 from spylib.token import Token
 
-from ..token_classes import MockHTTPResponse, app_information, offline_token_data
+from ..token_classes import MockHTTPResponse, test_information, offline_token_data
 
 
 @pytest.mark.asyncio
 async def test_store_graphql_happypath(mocker):
     token = Token(
-        store_name=app_information.store_name,
+        store_name=test_information.store_name,
         access_token=offline_token_data.access_token,
         scope=offline_token_data.scope.split(','),
     )
@@ -53,7 +53,7 @@ async def test_store_graphql_happypath(mocker):
 @pytest.mark.asyncio
 async def test_store_graphql_badquery(mocker):
     token = Token(
-        store_name=app_information.store_name,
+        store_name=test_information.store_name,
         access_token=offline_token_data.access_token,
         scope=offline_token_data.scope.split(','),
     )
@@ -97,7 +97,7 @@ async def test_store_graphql_badquery(mocker):
 @pytest.mark.asyncio
 async def test_store_graphql_tokeninvalid(mocker):
     token = Token(
-        store_name=app_information.store_name,
+        store_name=test_information.store_name,
         access_token=offline_token_data.access_token,
         scope=offline_token_data.scope.split(','),
     )

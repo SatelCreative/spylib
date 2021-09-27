@@ -6,13 +6,13 @@ import pytest
 from spylib import Token
 from spylib.exceptions import ShopifyCallInvalidError
 
-from ..token_classes import MockHTTPResponse, app_information, offline_token_data
+from ..token_classes import MockHTTPResponse, test_information, offline_token_data
 
 
 @pytest.mark.asyncio
 async def test_store_rest_happypath(mocker):
     token = Token(
-        store_name=app_information.store_name,
+        store_name=test_information.store_name,
         access_token=offline_token_data.access_token,
         scope=offline_token_data.scope.split(','),
     )
@@ -38,7 +38,7 @@ async def test_store_rest_happypath(mocker):
 @pytest.mark.asyncio
 async def test_store_rest_badrequest(mocker):
     token = Token(
-        store_name=app_information.store_name,
+        store_name=test_information.store_name,
         access_token=offline_token_data.access_token,
         scope=offline_token_data.scope.split(','),
     )
@@ -81,7 +81,7 @@ async def test_store_rest_ratetokens(
     mocker,
 ):
     token = Token(
-        store_name=app_information.store_name,
+        store_name=test_information.store_name,
         access_token=offline_token_data.access_token,
         scope=offline_token_data.scope.split(','),
     )
