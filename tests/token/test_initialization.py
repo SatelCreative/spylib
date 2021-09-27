@@ -12,28 +12,6 @@ from ..token_classes import (
 
 
 @pytest.mark.asyncio
-async def test_token():
-    # Create a new token
-    token = Token(
-        store_name=app_information.store_name,
-        access_token=offline_token_data.access_token,
-        scope=offline_token_data.scope.split(','),
-    )
-
-    assert token.access_token == offline_token_data.access_token
-    assert not token.access_token_invalid
-    assert token.scope == offline_token_data.scope.split(',')
-    assert token.api_url == (
-        f'https://{app_information.store_name}.myshopify.com/admin/'
-        + f'api/{app_information.api_version}'
-    )
-    assert (
-        token.oauth_url
-        == f'https://{app_information.store_name}.myshopify.com/admin/oauth/access_token'
-    )
-
-
-@pytest.mark.asyncio
 async def test_online_token():
     # Create a new token
     online_token = await OnlineToken.load(
