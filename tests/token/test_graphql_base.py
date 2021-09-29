@@ -2,18 +2,12 @@ from unittest.mock import AsyncMock
 
 import pytest
 
-from spylib.token import Token
-
-from ..token_classes import MockHTTPResponse, test_information, offline_token_data
+from ..token_classes import MockHTTPResponse, OfflineToken, test_information
 
 
 @pytest.mark.asyncio
 async def test_store_graphql_happypath(mocker):
-    token = Token(
-        store_name=test_information.store_name,
-        access_token=offline_token_data.access_token,
-        scope=offline_token_data.scope.split(','),
-    )
+    token = await OfflineToken.load(store_name=test_information.store_name)
 
     query = """
     {
@@ -52,11 +46,7 @@ async def test_store_graphql_happypath(mocker):
 
 @pytest.mark.asyncio
 async def test_store_graphql_badquery(mocker):
-    token = Token(
-        store_name=test_information.store_name,
-        access_token=offline_token_data.access_token,
-        scope=offline_token_data.scope.split(','),
-    )
+    token = await OfflineToken.load(store_name=test_information.store_name)
 
     query = """
     {
@@ -96,11 +86,7 @@ async def test_store_graphql_badquery(mocker):
 
 @pytest.mark.asyncio
 async def test_store_graphql_tokeninvalid(mocker):
-    token = Token(
-        store_name=test_information.store_name,
-        access_token=offline_token_data.access_token,
-        scope=offline_token_data.scope.split(','),
-    )
+    token = await OfflineToken.load(store_name=test_information.store_name)
 
     query = """
     {

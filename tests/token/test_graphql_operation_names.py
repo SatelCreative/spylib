@@ -4,9 +4,8 @@ from unittest.mock import AsyncMock
 import pytest
 
 from spylib.exceptions import ShopifyCallInvalidError
-from spylib.token import Token
 
-from ..token_classes import MockHTTPResponse, test_information, offline_token_data
+from ..token_classes import MockHTTPResponse, OfflineToken, test_information
 
 graphql_operation_name_query = """
     query query1 {
@@ -65,11 +64,7 @@ async def test_store_graphql_operation_name_happypath(
 
     This checks just the successful queries.
     """
-    token = Token(
-        store_name=test_information.store_name,
-        access_token=offline_token_data.access_token,
-        scope=offline_token_data.scope.split(','),
-    )
+    token = await OfflineToken.load(store_name=test_information.store_name)
 
     gql_response = {
         'extensions': {
@@ -141,11 +136,7 @@ async def test_store_graphql_operation_name_badquery(
     This tests the error cases.
 
     """
-    token = Token(
-        store_name=test_information.store_name,
-        access_token=offline_token_data.access_token,
-        scope=offline_token_data.scope.split(','),
-    )
+    token = await OfflineToken.load(store_name=test_information.store_name)
 
     gql_response = {
         'extensions': {
