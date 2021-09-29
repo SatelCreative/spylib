@@ -3,9 +3,9 @@ import pytest
 from ..token_classes import (
     OfflineToken,
     OnlineToken,
-    test_information,
     offline_token_data,
     online_token_data,
+    test_information,
 )
 
 
