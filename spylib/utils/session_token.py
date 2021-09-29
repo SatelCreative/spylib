@@ -1,14 +1,15 @@
 from __future__ import annotations
 
-from typing import Any, ClassVar, Dict, Optional
-from pydantic.main import BaseModel
-from pydantic.networks import HttpUrl
 from datetime import datetime
+from typing import Any, ClassVar, Dict, List, Optional
+from urllib.parse import urlparse
 
 from jwt import decode
 from jwt.exceptions import PyJWKError
+from pydantic.main import BaseModel
+from pydantic.networks import HttpUrl
 
-from utils.domain import store_domain
+from .domain import store_domain
 
 
 class ValidationError(Exception):
@@ -38,14 +39,15 @@ class SessionToken(BaseModel):
     dest: HttpUrl
     aud: Optional[str]
     sub: int
-    exp: Optional[datetime]
-    nbf: Optional[datetime]
-    iat: Optional[datetime]
+    exp: Optional[float]
+    nbf: Optional[float]
+    iat: Optional[float]
     jti: int
     sid: str
 
     algorithm: ClassVar[str] = "HS256"
     prefix: ClassVar[str] = "Bearer "
+    required_fields: ClassVar[List[str]] = ["iss", "dest", "sub", "jti", "sid"]
 
     class Config:
         arbitrary_types_allowed = True
@@ -58,8 +60,13 @@ class SessionToken(BaseModel):
 
     @classmethod
     def decode_token_from_header(
-        cls, authorization_header: str, api_key: str, secret: str
+        cls,
+        authorization_header: str,
+        api_key: str,
+        secret: str,
     ) -> SessionToken:
+        # Verify the integrity of the token
+
         # Take the authorization headers and unload them
         token = cls.__extract_session_token(authorization_header)
         payload = cls.__decode_session_token(token, api_key, secret)
@@ -87,25 +94,35 @@ class SessionToken(BaseModel):
         exp is in the past,
         """
         try:
-            return decode(session_token, secret, audience=api_key, algorithms=[cls.algorithm])
+            return decode(
+                session_token,
+                secret,
+                audience=api_key,
+                algorithms=[cls.algorithm],
+                options={'require': cls.required_fields},
+            )
         except PyJWKError as e:
             raise e("Error decoding session token")
 
     def __validate_destination(self):
-        if self.iss != self.dest:
+        if self.__url_to_base(self.iss) != self.__url_to_base(self.dest):
             raise MismatchedHostError(
-                f"The issuer {self.iss} does not match the destination {self.dest}"
+                f'The issuer {self.__url_to_base(self.iss)} does not match '
+                f'the destination {self.__url_to_base(self.dest)}'
             )
 
     def __validate_hostname(self):
-        if not store_domain(self.iss):
-            raise InvalidIssuerError(f"The domain {self.iss} is not a valid issuer.")
+        domain = self.__url_to_base(self.iss)
+        try:
+            store_domain(domain)
+        except ValueError:
+            raise InvalidIssuerError(f"The domain {domain} is not a valid issuer.")
 
     def __validate_nbf(self):
         """
         Checks to be sure that the nbf was is the past.
         """
-        if self.nbf > datetime.now():
+        if self.nbf > datetime.now().timestamp():
             raise ValidationError(f"The not before date (nbf) {self.nbf} has not occured yet.")
 
     def __validate_sub(self):
@@ -113,3 +130,6 @@ class SessionToken(BaseModel):
         Checks to be sure that the subject (sub) is the same as the user who made the request.
         """
         pass
+
+    def __url_to_base(self, url):
+        return '{uri.scheme}://{uri.netloc}'.format(uri=urlparse(url))
