@@ -259,7 +259,6 @@ class OnlineTokenABC(Token, ABC):
     in a user, its scope and an expiry time.
     """
 
-    associated_user_scope: Optional[List[str]]
     associated_user_id: int
     expires_in: int = 0
     expires_at: datetime = datetime.now() + timedelta(days=0, seconds=expires_in)
