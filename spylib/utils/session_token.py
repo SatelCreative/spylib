@@ -1,11 +1,9 @@
 from __future__ import annotations
 
-from datetime import datetime
 from typing import Any, ClassVar, Dict, List, Optional
 from urllib.parse import urlparse
 
 from jwt import decode
-from jwt.exceptions import PyJWKError
 from pydantic.main import BaseModel
 from pydantic.networks import HttpUrl
 
@@ -52,10 +50,9 @@ class SessionToken(BaseModel):
     class Config:
         arbitrary_types_allowed = True
 
-    def validate(self) -> None:
+    def validate_self(self) -> None:
         self.__validate_hostname()
         self.__validate_destination()
-        self.__validate_nbf()
         self.__validate_sub()
 
     @classmethod
@@ -73,7 +70,7 @@ class SessionToken(BaseModel):
 
         # Verify enough fields specified and perform validation checks
         session_token = cls(**payload)
-        session_token.validate()
+        session_token.validate_self()
 
         return session_token
 
@@ -93,16 +90,13 @@ class SessionToken(BaseModel):
         By default the JWT.decode method automatically checks to see if the
         exp is in the past,
         """
-        try:
-            return decode(
-                session_token,
-                secret,
-                audience=api_key,
-                algorithms=[cls.algorithm],
-                options={'require': cls.required_fields},
-            )
-        except PyJWKError as e:
-            raise e("Error decoding session token")
+        return decode(
+            session_token,
+            secret,
+            audience=api_key,
+            algorithms=[cls.algorithm],
+            options={'require': cls.required_fields},
+        )
 
     def __validate_destination(self):
         if self.__url_to_base(self.iss) != self.__url_to_base(self.dest):
@@ -117,13 +111,6 @@ class SessionToken(BaseModel):
             store_domain(domain)
         except ValueError:
             raise InvalidIssuerError(f"The domain {domain} is not a valid issuer.")
-
-    def __validate_nbf(self):
-        """
-        Checks to be sure that the nbf was is the past.
-        """
-        if self.nbf > datetime.now().timestamp():
-            raise ValidationError(f"The not before date (nbf) {self.nbf} has not occured yet.")
 
     def __validate_sub(self):
         """
