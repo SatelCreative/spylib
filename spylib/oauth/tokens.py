@@ -27,7 +27,7 @@ async def _get_token(domain: str, code: str) -> dict:
         json=jsondata,
         timeout=20.0,
     )
-    logger.error(f'Response from get token: {response}')
+    logger.error(f'Response from get token: {response} {response.text}')
     if response.status_code != 200:
         message = (
             f'Problem retrieving access token. Status code: {response.status_code} {jsondata}'
