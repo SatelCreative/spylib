@@ -19,6 +19,8 @@ async def _get_token(domain: str, code: str) -> dict:
     httpclient = HTTPClient()
 
     jsondata = {'client_id': conf.api_key, 'client_secret': conf.secret_key, 'code': code}
+    logger.error(f'Running get token: JSONDATA {jsondata}, httpClient {httpclient}')
+
     response = await httpclient.request(
         method='post',
         url=url,
