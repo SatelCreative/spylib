@@ -47,15 +47,7 @@ async def test_session_token(token):
     valid_auth_header = generate_auth_header(token)
     session_token = SessionToken.decode_token_from_header(valid_auth_header, API_KEY, API_SECRET)
 
-    assert session_token.iss == token['iss']
-    assert session_token.dest == token['dest']
-    assert session_token.aud == token['aud']
-    assert session_token.sub == token['sub']
-    assert session_token.exp == token['exp']
-    assert session_token.nbf == token['nbf']
-    assert session_token.iat == token['iat']
-    assert session_token.jti == token['jti']
-    assert session_token.sid == token['sid']
+    assert session_token.dict() == token
 
 
 @pytest.mark.asyncio
