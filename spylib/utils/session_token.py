@@ -69,7 +69,7 @@ class SessionToken(BaseModel):
         payload = cls.__decode_session_token(token, api_key, secret)
 
         # Verify enough fields specified and perform validation checks
-        session_token = cls(**payload)
+        session_token = cls.parse_obj(payload)
         session_token.validate_self()
 
         return session_token
