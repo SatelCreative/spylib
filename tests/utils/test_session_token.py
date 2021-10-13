@@ -63,41 +63,20 @@ async def test_invalid_signature(token):
         SessionToken.decode_token_from_header(header, API_KEY, API_SECRET)
 
 
+@pytest.mark.parametrize(
+    "parameter,value,error",
+    [
+        ('iss', 'https://someinvalidhost.com', InvalidIssuerError),
+        ('iss', 'https://someinvalidhost.myshopify.com/', MismatchedHostError),
+        ('nbf', (datetime.now() + timedelta(0, 60)).timestamp(), jwt.ImmatureSignatureError),
+        ('exp', (datetime.now() - timedelta(0, 60)).timestamp(), jwt.ExpiredSignatureError),
+        ('aud', 'some_invalid_audience', jwt.InvalidAudienceError),
+    ],
+    ids=['Invalid ISS', 'Mismatched host', 'NBF in future', 'EXP in past', 'Wrong audience'],
+)
 @pytest.mark.asyncio
-async def test_invalid_hostname(token):
-    token['iss'] = 'https://someinvalidhost.com'
+async def test_invalid_token_parameters(token, parameter, value, error):
+    token[parameter] = value
     header = generate_auth_header(token)
-    with pytest.raises(InvalidIssuerError):
-        SessionToken.decode_token_from_header(header, API_KEY, API_SECRET)
-
-
-@pytest.mark.asyncio
-async def test_invalid_destination(token):
-    token['iss'] = 'https://someinvalidhost.myshopify.com/'
-    header = generate_auth_header(token)
-    with pytest.raises(MismatchedHostError):
-        SessionToken.decode_token_from_header(header, API_KEY, API_SECRET)
-
-
-@pytest.mark.asyncio
-async def test_invalid_not_before(token):
-    token['nbf'] = (datetime.now() + timedelta(0, 60)).timestamp()
-    header = generate_auth_header(token)
-    with pytest.raises(jwt.ImmatureSignatureError):
-        SessionToken.decode_token_from_header(header, API_KEY, API_SECRET)
-
-
-@pytest.mark.asyncio
-async def test_invalid_expiry(token):
-    token['exp'] = (datetime.now() - timedelta(0, 60)).timestamp()
-    header = generate_auth_header(token)
-    with pytest.raises(jwt.ExpiredSignatureError):
-        SessionToken.decode_token_from_header(header, API_KEY, API_SECRET)
-
-
-@pytest.mark.asyncio
-async def test_invalid_audience(token):
-    token['aud'] = 'some_invalid_audience'
-    header = generate_auth_header(token)
-    with pytest.raises(jwt.InvalidAudienceError):
+    with pytest.raises(error):
         SessionToken.decode_token_from_header(header, API_KEY, API_SECRET)
