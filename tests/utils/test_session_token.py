@@ -10,8 +10,8 @@ from spylib.utils.session_token import (
     TokenAuthenticationError,
 )
 
-api_key = "API_KEY"
-api_secret = "API_SECRET"
+API_KEY = "API_KEY"
+API_SECRET = "API_SECRET"
 now = datetime.now()
 
 
@@ -23,7 +23,7 @@ def get_token():
     return {
         "iss": "https://test.myshopify.com/admin",
         "dest": "https://test.myshopify.com",
-        "aud": api_key,
+        "aud": API_KEY,
         "sub": 1,
         "exp": (now + timedelta(0, 60)).timestamp(),
         "nbf": (now - timedelta(0, 60)).timestamp(),
@@ -39,13 +39,13 @@ def token():
 
 
 def generate_auth_header(token):
-    return f'Bearer {jwt.encode(token, api_secret, algorithm="HS256")}'
+    return f'Bearer {jwt.encode(token, API_SECRET, algorithm="HS256")}'
 
 
 @pytest.mark.asyncio
 async def test_session_token(token):
     valid_auth_header = generate_auth_header(token)
-    session_token = SessionToken.decode_token_from_header(valid_auth_header, api_key, api_secret)
+    session_token = SessionToken.decode_token_from_header(valid_auth_header, API_KEY, API_SECRET)
 
     assert session_token.iss == token['iss']
     assert session_token.dest == token['dest']
@@ -61,14 +61,14 @@ async def test_session_token(token):
 @pytest.mark.asyncio
 async def test_invalid_header():
     with pytest.raises(TokenAuthenticationError):
-        SessionToken.decode_token_from_header('', api_key, api_secret)
+        SessionToken.decode_token_from_header('', API_KEY, API_SECRET)
 
 
 @pytest.mark.asyncio
 async def test_invalid_signature(token):
     header = f'Bearer {jwt.encode(token, "invalid_secret", algorithm="HS256")}'
     with pytest.raises(jwt.InvalidSignatureError):
-        SessionToken.decode_token_from_header(header, api_key, api_secret)
+        SessionToken.decode_token_from_header(header, API_KEY, API_SECRET)
 
 
 @pytest.mark.asyncio
@@ -76,7 +76,7 @@ async def test_invalid_hostname(token):
     token['iss'] = 'https://someinvalidhost.com'
     header = generate_auth_header(token)
     with pytest.raises(InvalidIssuerError):
-        SessionToken.decode_token_from_header(header, api_key, api_secret)
+        SessionToken.decode_token_from_header(header, API_KEY, API_SECRET)
 
 
 @pytest.mark.asyncio
@@ -84,7 +84,7 @@ async def test_invalid_destination(token):
     token['iss'] = 'https://someinvalidhost.myshopify.com/'
     header = generate_auth_header(token)
     with pytest.raises(MismatchedHostError):
-        SessionToken.decode_token_from_header(header, api_key, api_secret)
+        SessionToken.decode_token_from_header(header, API_KEY, API_SECRET)
 
 
 @pytest.mark.asyncio
@@ -92,7 +92,7 @@ async def test_invalid_not_before(token):
     token['nbf'] = (datetime.now() + timedelta(0, 60)).timestamp()
     header = generate_auth_header(token)
     with pytest.raises(jwt.ImmatureSignatureError):
-        SessionToken.decode_token_from_header(header, api_key, api_secret)
+        SessionToken.decode_token_from_header(header, API_KEY, API_SECRET)
 
 
 @pytest.mark.asyncio
@@ -100,7 +100,7 @@ async def test_invalid_expiry(token):
     token['exp'] = (datetime.now() - timedelta(0, 60)).timestamp()
     header = generate_auth_header(token)
     with pytest.raises(jwt.ExpiredSignatureError):
-        SessionToken.decode_token_from_header(header, api_key, api_secret)
+        SessionToken.decode_token_from_header(header, API_KEY, API_SECRET)
 
 
 @pytest.mark.asyncio
@@ -108,4 +108,4 @@ async def test_invalid_audience(token):
     token['aud'] = 'some_invalid_audience'
     header = generate_auth_header(token)
     with pytest.raises(jwt.InvalidAudienceError):
-        SessionToken.decode_token_from_header(header, api_key, api_secret)
+        SessionToken.decode_token_from_header(header, API_KEY, API_SECRET)
