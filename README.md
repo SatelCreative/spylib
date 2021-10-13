@@ -198,8 +198,8 @@ as arguments.
 
 ### Session Tokens
 
-The session token functionality can be used to verify the session for the user.
-The suggested syntax is to define a partial function:
+The [session token](https://shopify.dev/apps/auth/session-tokens/authenticate-an-embedded-app-using-session-tokens) 
+functionality can be used to verify the session for the user. The suggested syntax is to define a partial function:
 
 ```python
 from spylib.utils import SessionToken
