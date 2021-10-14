@@ -204,14 +204,14 @@ because unlike poetry it allows to set the metadata on pypi such as author or ho
 
 ### Howto publish
 
-1. Change the version in the pyproject and spylib/__init__.py files
-    * you can use `poetry version XXXXX` to change pyproject
-2. Commit
+1. Change the version in the `pyproject.toml` and `spylib/__init__.py` files
+    * you can use `poetry version XXXXX` to change `pyproject.toml`
+2. Commit to git
 3. Run `flit publish`
-4. Tag the release in git
+4. Tag the release in git and push it to Github
 
 **Notes**:
 * It's better to tag after publishing in case there is an issue while publishing
 * `flit` will try to use the system's keyring if the keyring package is installed.
   Run `flit` in a virtual environment without keyring if you prefer to bypass the
-  keyring put your password whenever you publish
+  keyring and put your password whenever you publish
