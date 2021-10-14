@@ -195,7 +195,6 @@ result of the installation and the login processes respectivaly. They are meant 
 particular to record the offline and online tokens in your app's database.
 They can be synchronous or asynchronous functions taking the storename and the token
 as arguments.
-```
 
 ## Maintenance
 
@@ -216,4 +215,3 @@ because unlike poetry it allows to set the metadata on pypi such as author or ho
 * `flit` will try to use the system's keyring if the keyring package is installed.
   Run `flit` in a virtual environment without keyring if you prefer to bypass the
   keyring put your password whenever you publish
-
