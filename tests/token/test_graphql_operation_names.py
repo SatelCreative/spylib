@@ -1,13 +1,13 @@
+from typing import Any
 from unittest.mock import AsyncMock
 
 import pytest
 
-from spylib import Store
 from spylib.exceptions import ShopifyCallInvalidError
 
-from ..shared import MockHTTPResponse
+from ..token_classes import MockHTTPResponse, OfflineToken, test_information
 
-graphql_operation_name_query = '''
+graphql_operation_name_query = """
     query query1 {
         shop {
             name
@@ -21,7 +21,7 @@ graphql_operation_name_query = '''
             }
         }
     }
-    '''
+    """
 
 params = [
     pytest.param(
@@ -46,9 +46,14 @@ params = [
 @pytest.mark.parametrize('query, operation_name, expected_result, result_location, data', params)
 @pytest.mark.asyncio
 async def test_store_graphql_operation_name_happypath(
-    query, operation_name, expected_result, result_location, data, mocker
+    query,
+    operation_name,
+    expected_result,
+    result_location,
+    data,
+    mocker,
 ):
-    '''
+    """
     Checks to see if passing an operation name works as expected.
     There is 3 possible outcomes when you pass in operation_name:
 
@@ -58,8 +63,8 @@ async def test_store_graphql_operation_name_happypath(
         one should have been specified (2 named queries)
 
     This checks just the successful queries.
-    '''
-    store = Store(store_id='TEST', name='test-store', access_token='Te5tM3')
+    """
+    token = await OfflineToken.load(store_name=test_information.store_name)
 
     gql_response = {
         'extensions': {
@@ -83,12 +88,13 @@ async def test_store_graphql_operation_name_happypath(
     )
 
     # Checks to see if it is properly handling inputs properly
-    real_result = await store.execute_gql(query=query, operation_name=operation_name)
+    real_result: Any = await token.execute_gql(query=query, operation_name=operation_name)
     for name in result_location:
         if isinstance(real_result, list):
             real_result = real_result[name]
         elif isinstance(real_result, dict):
             real_result = real_result.get(name)
+
     assert expected_result == real_result
 
     assert shopify_request_mock.call_count == 1
@@ -112,8 +118,13 @@ params = [
 
 @pytest.mark.parametrize('query, operation_name, error', params)
 @pytest.mark.asyncio
-async def test_store_graphql_operation_name_badquery(query, operation_name, error, mocker):
-    '''
+async def test_store_graphql_operation_name_badquery(
+    query,
+    operation_name,
+    error,
+    mocker,
+):
+    """
     Checks to see if passing an operation name works as expected.
     There is 3 possible outcomes when you pass in operation_name:
 
@@ -124,8 +135,8 @@ async def test_store_graphql_operation_name_badquery(query, operation_name, erro
 
     This tests the error cases.
 
-    '''
-    store = Store(store_id='TEST', name='test-store', access_token='Te5tM3')
+    """
+    token = await OfflineToken.load(store_name=test_information.store_name)
 
     gql_response = {
         'extensions': {
@@ -149,6 +160,6 @@ async def test_store_graphql_operation_name_badquery(query, operation_name, erro
     )
     # Checks to see if it fails properly
     with pytest.raises(ShopifyCallInvalidError):
-        await store.execute_gql(query=query, operation_name=operation_name)
+        await token.execute_gql(query=query, operation_name=operation_name)
 
     assert shopify_request_mock.call_count == 1
