@@ -207,8 +207,9 @@ because unlike poetry it allows to set the metadata on pypi such as author or ho
 1. Change the version in the `pyproject.toml` and `spylib/__init__.py` files
     * you can use `poetry version XXXXX` to change `pyproject.toml`
 2. Commit to git
-3. Run `flit publish`
-4. Tag the release in git and push it to Github
+3. Run `poetry build` to create the package folders in `/dist`
+4. Run `flit publish` to publish to PyPI
+5. Tag the release in git and push it to Github
 
 **Notes**:
 * It's better to tag after publishing in case there is an issue while publishing
