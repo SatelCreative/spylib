@@ -45,7 +45,7 @@ def generate_auth_header(token):
 @pytest.mark.asyncio
 async def test_session_token(token):
     valid_auth_header = generate_auth_header(token)
-    session_token = SessionToken.decode_token_from_header(valid_auth_header, API_KEY, API_SECRET)
+    session_token = SessionToken.from_header(valid_auth_header, API_KEY, API_SECRET)
 
     assert session_token.dict() == token
 
@@ -53,14 +53,14 @@ async def test_session_token(token):
 @pytest.mark.asyncio
 async def test_invalid_header():
     with pytest.raises(TokenAuthenticationError):
-        SessionToken.decode_token_from_header('', API_KEY, API_SECRET)
+        SessionToken.from_header('', API_KEY, API_SECRET)
 
 
 @pytest.mark.asyncio
 async def test_invalid_signature(token):
     header = f'Bearer {jwt.encode(token, "invalid_secret", algorithm="HS256")}'
     with pytest.raises(jwt.InvalidSignatureError):
-        SessionToken.decode_token_from_header(header, API_KEY, API_SECRET)
+        SessionToken.from_header(header, API_KEY, API_SECRET)
 
 
 @pytest.mark.parametrize(
@@ -79,4 +79,4 @@ async def test_invalid_token_parameters(token, parameter, value, error):
     token[parameter] = value
     header = generate_auth_header(token)
     with pytest.raises(error):
-        SessionToken.decode_token_from_header(header, API_KEY, API_SECRET)
+        SessionToken.from_header(header, API_KEY, API_SECRET)

@@ -53,7 +53,7 @@ class SessionToken(BaseModel):
         self.__validate_sub()
 
     @classmethod
-    def decode_token_from_header(
+    def from_header(
         cls,
         authorization_header: str,
         api_key: str,
