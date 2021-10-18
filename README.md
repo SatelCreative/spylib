@@ -160,4 +160,24 @@ result of the installation and the login processes respectivaly. They are meant 
 particular to record the offline and online tokens in your app's database.
 They can be synchronous or asynchronous functions taking the storename and the token
 as arguments.
-```
+
+## Maintenance
+
+We use [poetry](https://python-poetry.org/) to manage the dependencies and
+[flit](https://flit.readthedocs.io/en/latest/index.html) to build and publish to pypi
+because unlike poetry it allows to set the metadata on pypi such as author or homepage.
+
+### Howto publish
+
+1. Change the version in the `pyproject.toml` and `spylib/__init__.py` files
+    * you can use `poetry version XXXXX` to change `pyproject.toml`
+2. Commit to git
+3. Run `poetry build` to create the package folders in `/dist`
+4. Run `flit publish` to publish to PyPI
+5. Tag the release in git and push it to Github
+
+**Notes**:
+* It's better to tag after publishing in case there is an issue while publishing
+* `flit` will try to use the system's keyring if the keyring package is installed.
+  Run `flit` in a virtual environment without keyring if you prefer to bypass the
+  keyring and put your password whenever you publish
