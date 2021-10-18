@@ -4,6 +4,7 @@ from typing import Any, ClassVar, Dict, List, Optional
 from urllib.parse import urlparse
 
 from jwt import decode
+from pydantic import root_validator
 from pydantic.main import BaseModel
 from pydantic.networks import HttpUrl
 
@@ -43,14 +44,27 @@ class SessionToken(BaseModel):
     jti: int
     sid: str
 
+    @root_validator()
+    def equal_iss_and_dest(cls, values: Dict[str, Any]):
+        domain = cls.__url_to_base(values.get('iss'))
+        try:
+            store_domain(domain)
+        except ValueError:
+            raise InvalidIssuerError(f"The domain {domain} is not a valid issuer.")
+        
+        if cls.__url_to_base(values.get('iss')) != cls.__url_to_base(values.get('dest')):
+            raise MismatchedHostError(
+                f'The issuer {cls.__url_to_base(values.get("iss"))} does not match '
+                f'the destination {cls.__url_to_base(values.get("dest"))}'
+            )
+        
+        return values
+
+
     algorithm: ClassVar[str] = "HS256"
     prefix: ClassVar[str] = "Bearer "
     required_fields: ClassVar[List[str]] = ["iss", "dest", "sub", "jti", "sid"]
 
-    def validate_self(self) -> None:
-        self.__validate_hostname()
-        self.__validate_destination()
-        self.__validate_sub()
 
     @classmethod
     def from_header(
@@ -62,58 +76,24 @@ class SessionToken(BaseModel):
         # Verify the integrity of the token
 
         # Take the authorization headers and unload them
-        token = cls.__extract_session_token(authorization_header)
-        payload = cls.__decode_session_token(token, api_key, secret)
-
-        # Verify enough fields specified and perform validation checks
-        session_token = cls.parse_obj(payload)
-        session_token.validate_self()
-
-        return session_token
-
-    @classmethod
-    def __extract_session_token(cls, authorization_header: str) -> str:
         if not authorization_header.startswith(cls.prefix):
             raise TokenAuthenticationError(
                 "The authorization header does not contain a Bearer token."
             )
-        return authorization_header[len(cls.prefix) :]
+        
+        token = authorization_header[len(cls.prefix) :]
 
-    @classmethod
-    def __decode_session_token(
-        cls, session_token: str, api_key: str, secret: str
-    ) -> Dict[str, Any]:
-        """
-        By default the JWT.decode method automatically checks to see if the
-        exp is in the past,
-        """
-        return decode(
-            session_token,
+        payload =  decode(
+            token,
             secret,
             audience=api_key,
             algorithms=[cls.algorithm],
             options={'require': cls.required_fields},
         )
 
-    def __validate_destination(self):
-        if self.__url_to_base(self.iss) != self.__url_to_base(self.dest):
-            raise MismatchedHostError(
-                f'The issuer {self.__url_to_base(self.iss)} does not match '
-                f'the destination {self.__url_to_base(self.dest)}'
-            )
+        # Verify enough fields specified and perform validation checks
+        return cls.parse_obj(payload)
 
-    def __validate_hostname(self):
-        domain = self.__url_to_base(self.iss)
-        try:
-            store_domain(domain)
-        except ValueError:
-            raise InvalidIssuerError(f"The domain {domain} is not a valid issuer.")
-
-    def __validate_sub(self):
-        """
-        Checks to be sure that the subject (sub) is the same as the user who made the request.
-        """
-        pass
-
-    def __url_to_base(self, url):
+    @classmethod
+    def __url_to_base(cls, url):
         return '{uri.scheme}://{uri.netloc}'.format(uri=urlparse(url))
