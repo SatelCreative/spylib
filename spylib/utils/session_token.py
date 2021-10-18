@@ -47,9 +47,6 @@ class SessionToken(BaseModel):
     prefix: ClassVar[str] = "Bearer "
     required_fields: ClassVar[List[str]] = ["iss", "dest", "sub", "jti", "sid"]
 
-    class Config:
-        arbitrary_types_allowed = True
-
     def validate_self(self) -> None:
         self.__validate_hostname()
         self.__validate_destination()
