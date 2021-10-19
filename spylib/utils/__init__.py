@@ -3,7 +3,7 @@ from .hmac import validate
 from .httpclient import HTTPClient
 from .jwtoken import JWTBaseModel
 from .misc import get_unique_id, now_epoch
-from .rest import DELETE, GET, POST, PUT, Status
+from .rest import DELETE, GET, POST, PUT, Method
 
 __all__ = [
     'now_epoch',
@@ -13,7 +13,7 @@ __all__ = [
     'HTTPClient',
     'domain_to_storename',
     'store_domain',
-    'Status',
+    'Method',
     'GET',
     'POST',
     'PUT',

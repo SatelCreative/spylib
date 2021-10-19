@@ -8,6 +8,7 @@ from typing import Any, ClassVar, Dict, List, Optional
 from httpx import AsyncClient, Response
 from loguru import logger
 from pydantic import BaseModel
+from starlette import status
 from tenacity import retry
 from tenacity.retry import retry_if_exception, retry_if_exception_type
 from tenacity.stop import stop_after_attempt
@@ -26,7 +27,7 @@ from spylib.exceptions import (
     ShopifyThrottledError,
     not_our_fault,
 )
-from spylib.utils.rest import Request, Status
+from spylib.utils.rest import Request
 
 
 class AssociatedUser(BaseModel):
@@ -154,11 +155,11 @@ class Token(ABC, BaseModel):
                 headers={'X-Shopify-Access-Token': self.access_token},
                 json=json,
             )
-            if response.status_code == Status.TOO_MANY_REQUESTS:
+            if response.status_code == status.HTTP_429_TOO_MANY_REQUESTS:
                 # We hit the limit, we are out of tokens
                 self.rest_bucket = 0
                 continue
-            elif 400 <= response.status_code or response.status_code != request.good_status.value:
+            elif 400 <= response.status_code or response.status_code != request.good_status:
                 # All errors are handled here
                 await self.__handle_error(debug=debug, endpoint=endpoint, response=response)
             else:
