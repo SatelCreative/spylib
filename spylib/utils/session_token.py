@@ -52,11 +52,10 @@ class SessionToken(BaseModel):
         except ValueError as e:
             raise InvalidIssuerError(f"The domain {domain} is not a valid issuer.") from e
 
-        if cls.__url_to_base(values.get('iss')) != cls.__url_to_base(values.get('dest')):
-            raise MismatchedHostError(
-                f'The issuer {cls.__url_to_base(values.get("iss"))} does not match '
-                f'the destination {cls.__url_to_base(values.get("dest"))}'
-            )
+        iss = cls.__url_to_base(values.get('iss'))
+        dest = cls.__url_to_base(values.get('dest'))
+        if iss != dest:
+            raise MismatchedHostError(f'The issuer {iss} does not match the destination {dest}')
 
         return values
 
