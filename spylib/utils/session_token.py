@@ -51,20 +51,18 @@ class SessionToken(BaseModel):
             store_domain(domain)
         except ValueError:
             raise InvalidIssuerError(f"The domain {domain} is not a valid issuer.")
-        
+
         if cls.__url_to_base(values.get('iss')) != cls.__url_to_base(values.get('dest')):
             raise MismatchedHostError(
                 f'The issuer {cls.__url_to_base(values.get("iss"))} does not match '
                 f'the destination {cls.__url_to_base(values.get("dest"))}'
             )
-        
-        return values
 
+        return values
 
     algorithm: ClassVar[str] = "HS256"
     prefix: ClassVar[str] = "Bearer "
     required_fields: ClassVar[List[str]] = ["iss", "dest", "sub", "jti", "sid"]
-
 
     @classmethod
     def from_header(
@@ -80,10 +78,10 @@ class SessionToken(BaseModel):
             raise TokenAuthenticationError(
                 "The authorization header does not contain a Bearer token."
             )
-        
+
         token = authorization_header[len(cls.prefix) :]
 
-        payload =  decode(
+        payload = decode(
             token,
             secret,
             audience=api_key,
@@ -94,6 +92,6 @@ class SessionToken(BaseModel):
         # Verify enough fields specified and perform validation checks
         return cls.parse_obj(payload)
 
-    @classmethod
-    def __url_to_base(cls, url):
+    @staticmethod
+    def __url_to_base(url):
         return '{uri.scheme}://{uri.netloc}'.format(uri=urlparse(url))
