@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Any, ClassVar, Dict, List, Optional
+from typing import Any, Dict, List, Optional
 from urllib.parse import urlparse
 
 from jwt import decode
@@ -59,9 +59,20 @@ class SessionToken(BaseModel):
 
         return values
 
-    algorithm: ClassVar[str] = "HS256"
-    prefix: ClassVar[str] = "Bearer "
-    required_fields: ClassVar[List[str]] = ["iss", "dest", "sub", "jti", "sid"]
+    @classmethod
+    @property
+    def algorithm(cls) -> str:
+        return "HS256"
+
+    @classmethod
+    @property
+    def prefix(cls) -> str:
+        return "Bearer "
+
+    @classmethod
+    @property
+    def required_fields(cls) -> List[str]:
+        return ["iss", "dest", "sub", "jti", "sid"]
 
     @classmethod
     def from_header(
@@ -70,21 +81,20 @@ class SessionToken(BaseModel):
         api_key: str,
         secret: str,
     ) -> SessionToken:
-        # Verify the integrity of the token
 
         # Take the authorization headers and unload them
-        if not authorization_header.startswith(cls.prefix):
+        if not authorization_header.startswith(str(cls.prefix)):
             raise TokenAuthenticationError(
                 "The authorization header does not contain a Bearer token."
             )
 
-        token = authorization_header[len(cls.prefix) :]
+        token = authorization_header[len(str(cls.prefix)) :]
 
         payload = decode(
             token,
             secret,
             audience=api_key,
-            algorithms=[cls.algorithm],
+            algorithms=[str(cls.algorithm)],
             options={'require': cls.required_fields},
         )
 
