@@ -49,8 +49,8 @@ class SessionToken(BaseModel):
         domain = cls.__url_to_base(values.get('iss'))
         try:
             store_domain(domain)
-        except ValueError:
-            raise InvalidIssuerError(f"The domain {domain} is not a valid issuer.")
+        except ValueError as e:
+            raise InvalidIssuerError(f"The domain {domain} is not a valid issuer.") from e
 
         if cls.__url_to_base(values.get('iss')) != cls.__url_to_base(values.get('dest')):
             raise MismatchedHostError(
