@@ -26,6 +26,7 @@ from spylib.exceptions import (
     ShopifyThrottledError,
     not_our_fault,
 )
+from spylib.utils.rest import Request, Status
 
 
 class AssociatedUser(BaseModel):
@@ -134,18 +135,30 @@ class Token(ABC, BaseModel):
         stop=stop_after_attempt(5),
         retry=retry_if_exception(not_our_fault),
     )
-    async def execute_rest(self, goodstatus, debug, endpoint, **kwargs) -> Dict[str, Any]:
+    async def execute_rest(
+        self,
+        request: Request,
+        endpoint: str,
+        json: Optional[Dict[str, Any]] = None,
+        debug: str = "",
+    ) -> Dict[str, Any]:
         while True:
             await self.__await_rest_bucket_refill()
-            kwargs['url'] = f'{self.api_url}{endpoint}'
-            kwargs['headers'] = {'X-Shopify-Access-Token': self.access_token}
 
-            response = await self.client.request(**kwargs)
-            if response.status_code == 429:
+            if not self.access_token:
+                raise ValueError("You have not initialized the token for this store. ")
+
+            response = await self.client.request(
+                method=request.method.value,
+                url=f'{self.api_url}{endpoint}',
+                headers={'X-Shopify-Access-Token': self.access_token},
+                json=json,
+            )
+            if response.status_code == Status.TOO_MANY_REQUESTS:
                 # We hit the limit, we are out of tokens
                 self.rest_bucket = 0
                 continue
-            elif 400 <= response.status_code or response.status_code != goodstatus:
+            elif 400 <= response.status_code or response.status_code != request.good_status.value:
                 # All errors are handled here
                 await self.__handle_error(debug=debug, endpoint=endpoint, response=response)
             else:
