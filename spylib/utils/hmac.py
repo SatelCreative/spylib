@@ -12,6 +12,7 @@ def calculate_message_hmac(secret: str, message: str, is_base64: bool = False) -
 
     return hmac_hash.hexdigest()
 
+
 def validate_hmac(secret: str, message: Dict[str, list], is_base64: bool = False):
 
     hmac_actual = message.pop('hmac')[0]
