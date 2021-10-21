@@ -1,47 +1,46 @@
 from __future__ import annotations
+
 from hmac import compare_digest
-from typing import Any, Dict
-
-from pydantic import BaseModel
-from pydantic.networks import HttpUrl
-
+from pathlib import Path
 from urllib import parse
 
-from utils.hmac import calculate_message_hmac
+from starlette.middleware.base import BaseHTTPMiddleware
+from starlette.requests import Request
+from starlette.responses import JSONResponse
+from starlette.types import ASGIApp
+
+from .hmac import calculate_message_hmac
 
 
-class AppProxy(BaseModel):
+class CheckAppProxy(BaseHTTPMiddleware):
+    def __init__(self, app: ASGIApp, secret: str, proxy_endpoint: str) -> None:
+        super().__init__(app)
+        self.secret: str = secret
+        self.proxy_endpoint: Path = Path(proxy_endpoint)
 
-    shop: HttpUrl
-    path_prefix: str
-    timestamp: float
-    signature: str
-    parameters: str
+    async def dispatch(self, request: Request, call_next):
 
-    @classmethod
-    def decode_message(
-        cls,
-        message: str,
-        secret: str,
-    ) -> AppProxy:
+        # As middleware is run on everyt(hing, this allows us to avoid checking on
+        # non-proxied endpoints (as you can only have 1 proxy root per app)
+        path = Path(request.scope['path'])
+        if path == self.proxy_endpoint or self.proxy_endpoint in path.parents:
+            # Take the authorization headers and unload them
+            decoded_message = parse.parse_qs(str(request.query_params))
 
-        # Take the authorization headers and unload them
-        decoded_message = cls.__extract_proxy_message(message)
+            real_signature = decoded_message.pop('signature')[0]
+            body = '&'.join(
+                [f'{arg}={",".join(decoded_message[arg])}' for arg in decoded_message.keys()]
+            )
 
-        real_signature = decoded_message.pop('signature')[0]
-        body = '&'.join([f'{arg}={",".join(message.get(arg))}' for arg in message.keys()])
+            message_signature = calculate_message_hmac(self.secret, body)
 
-        message_signature = calculate_message_hmac(secret, body)
+            # Validate that the message HMAC and recieved HMAC are the same.
+            if not compare_digest(real_signature, message_signature):
+                return await call_next(
+                    JSONResponse(
+                        status_code=400,
+                        content={"error": "HMAC failed to be verified for the request"},
+                    )
+                )
 
-        # Validate that the message HMAC and recieved HMAC are the same.
-        if not compare_digest(real_signature, message_signature):
-            raise ValueError('HMAC verification failed')
-
-        # Verify enough fields specified
-        proxy_message = cls.parse_obj(decoded_message)
-
-        return proxy_message
-
-    @classmethod
-    def __extract_proxy_message(cls, message: str) -> Dict[str, Any]:
-        return parse.parse_qs(parse.urlsplit(message))
+        return await call_next(request)
