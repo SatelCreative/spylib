@@ -50,7 +50,7 @@ class SessionToken(BaseModel):
         try:
             store_domain(domain)
         except ValueError as e:
-            raise InvalidIssuerError(f"The domain {domain} is not a valid issuer.") from e
+            raise InvalidIssuerError(f'The domain {domain} is not a valid issuer.') from e
 
         iss = cls.__url_to_base(values.get('iss'))
         dest = cls.__url_to_base(values.get('dest'))
@@ -62,17 +62,17 @@ class SessionToken(BaseModel):
     @classmethod
     @property
     def algorithm(cls) -> str:
-        return "HS256"
+        return 'HS256'
 
     @classmethod
     @property
     def prefix(cls) -> str:
-        return "Bearer "
+        return 'Bearer '
 
     @classmethod
     @property
     def required_fields(cls) -> List[str]:
-        return ["iss", "dest", "sub", "jti", "sid"]
+        return ['iss', 'dest', 'sub', 'jti', 'sid']
 
     @classmethod
     def from_header(
@@ -85,7 +85,7 @@ class SessionToken(BaseModel):
         # Take the authorization headers and unload them
         if not authorization_header.startswith(str(cls.prefix)):
             raise TokenAuthenticationError(
-                "The authorization header does not contain a Bearer token."
+                'The authorization header does not contain a Bearer token.'
             )
 
         token = authorization_header[len(str(cls.prefix)) :]
