@@ -95,7 +95,8 @@ We can query the store using either the REST endpoint or the GraphQL endpoint:
 token.execute_rest(
   request: Request,
   endpoint: str,
-  debug: str,
+  json: Optional[Dict[str, Any]],
+  debug: Optional[str],
 )
 
 token.execute_gql(
