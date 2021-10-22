@@ -93,10 +93,9 @@ We can query the store using either the REST endpoint or the GraphQL endpoint:
 
 ```python
 token.execute_rest(
-  goodstatus,
-  method,
-  debug,
-  endpoint
+  request: Request,
+  endpoint: str,
+  debug: str,
 )
 
 token.execute_gql(
@@ -106,14 +105,19 @@ token.execute_gql(
 )
 ```
 
-The `REST` method takes a `goodstatus` parameter that is the response from the API
-that will not trigger an error.
+The `REST` method takes a `request` parameter which is one of the `Request` constants defined in 
+the [rest](./spylib/utils/rest.py) file. The options are `GET`, `POST`, `PUT`, or `DELETE`.
 
-The `method` can be `get`, `post`, `put` or `delete`.
+Endpoint is the API endpoint string that we are querying, this should be similar to 
+the following format:
 
-Debug is the error that is outputted on failure.
+```python
+f'/{resource}.json?fields={resource.param}&{[params]}'
+```
 
-Endpoint is the API endpoint string that we are querying.
+The `debug` parameter is the message that is returned when there is an error. It is optional as it defaults to `""`.
+
+### REST Types
 
 ### OAuth
 
