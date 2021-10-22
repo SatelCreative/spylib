@@ -2,21 +2,19 @@ from unittest.mock import AsyncMock
 
 import pytest
 
-from spylib import Store
-
-from ..shared import MockHTTPResponse
+from ..token_classes import MockHTTPResponse, OfflineToken, test_information
 
 
 @pytest.mark.asyncio
 async def test_store_graphql_happypath(mocker):
-    store = Store(store_id='TEST', name='test-store', access_token='Te5tM3')
+    token = await OfflineToken.load(store_name=test_information.store_name)
 
-    query = '''
+    query = """
     {
       shop {
         name
       }
-    }'''
+    }"""
     data = {'shop': {'name': 'graphql-admin'}}
     gql_response = {
         'data': data,
@@ -39,7 +37,7 @@ async def test_store_graphql_happypath(mocker):
         return_value=MockHTTPResponse(status_code=200, jsondata=gql_response),
     )
 
-    jsondata = await store.execute_gql(query=query)
+    jsondata = await token.execute_gql(query=query)
 
     shopify_request_mock.assert_called_once()
 
@@ -48,14 +46,16 @@ async def test_store_graphql_happypath(mocker):
 
 @pytest.mark.asyncio
 async def test_store_graphql_badquery(mocker):
-    store = Store(store_id='TEST', name='test-store', access_token='Te5tM3')
+    token = await OfflineToken.load(store_name=test_information.store_name)
 
-    query = '''
+    query = """
     {
       shopp {
         name
       }
-    }'''
+    }
+    """
+
     error_msg = "Field 'shopp' doesn't exist on type 'QueryRoot'"
     gql_response = {
         'errors': [
@@ -79,21 +79,21 @@ async def test_store_graphql_badquery(mocker):
     )
 
     with pytest.raises(ValueError, match=f'^GraphQL query is incorrect:\n{error_msg}$'):
-        await store.execute_gql(query=query)
+        await token.execute_gql(query=query)
 
     shopify_request_mock.assert_called_once()
 
 
 @pytest.mark.asyncio
 async def test_store_graphql_tokeninvalid(mocker):
-    store = Store(store_id='TEST', name='test-store', access_token='INVALID')
+    token = await OfflineToken.load(store_name=test_information.store_name)
 
-    query = '''
+    query = """
     {
       shop {
         name
       }
-    }'''
+    }"""
     gql_response = {
         'errors': '[API] Invalid API key or access token (unrecognized login or wrong password)'
     }
@@ -105,6 +105,6 @@ async def test_store_graphql_tokeninvalid(mocker):
     )
 
     with pytest.raises(ConnectionRefusedError):
-        await store.execute_gql(query=query)
+        await token.execute_gql(query=query)
 
     shopify_request_mock.assert_called_once()

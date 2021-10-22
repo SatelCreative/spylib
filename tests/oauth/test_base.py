@@ -7,7 +7,7 @@ from box import Box  # type: ignore
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 from pydantic.dataclasses import dataclass
-from requests import Response
+from requests import Response  # type: ignore
 
 from spylib.oauth import OfflineToken, OnlineToken, conf, init_oauth_router
 from spylib.utils import JWTBaseModel, hmac, now_epoch
@@ -31,14 +31,14 @@ ONLINETOKEN_DATA = dict(
     expires_in=86399,
     associated_user_scope=','.join(TEST_DATA.user_scopes),
     associated_user={
-        "id": 902541635,
-        "first_name": "John",
-        "last_name": "Smith",
-        "email": "john@example.com",
-        "email_verified": True,
-        "account_owner": True,
-        "locale": "en",
-        "collaborator": False,
+        'id': 902541635,
+        'first_name': 'John',
+        'last_name': 'Smith',
+        'email': 'john@example.com',
+        'email_verified': True,
+        'account_owner': True,
+        'locale': 'en',
+        'collaborator': False,
     },
 )
 
