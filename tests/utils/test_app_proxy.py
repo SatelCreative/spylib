@@ -1,4 +1,5 @@
 from datetime import datetime
+from urllib import parse
 
 import pytest
 from fastapi import FastAPI
@@ -26,7 +27,7 @@ def url():
 
 
 @pytest.mark.asyncio
-async def test_session_token(mocker, url: str):
+async def test_app_proxy(url: str):
     app = FastAPI()
 
     app.add_middleware(CheckAppProxy, secret=API_SECRET, proxy_endpoint='/api/')
@@ -41,3 +42,35 @@ async def test_session_token(mocker, url: str):
 
     assert response.status_code == 200
     assert bool(response.text) is True
+
+
+@pytest.mark.parametrize(
+    "parameter,value",
+    [
+        ('shop', 'random-name'),
+        ('path_prefix', '/random_path/'),
+        ('timestamp', '1'),
+    ],
+    ids=['Altered shop', 'Altered shop prefix', 'Altered timestamp'],
+)
+@pytest.mark.asyncio
+async def test_altered_hmac(url: str, parameter, value):
+    app = FastAPI()
+
+    app.add_middleware(CheckAppProxy, secret=API_SECRET, proxy_endpoint='/api/')
+
+    @app.get("/api/")
+    async def test():
+        return True
+
+    client = TestClient(app)
+
+    parsed = parse.urlsplit(url)
+    query = parse.parse_qs(parsed.query)
+    query[parameter] = value
+    encoded_query = parse.urlencode(query)
+    parsed = parsed._replace(query=encoded_query)
+
+    response = client.get(parsed.geturl())
+
+    assert response.status_code == 400

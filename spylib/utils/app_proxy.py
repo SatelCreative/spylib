@@ -36,11 +36,9 @@ class CheckAppProxy(BaseHTTPMiddleware):
 
             # Validate that the message HMAC and recieved HMAC are the same.
             if not compare_digest(real_signature, message_signature):
-                return await call_next(
-                    JSONResponse(
-                        status_code=400,
-                        content={"error": "HMAC failed to be verified for the request"},
-                    )
+                return JSONResponse(
+                    status_code=400,
+                    content={"error": "HMAC failed to be verified for the request"},
                 )
 
         return await call_next(request)
