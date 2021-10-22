@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, Optional
 from urllib.parse import urlparse
 
 from jwt import decode
@@ -9,6 +9,10 @@ from pydantic.main import BaseModel
 from pydantic.networks import HttpUrl
 
 from .domain import store_domain
+
+REQUIRED_FIELDS = ['iss', 'dest', 'sub', 'jti', 'sid']
+ALGORITHM = 'HS256'
+PREFIX = 'Bearer '
 
 
 class ValidationError(Exception):
@@ -60,21 +64,6 @@ class SessionToken(BaseModel):
         return values
 
     @classmethod
-    @property
-    def algorithm(cls) -> str:
-        return 'HS256'
-
-    @classmethod
-    @property
-    def prefix(cls) -> str:
-        return 'Bearer '
-
-    @classmethod
-    @property
-    def required_fields(cls) -> List[str]:
-        return ['iss', 'dest', 'sub', 'jti', 'sid']
-
-    @classmethod
     def from_header(
         cls,
         authorization_header: str,
@@ -83,19 +72,19 @@ class SessionToken(BaseModel):
     ) -> SessionToken:
 
         # Take the authorization headers and unload them
-        if not authorization_header.startswith(str(cls.prefix)):
+        if not authorization_header.startswith(PREFIX):
             raise TokenAuthenticationError(
                 'The authorization header does not contain a Bearer token.'
             )
 
-        token = authorization_header[len(str(cls.prefix)) :]
+        token = authorization_header[len(PREFIX) :]
 
         payload = decode(
             token,
             secret,
             audience=api_key,
-            algorithms=[str(cls.algorithm)],
-            options={'require': cls.required_fields},
+            algorithms=[ALGORITHM],
+            options={'require': REQUIRED_FIELDS},
         )
 
         # Verify enough fields specified and perform validation checks
