@@ -15,19 +15,19 @@ ALGORITHM = 'HS256'
 PREFIX = 'Bearer '
 
 
-class ValidationError(Exception):
+class TokenValidationError(Exception):
     pass
 
 
-class InvalidIssuerError(ValidationError):
+class InvalidIssuerError(TokenValidationError):
     pass
 
 
-class MismatchedHostError(ValidationError):
+class MismatchedHostError(TokenValidationError):
     pass
 
 
-class TokenAuthenticationError(ValidationError):
+class TokenAuthenticationError(TokenValidationError):
     pass
 
 
