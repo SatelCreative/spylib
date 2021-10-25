@@ -87,9 +87,11 @@ token = OnlineToken(
 )
 ```
 
-#### Querying Shopify
+### Querying Shopify
 
-We can query the store using either the REST endpoint or the GraphQL endpoint:
+#### REST
+
+We can query the store using either the REST:
 
 ```python
 token.execute_rest(
@@ -98,11 +100,30 @@ token.execute_rest(
   json: Optional[Dict[str, Any]],
   debug: Optional[str],
 )
+```
 
-token.execute_gql(
-  query,
-  variables,
-  operation_name
+For example, if you want to query a product from shopify you can run:
+
+```python
+token.execute_rest(
+  request: GET,
+  endpoint: f'/products/{product_id}.json'
+)
+```
+
+If you want to update a product in a shop you can run:
+
+```python
+token.execute_rest(
+  request: PUT,
+  endpoint: f'/products/{product_id}.json',
+  json: {
+    "product":
+    {
+      "id": product_id,
+      "title": "New Title"
+    }
+  }
 )
 ```
 
@@ -117,6 +138,18 @@ f'/{resource}.json?fields={resource.param}&{[params]}'
 ```
 
 The `debug` parameter is the message that is returned when there is an error. It is optional as it defaults to `""`.
+
+#### GQL
+
+We can also query Shopify using the GraphQL endpoint:
+
+```python
+token.execute_gql(
+  query,
+  variables,
+  operation_name
+)
+```
 
 ### REST Types
 
