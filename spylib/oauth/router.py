@@ -27,6 +27,7 @@ def init_oauth_router(
     user_scopes: List[str],
     public_domain: str,
     private_key: str,
+    app_handle: str,
     post_install: Callable[[str, OfflineToken], Union[Awaitable[JWTBaseModel], JWTBaseModel]],
     post_login: Optional[Callable[[str, OnlineToken], Optional[Awaitable]]] = None,
     install_init_path='/shopify/auth',
@@ -88,6 +89,7 @@ def init_oauth_router(
                     jwtoken=None,
                     jwt_key=private_key,
                     app_domain=public_domain,
+                    app_handle=app_handle,
                 )
             # Initiate the oauth loop for login
             return RedirectResponse(
@@ -116,7 +118,11 @@ def init_oauth_router(
 
         # Redirect to the app in Shopify admin
         return app_redirect(
-            store_domain=args.shop, jwtoken=jwtoken, jwt_key=private_key, app_domain=public_domain
+            store_domain=args.shop,
+            jwtoken=jwtoken,
+            jwt_key=private_key,
+            app_domain=public_domain,
+            app_handle=app_handle,
         )
 
     return router

@@ -8,7 +8,6 @@ nest_asyncio.apply()
 
 environ['SHOPIFY_API_KEY'] = 'API_KEY'
 environ['SHOPIFY_SECRET_KEY'] = 'SECRET_KEY'
-environ['SHOPIFY_handle'] = 'HANDLE'
 
 
 @fixture()

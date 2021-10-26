@@ -47,9 +47,12 @@ def oauth_init_url(
 
 
 def app_redirect(
-    store_domain: str, app_domain: str, jwtoken: Optional[JWTBaseModel], jwt_key: str
+    store_domain: str,
+    app_domain: str,
+    jwtoken: Optional[JWTBaseModel],
+    jwt_key: str,
+    app_handle: str,
 ) -> RedirectResponse:
-    app_handle = conf.handle
 
     if jwtoken is None:
         return RedirectResponse(f'https://{store_domain}/admin/apps/{app_handle}')

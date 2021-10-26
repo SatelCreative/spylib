@@ -12,6 +12,7 @@ from requests import Response  # type: ignore
 from spylib.oauth import OfflineToken, OnlineToken, conf, init_oauth_router
 from spylib.utils import JWTBaseModel, hmac, now_epoch
 
+HANDLE = 'HANDLE'
 TEST_STORE = 'test.myshopify.com'
 TEST_DATA = Box(
     dict(
@@ -21,6 +22,7 @@ TEST_DATA = Box(
         private_key='TESTPRIVATEKEY',
         post_install=AsyncMock(return_value=JWTBaseModel()),
         post_login=AsyncMock(return_value=None),
+        app_handle=HANDLE,
     )
 )
 
@@ -127,7 +129,7 @@ async def test_oauth(mocker):
     state = check_oauth_redirect_url(
         response=response,
         client=client,
-        path=f'/admin/apps/{conf.handle}',
+        path=f'/admin/apps/{HANDLE}',
         scope=TEST_DATA.user_scopes,
     )
 
