@@ -28,6 +28,8 @@ def init_oauth_router(
     public_domain: str,
     private_key: str,
     app_handle: str,
+    api_key: str,
+    api_secret_key: str,
     post_install: Callable[[str, OfflineToken], Union[Awaitable[JWTBaseModel], JWTBaseModel]],
     post_login: Optional[Callable[[str, OnlineToken], Optional[Awaitable]]] = None,
     install_init_path='/shopify/auth',
@@ -51,6 +53,7 @@ def init_oauth_router(
                 callback_domain=public_domain,
                 callback_path=callback_path,
                 jwt_key=private_key,
+                api_key=api_key,
             )
         )
 
@@ -62,6 +65,7 @@ def init_oauth_router(
                 shop=args.shop,
                 timestamp=args.timestamp,
                 query_string=request.scope['query_string'],
+                api_secret_key=api_secret_key,
             )
             oauthjwt: OAuthJWT = validate_oauthjwt(
                 token=args.state, shop=args.shop, jwt_key=private_key
@@ -74,7 +78,12 @@ def init_oauth_router(
         if not oauthjwt.is_login:
             try:
                 # Get the offline token from Shopify
-                offline_token = await OfflineToken.get(domain=args.shop, code=args.code)
+                offline_token = await OfflineToken.get(
+                    domain=args.shop,
+                    code=args.code,
+                    api_key=api_key,
+                    api_secret_key=api_secret_key,
+                )
             except Exception as e:
                 logger.exception(f'Could not retrieve offline token for shop {args.shop}')
                 raise HTTPException(status_code=400, detail=str(e))
@@ -100,12 +109,18 @@ def init_oauth_router(
                     callback_domain=public_domain,
                     callback_path=callback_path,
                     jwt_key=private_key,
+                    api_key=api_key,
                 )
             )
 
         # === If login ===
         # Get the online token from Shopify
-        online_token = await OnlineToken.get(domain=args.shop, code=args.code)
+        online_token = await OnlineToken.get(
+            domain=args.shop,
+            code=args.code,
+            api_key=api_key,
+            api_secret_key=api_secret_key,
+        )
 
         # Await if the provided function is async
         jwtoken = None
