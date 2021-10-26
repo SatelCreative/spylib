@@ -144,6 +144,9 @@ oauth_router = init_oauth_router(
     user_scopes=['read_orders', 'write_products'],
     public_domain='my.app.com',
     private_key='KEY_FOR_OAUTH_JWT',
+    api_key=SHOPIFY_API_KEY,
+    api_secret_key=SHOPIFY_SECRET_KEY,
+    app_handle=APP_HANDLE,
     post_install=my_post_install,
     post_login=my_post_login,
 )
