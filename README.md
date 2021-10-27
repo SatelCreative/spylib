@@ -119,7 +119,9 @@ Endpoint is the API endpoint string that we are querying.
 
 ### OAuth
 
-**Notice** there have been considerable changes to the oauth in version 3.
+**Notice** there have been considerable changes to the oauth in version 0.3. The core
+of this change has been the move from environment variables to parameters in the init
+script for the routers. The following describes a very basic implementation.
 
 Rather than reimplementing for each app the
 [Shopify OAuth authentication](https://shopify.dev/tutorials/authenticate-with-oauth)
