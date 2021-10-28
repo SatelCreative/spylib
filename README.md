@@ -164,6 +164,13 @@ mechanism to track the `nonce`. This JWT has an expiration time and is unique fo
 OAuth process making it a valid `nonce` mechanism.
 The `private_key` parameter defines the key used to encode and decode this JWT.
 
+
+The api and secret key can be found inside your shopify app main configuration page. The
+app handle can be found in the same spot but needs to be pulled from the url:
+
+1. Go to your shopify app's editing page (The url should be `https://partners.shopify.com/<partner_id>/apps/<app_id>/edit`)
+2. Open the console and run `window.RailsData.user.app.handle`. The result is the handle.
+
 The `post_install` and `post_login` provide a way to inject functions handling the
 result of the installation and the login processes respectivaly. They are meant in 
 particular to record the offline and online tokens in your app's database.
