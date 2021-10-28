@@ -7,7 +7,7 @@ from typing import Any, ClassVar, Dict, List, Optional
 
 from httpx import AsyncClient, Response
 from loguru import logger
-from pydantic import BaseModel
+from pydantic import BaseModel, validator
 from tenacity import retry
 from tenacity.retry import retry_if_exception, retry_if_exception_type
 from tenacity.stop import stop_after_attempt
@@ -84,6 +84,12 @@ class Token(ABC, BaseModel):
     @property
     def api_url(self) -> str:
         return f'https://{self.store_name}.myshopify.com/admin/api/{self.api_version}'
+
+    @validator('scope', pre=True)
+    def convert_scope(cls, v):
+        if type(v) == str:
+            return v.split(',')
+        return v
 
     class Config:
         arbitrary_types_allowed = True
