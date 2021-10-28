@@ -131,17 +131,7 @@ You just need to call `init_oauth_router` such that:
 
 ```python
 from spylib.oauth import OfflineToken, OnlineToken, init_oauth_router
-from pydantic.main import BaseModel
 
-class ShopifyEnvironment(BaseSettings):
-    handle: str
-    api_key: str
-    secret_key: str
-
-    class Config:
-        env_prefix: str = 'shopify_'
-
-conf = ShopifyEnvironment()
 
 async def my_post_install(storename: str, offline_token: OfflineToken):
     """Function handling the offline token obtained at the end of the installation"""
@@ -158,9 +148,9 @@ oauth_router = init_oauth_router(
     user_scopes=['read_orders', 'write_products'],
     public_domain='my.app.com',
     private_key='KEY_FOR_OAUTH_JWT',
-    api_key=conf.api_key,
-    api_secret_key=conf.secret_key,
-    app_handle=conf.handle,
+    api_key='SHOPIFY_APP_API_KEY',
+    api_secret_key='SHOPIFY_APP_SECRET_KEY',
+    app_handle='SHOPIFY_APP_HANDLE',
     post_install=my_post_install,
     post_login=my_post_login,
 )
