@@ -4,6 +4,8 @@ The Shopify python library or SPyLib, simplifies the use of the Shopify
 services such as the REST and GraphQL APIs as well as the OAuth authentication.
 All of this is done **asynchronously using asyncio**.
 
+![Tests](https://github.com/SatelCreative/satel-spylib/actions/workflows/tests.yml/badge.svg)
+
 ## Installation
 
 ```bash
@@ -198,4 +200,43 @@ result of the installation and the login processes respectivaly. They are meant 
 particular to record the offline and online tokens in your app's database.
 They can be synchronous or asynchronous functions taking the storename and the token
 as arguments.
+
+### Session Tokens
+
+The [session token](https://shopify.dev/apps/auth/session-tokens/authenticate-an-embedded-app-using-session-tokens) 
+functionality can be used to verify the session for the user. The suggested syntax is to define a partial function:
+
+```python
+from spylib.utils import SessionToken
+
+decode_session_token = partial(SessionToken.decode_token_from_header, api_key=api_key, secret=secret)
 ```
+
+Then this can be used as a dependency in FastAPI by doing the following:
+
+```python
+@app.get("/items/")
+async def read_items(session: SessionToken = Depends(decode_session_token)):
+  # Some api code
+```
+
+## Maintenance
+
+We use [poetry](https://python-poetry.org/) to manage the dependencies and
+[flit](https://flit.readthedocs.io/en/latest/index.html) to build and publish to pypi
+because unlike poetry it allows to set the metadata on pypi such as author or homepage.
+
+### How to publish
+
+1. Change the version in the `pyproject.toml` and `spylib/__init__.py` files
+    * you can use `poetry version XXXXX` to change `pyproject.toml`
+2. Commit to git
+3. Run `poetry build` to create the package folders in `/dist`
+4. Run `flit publish` to publish to PyPI
+5. Tag the release in git and push it to Github
+
+**Notes**:
+* It's better to tag after publishing in case there is an issue while publishing
+* `flit` will try to use the system's keyring if the keyring package is installed.
+  Run `flit` in a virtual environment without keyring if you prefer to bypass the
+  keyring and put your password whenever you publish

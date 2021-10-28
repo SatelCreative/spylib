@@ -4,6 +4,7 @@ from .httpclient import HTTPClient
 from .jwtoken import JWTBaseModel
 from .misc import get_unique_id, now_epoch
 from .rest import DELETE, GET, POST, PUT, Method
+from .session_token import SessionToken
 
 __all__ = [
     'now_epoch',
@@ -18,4 +19,5 @@ __all__ = [
     'POST',
     'PUT',
     'DELETE',
+    'SessionToken',
 ]

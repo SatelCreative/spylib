@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "spylib"
-version = "0.2.1"
+version = "0.3"
 description = "A library to facilitate interfacing with Shopify's API"
 authors = ["Anthony Hillairet <ant@satel.ca>"]
 license = "MIT"
@@ -30,6 +30,7 @@ watchdog = "^2.1.2"
 PyYAML = "^5.4.1"
 argh = "^0.26.2"
 black = "^21.5b2"
+tox = "^3.24.4"
 
 [build-system]
 requires = ["poetry-core>=1.0.0", "flit_core >=2,<4"]
