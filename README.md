@@ -96,7 +96,7 @@ token = OnlineToken(
 We can query the store using either the REST:
 
 ```python
-token.execute_rest(
+await token.execute_rest(
   request: Request,
   endpoint: str,
   json: Optional[Dict[str, Any]],
@@ -107,7 +107,7 @@ token.execute_rest(
 For example, if you want to query a product from shopify you can run:
 
 ```python
-token.execute_rest(
+product_json = await token.execute_rest(
   request: GET,
   endpoint: f'/products/{product_id}.json'
 )
@@ -116,7 +116,7 @@ token.execute_rest(
 If you want to update a product in a shop you can run:
 
 ```python
-token.execute_rest(
+product_json = await token.execute_rest(
   request: PUT,
   endpoint: f'/products/{product_id}.json',
   json: {
