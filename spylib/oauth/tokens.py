@@ -4,7 +4,6 @@ from loguru import logger
 from pydantic import BaseModel, validator
 
 from ..utils import HTTPClient, JWTBaseModel
-from .config import conf
 
 
 class OAuthJWT(JWTBaseModel):
@@ -13,12 +12,17 @@ class OAuthJWT(JWTBaseModel):
     nonce: Optional[str] = None
 
 
-async def _get_token(domain: str, code: str) -> dict:
+async def _get_token(
+    domain: str,
+    code: str,
+    api_key: str,
+    api_secret_key: str,
+) -> dict:
     url = f'https://{domain}/admin/oauth/access_token'
 
     httpclient = HTTPClient()
 
-    jsondata = {'client_id': conf.api_key, 'client_secret': conf.secret_key, 'code': code}
+    jsondata = {'client_id': api_key, 'client_secret': api_secret_key, 'code': code}
     response = await httpclient.request(
         method='post',
         url=url,
@@ -43,9 +47,14 @@ class OfflineToken(BaseModel):
     scope: List[str]
 
     @classmethod
-    async def get(cls, domain: str, code: str):
+    async def get(cls, domain: str, code: str, api_key: str, api_secret_key: str):
         logger.debug(f'Retrieve {cls.__name__} for shop {domain}')
-        jsontoken = await _get_token(domain=domain, code=code)
+        jsontoken = await _get_token(
+            domain=domain,
+            code=code,
+            api_key=api_key,
+            api_secret_key=api_secret_key,
+        )
         return cls(**jsontoken)
 
     @validator('scope', pre=True, always=True)
