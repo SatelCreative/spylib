@@ -9,7 +9,6 @@ from httpx import AsyncClient, Response
 from loguru import logger
 from pydantic import BaseModel, validator
 from starlette import status
-
 from tenacity import retry
 from tenacity.retry import retry_if_exception, retry_if_exception_type
 from tenacity.stop import stop_after_attempt
@@ -186,9 +185,11 @@ class Token(ABC, BaseModel):
         retry=retry_if_exception_type(ShopifyThrottledError),
     )
     async def execute_gql(
-        self, query: str, variables: Dict[str, Any] = {}, operation_name: Optional[str] = None
+        self,
+        query: str,
+        variables: Dict[str, Any] = {},
+        operation_name: Optional[str] = None,
     ) -> Dict[str, Any]:
-        """Simple graphql query executor because python has no decent graphql client"""
 
         if not self.access_token:
             raise ValueError('Token Undefined')
