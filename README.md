@@ -199,8 +199,6 @@ The `variables` are a dictionary of variables that will be substituted into the 
 
 The `operation_name` is a name for the query you are about to run.
 
-### REST Types
-
 ### OAuth
 
 **Notice** there have been considerable changes to the oauth in version 0.3. The core
