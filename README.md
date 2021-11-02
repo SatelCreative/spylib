@@ -93,7 +93,7 @@ token = OnlineToken(
 
 #### REST
 
-We can query the store using either the REST:
+We can query the store using the REST endpoint:
 
 ```python
 await token.execute_rest(
@@ -108,8 +108,8 @@ For example, if you want to query a product from shopify you can run:
 
 ```python
 product_json = await token.execute_rest(
-  request: GET,
-  endpoint: f'/products/{product_id}.json'
+  request = GET,
+  endpoint = f'/products/{product_id}.json'
 )
 ```
 
@@ -117,9 +117,9 @@ If you want to update a product in a shop you can run:
 
 ```python
 product_json = await token.execute_rest(
-  request: PUT,
-  endpoint: f'/products/{product_id}.json',
-  json: {
+  request = PUT,
+  endpoint = f'/products/{product_id}.json',
+  json = {
     "product":
     {
       "id": product_id,
@@ -147,11 +147,57 @@ We can also query Shopify using the GraphQL endpoint:
 
 ```python
 token.execute_gql(
-  query,
-  variables,
-  operation_name
+  query: str,
+  variables: Dict[str, Any],
+  operation_name: Optional[str]
 )
 ```
+
+For example, if you want to query a product from shopify you can run:
+
+```python
+query = """
+{
+  shop {
+    name
+  }
+}"""
+
+product_json = await token.execute_gql(query = query)
+```
+
+If you want to update a product in a shop you can run:
+
+```python
+query = """
+mutation productUpdateMutation($id: ID, $title: String) {
+  productUpdate(input: {
+    id: $id, 
+    title: $title
+  }) 
+  {
+    product {
+      id
+    }
+  }
+}"""
+
+variables = {
+  'id': 'gid://shopify/Product/108828309',
+  'title': "Sweet new product - GraphQL Edition"
+}
+product_json = await token.execute_gql(
+  query = query,
+  variables = variables
+)
+``` 
+
+The `query` is a GraphQL query that will be passed to shopify for execution. You can use the GQL explorer
+for your shop to create a query. For example, the [shopify demo GQL explorer](https://shopify.dev/apps/tools/graphiql-admin-api). 
+
+The `variables` are a dictionary of variables that will be substituted into the query. 
+
+The `operation_name` is a name for the query you are about to run.
 
 ### REST Types
 
