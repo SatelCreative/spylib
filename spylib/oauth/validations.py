@@ -23,6 +23,6 @@ def validate_oauthjwt(token: str, shop: str, jwt_key: str) -> OAuthJWT:
 
     storename = domain_to_storename(shop)
     if oauthjwt.storename != storename:
-        raise ValueError('Token storename and query shop don\'t match')
+        raise ValueError("Token storename and query shop don't match")
 
     return oauthjwt
