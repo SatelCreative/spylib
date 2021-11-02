@@ -1,11 +1,10 @@
 from urllib.parse import parse_qs
 
 from ..utils import domain_to_storename, now_epoch, validate_hmac
-from .config import conf
 from .tokens import OAuthJWT
 
 
-def validate_callback(shop: str, timestamp: int, query_string: bytes) -> None:
+def validate_callback(shop: str, timestamp: int, query_string: bytes, api_secret_key: str) -> None:
     # 1) Check that the shop is a valid Shopify URL
     domain_to_storename(shop)
 
@@ -15,7 +14,7 @@ def validate_callback(shop: str, timestamp: int, query_string: bytes) -> None:
 
     # 3) Check the hmac
     message = parse_qs(query_string.decode('utf-8'))
-    validate_hmac(secret=conf.secret_key, message=message)
+    validate_hmac(secret=api_secret_key, message=message)
 
 
 def validate_oauthjwt(token: str, shop: str, jwt_key: str) -> OAuthJWT:
