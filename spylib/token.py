@@ -3,7 +3,7 @@ from asyncio import sleep
 from datetime import datetime, timedelta
 from math import ceil, floor
 from time import monotonic
-from typing import Any, ClassVar, Dict, List, Optional
+from typing import Any, ClassVar, Dict, List, Optional, Type, Union
 
 from httpx import AsyncClient, Response
 from loguru import logger
@@ -26,6 +26,18 @@ from spylib.exceptions import (
     ShopifyThrottledError,
     not_our_fault,
 )
+from spylib.utils.domain import domain_to_storename
+
+from .utils import HTTPClient
+
+
+class TokenResponse(BaseModel):
+    access_token: str
+    scope: str
+
+
+class OfflineTokenResponse(TokenResponse):
+    pass
 
 
 class AssociatedUser(BaseModel):
@@ -39,14 +51,7 @@ class AssociatedUser(BaseModel):
     collaborator: bool
 
 
-class OfflineTokenResponse(BaseModel):
-    access_token: str
-    scope: str
-
-
-class OnlineTokenResponse(BaseModel):
-    access_token: str
-    scope: str
+class OnlineTokenResponse(TokenResponse):
     expires_in: int
     associated_user_scope: str
     associated_user: AssociatedUser
@@ -265,9 +270,22 @@ class OnlineTokenABC(Token, ABC):
     in a user, its scope and an expiry time.
     """
 
-    associated_user_id: int
+    associated_user: AssociatedUser
+    associated_user_scope: List[str]
     expires_in: int = 0
     expires_at: datetime = datetime.now() + timedelta(days=0, seconds=expires_in)
+
+    @validator('associated_user', pre=True, always=True)
+    def associated_user_convert(cls, v):
+        if type(v) == dict:
+            return AssociatedUser(**v)
+        return v
+
+    @validator('associated_user_scope', pre=True, always=True)
+    def convert_scope(cls, v):
+        if type(v) == str:
+            return v.split(',')
+        return v
 
     @abstractmethod
     async def save(self):
@@ -282,3 +300,45 @@ class OnlineTokenABC(Token, ABC):
         This method handles loading the token. By default this does nothing,
         therefore the developer should override this.
         """
+
+
+async def get_token(
+    domain: str,
+    code: str,
+    api_key: str,
+    api_secret_key: str,
+    CustomToken: Union[Type[OfflineTokenABC], Type[OnlineTokenABC]],
+    Response: Type[TokenResponse],
+) -> Union[OnlineTokenABC, OfflineTokenABC]:
+    """
+    Get token from shopify. Accepts a Token subclass, which will be the type of token
+    that is generated, and the TokenResponse type which should match the Token subclass
+    type.
+    """
+
+    url = f'https://{domain}/admin/oauth/access_token'
+
+    httpclient = HTTPClient()
+
+    jsondata = {'client_id': api_key, 'client_secret': api_secret_key, 'code': code}
+    response = await httpclient.request(
+        method='post',
+        url=url,
+        json=jsondata,
+        timeout=20.0,
+    )
+    if response.status_code != 200:
+        message = (
+            f'Problem retrieving access token. Status code: {response.status_code} {jsondata}'
+            f'response=> {response.text}'
+        )
+        logger.error(message)
+        raise ValueError(message)
+
+    jresp = Response.parse_obj(response.json())
+
+    # We have to use this syntax
+    return CustomToken(
+        **{'store_name': domain_to_storename(domain)},
+        **jresp.dict(),
+    )

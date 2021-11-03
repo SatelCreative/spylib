@@ -4,6 +4,7 @@ from pydantic.class_validators import validator
 from pydantic.main import BaseModel
 
 from spylib.token import (
+    AssociatedUser,
     OfflineTokenABC,
     OfflineTokenResponse,
     OnlineTokenABC,
@@ -15,16 +16,16 @@ online_token_data = OnlineTokenResponse(
     scope=','.join(['write_products', 'read_customers']),
     expires_in=86399,
     associated_user_scope=','.join(['read_products']),
-    associated_user={
-        'id': 902541635,
-        'first_name': 'John',
-        'last_name': 'Smith',
-        'email': 'john@example.com',
-        'email_verified': True,
-        'account_owner': True,
-        'locale': 'en',
-        'collaborator': False,
-    },
+    associated_user=AssociatedUser(
+        id=902541635,
+        first_name='John',
+        last_name='Smith',
+        email='john@example.com',
+        email_verified=True,
+        account_owner=True,
+        locale='en',
+        collaborator=False,
+    ),
 )
 
 offline_token_data = OfflineTokenResponse(
@@ -58,6 +59,12 @@ class TestInformation(BaseModel):
     code: int = 3
     public_domain: str = 'test.testing.com'
     private_key: str = 'TESTPRIVATEKEY'
+    app_scopes = ['write_products', 'read_customers']
+    user_scopes = ['write_orders', 'read_products']
+    app_handle = 'HANDLE'
+    api_key = 'API_KEY'
+    api_secret_key = 'SECRET_KEY'
+    store = 'test.myshopify.com'
 
 
 test_information = TestInformation()
@@ -71,9 +78,9 @@ class OnlineToken(OnlineTokenABC):
     async def load(cls, store_name: str, user_id: str) -> OnlineToken:
         return OnlineToken(
             access_token=online_token_data.access_token,
-            scope=online_token_data.scope.split(','),
-            associated_user_id=online_token_data.associated_user.id,
-            associated_user_scope=online_token_data.associated_user_scope.split(','),
+            scope=online_token_data.scope,
+            associated_user=online_token_data.associated_user,
+            associated_user_scope=online_token_data.associated_user_scope,
             expires_in=online_token_data.expires_in,
             store_name=test_information.store_name,
         )
@@ -87,6 +94,6 @@ class OfflineToken(OfflineTokenABC):
     async def load(cls, store_name: str) -> OfflineToken:
         return OfflineToken(
             access_token=offline_token_data.access_token,
-            scope=offline_token_data.scope.split(','),
+            scope=offline_token_data.scope,
             store_name=test_information.store_name,
         )

@@ -1,15 +1,21 @@
 from dataclasses import dataclass
-from inspect import isawaitable
-from typing import Awaitable, Callable, List, Optional, Union
+from typing import List, Optional, Type
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 from loguru import logger
 from starlette.requests import Request
 from starlette.responses import RedirectResponse
 
-from ..utils import JWTBaseModel, store_domain
+from spylib.token import (
+    OfflineTokenABC,
+    OfflineTokenResponse,
+    OnlineTokenABC,
+    OnlineTokenResponse,
+    get_token,
+)
+
+from ..utils import OAuthJWT, store_domain
 from .redirects import app_redirect, oauth_init_url
-from .tokens import OAuthJWT, OfflineToken, OnlineToken
 from .validations import validate_callback, validate_oauthjwt
 
 
@@ -30,8 +36,8 @@ def init_oauth_router(
     app_handle: str,
     api_key: str,
     api_secret_key: str,
-    post_install: Callable[[str, OfflineToken], Union[Awaitable[JWTBaseModel], JWTBaseModel]],
-    post_login: Optional[Callable[[str, OnlineToken], Optional[Awaitable]]] = None,
+    OfflineToken: Type[OfflineTokenABC],
+    OnlineToken: Optional[Type[OnlineTokenABC]] = None,
     install_init_path='/shopify/auth',
     callback_path='/callback',
 ) -> APIRouter:
@@ -78,21 +84,22 @@ def init_oauth_router(
         if not oauthjwt.is_login:
             try:
                 # Get the offline token from Shopify
-                offline_token = await OfflineToken.get(
+                offline_token = await get_token(
                     domain=args.shop,
                     code=args.code,
                     api_key=api_key,
                     api_secret_key=api_secret_key,
+                    CustomToken=OfflineToken,
+                    Response=OfflineTokenResponse,
                 )
+
+                await offline_token.save()
+
             except Exception as e:
                 logger.exception(f'Could not retrieve offline token for shop {args.shop}')
                 raise HTTPException(status_code=400, detail=str(e))
 
-            # Await if the provided function is async
-            if isawaitable(pi_return := post_install(oauthjwt.storename, offline_token)):
-                await pi_return  # type: ignore
-
-            if post_login is None:
+            if OnlineToken is None:
                 return app_redirect(
                     store_domain=args.shop,
                     jwtoken=None,
@@ -115,29 +122,28 @@ def init_oauth_router(
 
         # === If login ===
         # Get the online token from Shopify
-        online_token = await OnlineToken.get(
-            domain=args.shop,
-            code=args.code,
-            api_key=api_key,
-            api_secret_key=api_secret_key,
-        )
+        if OnlineToken:
+            online_token = await get_token(
+                domain=args.shop,
+                code=args.code,
+                api_key=api_key,
+                api_secret_key=api_secret_key,
+                CustomToken=OnlineToken,
+                Response=OnlineTokenResponse,
+            )
 
-        # Await if the provided function is async
-        jwtoken = None
-        if post_login:
-            pl_return = post_login(oauthjwt.storename, online_token)
-            if isawaitable(pl_return):
-                jwtoken = await pl_return  # type: ignore
-            else:
-                jwtoken = pl_return
+            await online_token.save()
 
-        # Redirect to the app in Shopify admin
-        return app_redirect(
-            store_domain=args.shop,
-            jwtoken=jwtoken,
-            jwt_key=private_key,
-            app_domain=public_domain,
-            app_handle=app_handle,
-        )
+            # Await if the provided function is async
+            jwtoken = None
+
+            # Redirect to the app in Shopify admin
+            return app_redirect(
+                store_domain=args.shop,
+                jwtoken=jwtoken,
+                jwt_key=private_key,
+                app_domain=public_domain,
+                app_handle=app_handle,
+            )
 
     return router

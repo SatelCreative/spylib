@@ -90,3 +90,9 @@ class JWTBaseModel(BaseModel):
     def cookie_key(self) -> str:
         """Define the key of the cookie used to store the JWT"""
         raise NotImplementedError
+
+
+class OAuthJWT(JWTBaseModel):
+    is_login: bool
+    storename: str
+    nonce: Optional[str] = None

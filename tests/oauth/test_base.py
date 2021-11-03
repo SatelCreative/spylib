@@ -3,50 +3,19 @@ from unittest.mock import AsyncMock
 from urllib.parse import ParseResult, parse_qs, urlencode, urlparse
 
 import pytest
-from box import Box  # type: ignore
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 from pydantic.dataclasses import dataclass
 from requests import Response  # type: ignore
 
-from spylib.oauth import OfflineToken, OnlineToken, init_oauth_router
-from spylib.utils import JWTBaseModel, hmac, now_epoch
-
-HANDLE = 'HANDLE'
-SHOPIFY_API_KEY = 'API_KEY'
-SHOPIFY_SECRET_KEY = 'SECRET_KEY'
-
-TEST_STORE = 'test.myshopify.com'
-TEST_DATA = Box(
-    dict(
-        app_scopes=['write_products', 'read_customers'],
-        user_scopes=['write_orders', 'read_products'],
-        public_domain='test.testing.com',
-        private_key='TESTPRIVATEKEY',
-        post_install=AsyncMock(return_value=JWTBaseModel()),
-        post_login=AsyncMock(return_value=None),
-        app_handle=HANDLE,
-        api_key=SHOPIFY_API_KEY,
-        api_secret_key=SHOPIFY_SECRET_KEY,
-    )
-)
-
-OFFLINETOKEN_DATA = dict(access_token='OFFLINETOKEN', scope=','.join(TEST_DATA.app_scopes))
-ONLINETOKEN_DATA = dict(
-    access_token='ONLINETOKEN',
-    scope=','.join(TEST_DATA.app_scopes),
-    expires_in=86399,
-    associated_user_scope=','.join(TEST_DATA.user_scopes),
-    associated_user={
-        'id': 902541635,
-        'first_name': 'John',
-        'last_name': 'Smith',
-        'email': 'john@example.com',
-        'email_verified': True,
-        'account_owner': True,
-        'locale': 'en',
-        'collaborator': False,
-    },
+from spylib.oauth import init_oauth_router
+from spylib.utils import hmac, now_epoch
+from tests.token_classes import (
+    OfflineToken,
+    OnlineToken,
+    offline_token_data,
+    online_token_data,
+    test_information,
 )
 
 
@@ -65,40 +34,62 @@ async def test_oauth(mocker):
 
     app = FastAPI()
 
-    oauth_router = init_oauth_router(**TEST_DATA)
+    # Python doesn't store Classes as variables within a class, rather as a nested class.
+    oauth_router = init_oauth_router(
+        test_information.app_scopes,
+        test_information.user_scopes,
+        test_information.public_domain,
+        test_information.private_key,
+        test_information.app_handle,
+        test_information.api_key,
+        test_information.api_secret_key,
+        OfflineToken,
+        OnlineToken,
+    )
 
     app.include_router(oauth_router)
     client = TestClient(app)
 
-    # --------- Test the initialization endpoint -----------
+    # --------- Test the initiTEST_DATA.alization endpoint -----------
 
     # Missing shop argument
     response = client.get('/shopify/auth')
     assert response.status_code == 422
     assert response.json() == {
         'detail': [
-            {'loc': ['query', 'shop'], 'msg': 'field required', 'type': 'value_error.missing'}
+            {
+                'loc': ['query', 'shop'],
+                'msg': 'field required',
+                'type': 'value_error.missing',
+            }
         ],
     }
 
     # Happy path
-    response = client.get('/shopify/auth', params=dict(shop=TEST_STORE), allow_redirects=False)
-    query = check_oauth_redirect_url(
-        response=response, client=client, path='/admin/oauth/authorize', scope=TEST_DATA.app_scopes
+    response = client.get(
+        '/shopify/auth', params=dict(shop=test_information.store), allow_redirects=False
     )
-    state = check_oauth_redirect_query(query=query, scope=TEST_DATA.app_scopes)
+    query = check_oauth_redirect_url(
+        response=response,
+        client=client,
+        path='/admin/oauth/authorize',
+        scope=test_information.app_scopes,
+    )
+    state = check_oauth_redirect_query(query=query, scope=test_information.app_scopes)
 
     # Callback calls to get tokens
     shopify_request_mock = mocker.patch('httpx.AsyncClient.request', new_callable=AsyncMock)
     shopify_request_mock.side_effect = [
-        MockHTTPResponse(status_code=200, jsondata=OFFLINETOKEN_DATA),
-        MockHTTPResponse(status_code=200, jsondata=ONLINETOKEN_DATA),
+        MockHTTPResponse(status_code=200, jsondata=offline_token_data),
+        MockHTTPResponse(status_code=200, jsondata=online_token_data),
     ]
     # --------- Test the callback endpoint for installation -----------
     query_str = urlencode(
-        dict(shop=TEST_STORE, state=state, timestamp=now_epoch(), code='INSTALLCODE')
+        dict(shop=test_information.store, state=state, timestamp=now_epoch(), code='INSTALLCODE')
     )
-    hmac_arg = hmac.calculate_from_message(secret=SHOPIFY_SECRET_KEY, message=query_str)
+    hmac_arg = hmac.calculate_from_message(
+        secret=test_information.api_secret_key, message=query_str
+    )
     query_str += '&hmac=' + hmac_arg
 
     response = client.get('/callback', params=query_str, allow_redirects=False)
@@ -106,65 +97,61 @@ async def test_oauth(mocker):
         response=response,
         client=client,
         path='/admin/oauth/authorize',
-        scope=TEST_DATA.user_scopes,
+        scope=test_information.user_scopes,
     )
     state = check_oauth_redirect_query(
         query=query,
-        scope=TEST_DATA.user_scopes,
+        scope=test_information.user_scopes,
         query_extra={'grant_options[]': ['per-user']},
     )
 
     assert await shopify_request_mock.called_with(
         method='post',
-        url=f'https://{TEST_STORE}/admin/oauth/access_token',
+        url=f'https://{test_information.store}/admin/oauth/access_token',
         json={
-            'client_id': SHOPIFY_API_KEY,
-            'client_secret': SHOPIFY_SECRET_KEY,
+            'client_id': test_information.api_key,
+            'client_secret': test_information.api_secret_key,
             'code': 'INSTALLCODE',
         },
     )
 
-    TEST_DATA.post_install.assert_called_once()
-    TEST_DATA.post_install.assert_called_with('test', OfflineToken(**OFFLINETOKEN_DATA))
-
     # --------- Test the callback endpoint for login -----------
     query_str = urlencode(
-        dict(shop=TEST_STORE, state=state, timestamp=now_epoch(), code='LOGINCODE'), safe='=,&/[]:'
+        dict(shop=test_information.store, state=state, timestamp=now_epoch(), code='LOGINCODE'),
+        safe='=,&/[]:',
     )
-    hmac_arg = hmac.calculate_from_message(secret=SHOPIFY_SECRET_KEY, message=query_str)
+    hmac_arg = hmac.calculate_from_message(
+        secret=test_information.api_secret_key, message=query_str
+    )
     query_str += '&hmac=' + hmac_arg
 
     response = client.get('/callback', params=query_str, allow_redirects=False)
     state = check_oauth_redirect_url(
         response=response,
         client=client,
-        path=f'/admin/apps/{HANDLE}',
-        scope=TEST_DATA.user_scopes,
+        path=f'/admin/apps/{test_information.app_handle}',
+        scope=test_information.user_scopes,
     )
 
     assert await shopify_request_mock.called_with(
         method='post',
-        url=f'https://{TEST_STORE}/admin/oauth/access_token',
+        url=f'https://{test_information.store}/admin/oauth/access_token',
         json={
-            'client_id': SHOPIFY_API_KEY,
-            'client_secret': SHOPIFY_SECRET_KEY,
+            'client_id': test_information.api_key,
+            'client_secret': test_information.api_secret_key,
             'code': 'LOGINCODE',
         },
     )
 
-    TEST_DATA.post_login.assert_called_once()
-    TEST_DATA.post_login.assert_called_with('test', OnlineToken(**ONLINETOKEN_DATA))
-
 
 def check_oauth_redirect_url(response: Response, client, path: str, scope: List[str]) -> str:
-    print(response.text)
     assert response.status_code == 307
 
     parsed_url = urlparse(client.get_redirect_target(response))
 
     expected_parsed_url = ParseResult(
         scheme='https',
-        netloc=TEST_STORE,
+        netloc=test_information.store,
         path=path,
         query=parsed_url.query,  # We check that separately
         params='',
@@ -180,8 +167,8 @@ def check_oauth_redirect_query(query: str, scope: List[str], query_extra: dict =
     state = parsed_query.pop('state', [''])[0]
 
     expected_query = dict(
-        client_id=[SHOPIFY_API_KEY],
-        redirect_uri=[f'https://{TEST_DATA.public_domain}/callback'],
+        client_id=[test_information.api_key],
+        redirect_uri=[f'https://{test_information.public_domain}/callback'],
         scope=[','.join(scope)],
     )
     expected_query.update(query_extra)

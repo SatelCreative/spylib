@@ -3,9 +3,10 @@ from operator import itemgetter
 from typing import Any, List, Tuple
 from urllib.parse import parse_qsl
 
+from spylib.utils.jwtoken import OAuthJWT
+
 from ..utils import domain_to_storename, now_epoch
 from ..utils import validate as validate_hmac
-from .tokens import OAuthJWT
 
 
 def validate_callback(shop: str, timestamp: int, query_string: Any, api_secret_key: str) -> None:

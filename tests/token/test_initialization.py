@@ -20,7 +20,7 @@ async def test_online_token():
     assert online_token.access_token == online_token_data.access_token
     assert not online_token.access_token_invalid
     assert online_token.scope == online_token_data.scope.split(',')
-    assert online_token.associated_user_id == online_token_data.associated_user.id
+    assert online_token.associated_user == online_token_data.associated_user
     assert online_token.api_url == (
         f'https://{test_information.store_name}.myshopify.com/admin/'
         + f'api/{test_information.api_version}'

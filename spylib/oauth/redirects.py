@@ -2,8 +2,9 @@ from typing import List, Optional
 
 from starlette.responses import RedirectResponse
 
+from spylib.utils.jwtoken import OAuthJWT
+
 from ..utils import JWTBaseModel, domain_to_storename, get_unique_id
-from .tokens import OAuthJWT
 
 
 def oauth_init_url(
