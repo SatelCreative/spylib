@@ -39,7 +39,7 @@ jobs:
       - name: Build lazydocs
         run: |
           source .venv/bin/activate
-          lazydocs --overview-file="index.md" --src-base-url="https://github.com/SatelCreative/satel-spylib/tree/main" --output-path="./docs/api-docs" --no-validate --ignored-modules="tests" .
+          lazydocs --overview-file="index.md" --src-base-url="https://github.com/SatelCreative/satel-spylib/tree/main" --output-path="./docs/api-docs" --no-validate spylib
       - name: Deploy MkDocs
         uses: mhausenblas/mkdocs-deploy-gh-pages@1.24
         # Or use mhausenblas/mkdocs-deploy-gh-pages@nomaterial to build without the mkdocs-material theme
