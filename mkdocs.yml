@@ -3,6 +3,8 @@ site_url: https://example.com/
 repo_url: https://github.com/SatelCreative/satel-spylib
 theme:
   name: material
+extra_css:
+  - stylesheets/extra.css
 nav:
   - Home: index.md
   - ...

@@ -289,6 +289,7 @@ Inside `poetry shell`:
 lazydocs --overview-file="index.md" \
 --src-base-url="https://github.com/SatelCreative/satel-spylib/tree/main" \
 --output-path="./docs/api-docs" \
+--ignored-modules="tests" \
 --validate .
 
 mkdocs build
