@@ -18,7 +18,7 @@ def validate_hmac(secret: str, hash_name: str, message: Dict[str, list], is_base
     hmac_actual = message.pop(hash_name)[0]
     body = '&'.join([f'{arg}={",".join(message[arg])}' for arg in message.keys()])
 
-    message_hmac = calculate_message_hmac(secret, body, is_base64)
+    message_hmac = calculate_message_hmac(secret=secret, message=body, is_base64=is_base64)
 
     if not compare_digest(hmac_actual, message_hmac):
         raise ValueError('HMAC verification failed')
