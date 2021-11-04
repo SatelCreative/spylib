@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-from hmac import compare_digest
 from pathlib import Path
 from urllib import parse
 
@@ -9,7 +8,7 @@ from starlette.requests import Request
 from starlette.responses import JSONResponse
 from starlette.types import ASGIApp
 
-from .hmac import calculate_message_hmac
+from .hmac import validate_hmac
 
 
 class CheckAppProxy(BaseHTTPMiddleware):
@@ -27,15 +26,13 @@ class CheckAppProxy(BaseHTTPMiddleware):
             # Take the authorization headers and unload them
             decoded_message = parse.parse_qs(str(request.query_params))
 
-            real_signature = decoded_message.pop('signature')[0]
-            body = '&'.join(
-                [f'{arg}={",".join(decoded_message[arg])}' for arg in decoded_message.keys()]
-            )
-
-            message_signature = calculate_message_hmac(self.secret, body)
-
-            # Validate that the message HMAC and recieved HMAC are the same.
-            if not compare_digest(real_signature, message_signature):
+            try:
+                validate_hmac(
+                    secret=self.secret,
+                    hash_name='signature',
+                    message=decoded_message,
+                )
+            except ValueError:
                 return JSONResponse(
                     status_code=400,
                     content={"error": "HMAC failed to be verified for the request"},

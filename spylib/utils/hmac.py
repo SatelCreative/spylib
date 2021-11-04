@@ -13,9 +13,9 @@ def calculate_message_hmac(secret: str, message: str, is_base64: bool = False) -
     return hmac_hash.hexdigest()
 
 
-def validate_hmac(secret: str, message: Dict[str, list], is_base64: bool = False):
+def validate_hmac(secret: str, hash_name: str, message: Dict[str, list], is_base64: bool = False):
 
-    hmac_actual = message.pop('hmac')[0]
+    hmac_actual = message.pop(hash_name)[0]
     body = '&'.join([f'{arg}={",".join(message[arg])}' for arg in message.keys()])
 
     message_hmac = calculate_message_hmac(secret, body, is_base64)
