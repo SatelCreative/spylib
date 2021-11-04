@@ -158,8 +158,9 @@ For example, if you want to query a product from shopify you can run:
 ```python
 query = """
 {
-  shop {
-    name
+  product(id: "gid://shopify/Product/1974208299030") {
+  	id,
+    title
   }
 }"""
 
