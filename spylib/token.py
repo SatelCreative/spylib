@@ -8,6 +8,7 @@ from typing import Any, ClassVar, Dict, List, Optional
 from httpx import AsyncClient, Response
 from loguru import logger
 from pydantic import BaseModel, validator
+from starlette import status
 from tenacity import retry
 from tenacity.retry import retry_if_exception, retry_if_exception_type
 from tenacity.stop import stop_after_attempt
@@ -26,6 +27,7 @@ from spylib.exceptions import (
     ShopifyThrottledError,
     not_our_fault,
 )
+from spylib.utils.rest import Request
 
 
 class AssociatedUser(BaseModel):
@@ -140,18 +142,30 @@ class Token(ABC, BaseModel):
         stop=stop_after_attempt(5),
         retry=retry_if_exception(not_our_fault),
     )
-    async def execute_rest(self, goodstatus, debug, endpoint, **kwargs) -> Dict[str, Any]:
+    async def execute_rest(
+        self,
+        request: Request,
+        endpoint: str,
+        json: Optional[Dict[str, Any]] = None,
+        debug: str = "",
+    ) -> Dict[str, Any]:
         while True:
             await self.__await_rest_bucket_refill()
-            kwargs['url'] = f'{self.api_url}{endpoint}'
-            kwargs['headers'] = {'X-Shopify-Access-Token': self.access_token}
 
-            response = await self.client.request(**kwargs)
-            if response.status_code == 429:
+            if not self.access_token:
+                raise ValueError("You have not initialized the token for this store. ")
+
+            response = await self.client.request(
+                method=request.method.value,
+                url=f'{self.api_url}{endpoint}',
+                headers={'X-Shopify-Access-Token': self.access_token},
+                json=json,
+            )
+            if response.status_code == status.HTTP_429_TOO_MANY_REQUESTS:
                 # We hit the limit, we are out of tokens
                 self.rest_bucket = 0
                 continue
-            elif 400 <= response.status_code or response.status_code != goodstatus:
+            elif 400 <= response.status_code or response.status_code != request.good_status:
                 # All errors are handled here
                 await self.__handle_error(debug=debug, endpoint=endpoint, response=response)
             else:
@@ -171,9 +185,11 @@ class Token(ABC, BaseModel):
         retry=retry_if_exception_type(ShopifyThrottledError),
     )
     async def execute_gql(
-        self, query: str, variables: Dict[str, Any] = {}, operation_name: Optional[str] = None
+        self,
+        query: str,
+        variables: Dict[str, Any] = {},
+        operation_name: Optional[str] = None,
     ) -> Dict[str, Any]:
-        """Simple graphql query executor because python has no decent graphql client"""
 
         if not self.access_token:
             raise ValueError('Token Undefined')
