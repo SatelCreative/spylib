@@ -287,12 +287,15 @@ because unlike poetry it allows to set the metadata on pypi such as author or ho
 
 ### How to publish
 
-1. Change the version in the `pyproject.toml` and `spylib/__init__.py` files
+1. Create branch `release/x.y.z`
+2. Change the version in the `pyproject.toml` and `spylib/__init__.py` files
     * you can use `poetry version XXXXX` to change `pyproject.toml`
 2. Commit to git
-3. Run `poetry build` to create the package folders in `/dist`
-4. Run `flit publish` to publish to PyPI
-5. Tag the release in git and push it to Github
+3. Open PR for other codeowners to review
+4. Once approved, squash and merge `release/x.y.z`
+5. Run `poetry build` to create the package folders in `/dist`
+6. Run `flit publish` to publish to PyPI
+7. Tag the release in git and push it to Github
 
 **Notes**:
 * It's better to tag after publishing in case there is an issue while publishing
