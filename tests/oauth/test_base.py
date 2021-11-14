@@ -9,8 +9,12 @@ from fastapi.testclient import TestClient
 from pydantic.dataclasses import dataclass
 from requests import Response  # type: ignore
 
-from spylib.oauth import OfflineToken, OnlineToken, conf, init_oauth_router
+from spylib.oauth import OfflineToken, OnlineToken, init_oauth_router
 from spylib.utils import JWTBaseModel, hmac, now_epoch
+
+HANDLE = 'HANDLE'
+SHOPIFY_API_KEY = 'API_KEY'
+SHOPIFY_SECRET_KEY = 'SECRET_KEY'
 
 TEST_STORE = 'test.myshopify.com'
 TEST_DATA = Box(
@@ -21,6 +25,9 @@ TEST_DATA = Box(
         private_key='TESTPRIVATEKEY',
         post_install=AsyncMock(return_value=JWTBaseModel()),
         post_login=AsyncMock(return_value=None),
+        app_handle=HANDLE,
+        api_key=SHOPIFY_API_KEY,
+        api_secret_key=SHOPIFY_SECRET_KEY,
     )
 )
 
@@ -91,7 +98,7 @@ async def test_oauth(mocker):
     query_str = urlencode(
         dict(shop=TEST_STORE, state=state, timestamp=now_epoch(), code='INSTALLCODE')
     )
-    hmac_arg = hmac.calculate_from_message(secret=conf.secret_key, message=query_str)
+    hmac_arg = hmac.calculate_from_message(secret=SHOPIFY_SECRET_KEY, message=query_str)
     query_str += '&hmac=' + hmac_arg
 
     response = client.get('/callback', params=query_str, allow_redirects=False)
@@ -110,7 +117,11 @@ async def test_oauth(mocker):
     assert await shopify_request_mock.called_with(
         method='post',
         url=f'https://{TEST_STORE}/admin/oauth/access_token',
-        json={'client_id': conf.api_key, 'client_secret': conf.secret_key, 'code': 'INSTALLCODE'},
+        json={
+            'client_id': SHOPIFY_API_KEY,
+            'client_secret': SHOPIFY_SECRET_KEY,
+            'code': 'INSTALLCODE',
+        },
     )
 
     TEST_DATA.post_install.assert_called_once()
@@ -120,21 +131,25 @@ async def test_oauth(mocker):
     query_str = urlencode(
         dict(shop=TEST_STORE, state=state, timestamp=now_epoch(), code='LOGINCODE'), safe='=,&/[]:'
     )
-    hmac_arg = hmac.calculate_from_message(secret=conf.secret_key, message=query_str)
+    hmac_arg = hmac.calculate_from_message(secret=SHOPIFY_SECRET_KEY, message=query_str)
     query_str += '&hmac=' + hmac_arg
 
     response = client.get('/callback', params=query_str, allow_redirects=False)
     state = check_oauth_redirect_url(
         response=response,
         client=client,
-        path=f'/admin/apps/{conf.handle}',
+        path=f'/admin/apps/{HANDLE}',
         scope=TEST_DATA.user_scopes,
     )
 
     assert await shopify_request_mock.called_with(
         method='post',
         url=f'https://{TEST_STORE}/admin/oauth/access_token',
-        json={'client_id': conf.api_key, 'client_secret': conf.secret_key, 'code': 'LOGINCODE'},
+        json={
+            'client_id': SHOPIFY_API_KEY,
+            'client_secret': SHOPIFY_SECRET_KEY,
+            'code': 'LOGINCODE',
+        },
     )
 
     TEST_DATA.post_login.assert_called_once()
@@ -165,7 +180,7 @@ def check_oauth_redirect_query(query: str, scope: List[str], query_extra: dict =
     state = parsed_query.pop('state', [''])[0]
 
     expected_query = dict(
-        client_id=[conf.api_key],
+        client_id=[SHOPIFY_API_KEY],
         redirect_uri=[f'https://{TEST_DATA.public_domain}/callback'],
         scope=[','.join(scope)],
     )

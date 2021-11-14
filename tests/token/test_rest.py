@@ -4,6 +4,7 @@ from unittest.mock import AsyncMock
 import pytest
 
 from spylib.exceptions import ShopifyCallInvalidError
+from spylib.utils.rest import GET, POST
 
 from ..token_classes import MockHTTPResponse, OfflineToken, test_information
 
@@ -19,7 +20,9 @@ async def test_store_rest_happypath(mocker):
     )
 
     jsondata = await token.execute_rest(
-        goodstatus=200, debug='Test failed', endpoint='/test.json', method='get'
+        request=GET,
+        endpoint='/test.json',
+        debug='Test failed',
     )
 
     shopify_request_mock.assert_called_once()
@@ -44,11 +47,10 @@ async def test_store_rest_badrequest(mocker):
 
     with pytest.raises(ShopifyCallInvalidError):
         await token.execute_rest(
-            goodstatus=201,
-            debug='Test failed',
+            request=POST,
             endpoint='/products.json',
-            method='post',
             json={'product': {'body_html': 'A mystery!'}},
+            debug='Test failed',
         )
 
     shopify_request_mock.assert_called_once()
@@ -85,7 +87,9 @@ async def test_store_rest_ratetokens(
         return_value=MockHTTPResponse(status_code=200, jsondata={'success': True}),
     )
     await token.execute_rest(
-        goodstatus=200, debug='Test failed', endpoint='/test.json', method='get'
+        request=GET,
+        endpoint='/test.json',
+        debug='Test failed',
     )
 
     shopify_request_mock.assert_called_once()
