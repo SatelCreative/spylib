@@ -147,13 +147,13 @@ class Token(ABC, BaseModel):
         request: Request,
         endpoint: str,
         json: Optional[Dict[str, Any]] = None,
-        debug: str = "",
+        debug: str = '',
     ) -> Dict[str, Any]:
         while True:
             await self.__await_rest_bucket_refill()
 
             if not self.access_token:
-                raise ValueError("You have not initialized the token for this store. ")
+                raise ValueError('You have not initialized the token for this store. ')
 
             response = await self.client.request(
                 method=request.method.value,
