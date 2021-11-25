@@ -16,13 +16,13 @@ HMAC = '5bed91cf26169e535628d92924b28554649451aa7c005e40b5614d71b7f4d2d1'
 
 COMPONENTS = {
     'datetime': '1637865391.929965',
-    'path': "https://host.myshopify.com/",
-    'query_string': "val=val",
-    'body': "",
+    'path': 'https://host.myshopify.com/',
+    'query_string': 'val=val',
+    'body': '',
     'secret': API_SECRET,
 }
 
-COMPONENTS_HMAC = "e570623dce50171e5f4d29e03f422d5abb90f4a7d13947b9b57da153766d480e"
+COMPONENTS_HMAC = 'e570623dce50171e5f4d29e03f422d5abb90f4a7d13947b9b57da153766d480e'
 
 
 @pytest.mark.asyncio
