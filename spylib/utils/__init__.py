@@ -4,6 +4,7 @@ from .hmac import calculate_message_hmac, validate_hmac
 from .httpclient import HTTPClient
 from .jwtoken import JWTBaseModel
 from .misc import get_unique_id, now_epoch
+from .rest import DELETE, GET, POST, PUT, Method
 from .session_token import SessionToken
 
 __all__ = [
@@ -17,5 +18,10 @@ __all__ = [
     'app_proxy',
     'calculate_message_hmac',
     'CheckAppProxy',
+    'Method',
+    'GET',
+    'POST',
+    'PUT',
+    'DELETE',
     'SessionToken',
 ]

@@ -3,6 +3,7 @@ import pytest
 from ..token_classes import (
     OfflineToken,
     OnlineToken,
+    PrivateToken,
     offline_token_data,
     online_token_data,
     test_information,
@@ -46,5 +47,24 @@ async def test_offline_token():
     )
     assert (
         offline_token.oauth_url
+        == f'https://{test_information.store_name}.myshopify.com/admin/oauth/access_token'
+    )
+
+
+@pytest.mark.asyncio
+async def test_private_token():
+    # Create a new token
+    private_token = await PrivateToken.load(store_name=test_information.store_name)
+
+    assert private_token.access_token == offline_token_data.access_token
+    assert private_token.scope == offline_token_data.scope.split(',')
+    assert private_token.store_name == test_information.store_name
+    assert not private_token.access_token_invalid
+    assert private_token.api_url == (
+        f'https://{test_information.store_name}.myshopify.com/admin/'
+        + f'api/{test_information.api_version}'
+    )
+    assert (
+        private_token.oauth_url
         == f'https://{test_information.store_name}.myshopify.com/admin/oauth/access_token'
     )

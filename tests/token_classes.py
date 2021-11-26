@@ -8,6 +8,7 @@ from spylib.token import (
     OfflineTokenResponse,
     OnlineTokenABC,
     OnlineTokenResponse,
+    PrivateTokenABC,
 )
 
 online_token_data = OnlineTokenResponse(
@@ -86,6 +87,16 @@ class OfflineToken(OfflineTokenABC):
     @classmethod
     async def load(cls, store_name: str) -> OfflineToken:
         return OfflineToken(
+            access_token=offline_token_data.access_token,
+            scope=offline_token_data.scope.split(','),
+            store_name=test_information.store_name,
+        )
+
+
+class PrivateToken(PrivateTokenABC):
+    @classmethod
+    async def load(cls, store_name: str) -> PrivateToken:
+        return PrivateToken(
             access_token=offline_token_data.access_token,
             scope=offline_token_data.scope.split(','),
             store_name=test_information.store_name,
