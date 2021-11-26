@@ -298,3 +298,19 @@ class OnlineTokenABC(Token, ABC):
         This method handles loading the token. By default this does nothing,
         therefore the developer should override this.
         """
+
+
+class PrivateTokenABC(Token, ABC):
+    """
+    Private token implementation, when we are pulling this from the config file.
+    Therefore we do not need the save function for the token class as there is
+    no calls to the OAuth endpoints for shopify.
+    """
+
+    @abstractclassmethod
+    def load(cls, store_name: str):
+        """
+        This method handles loading the token. By default this does nothing,
+        therefore the developer should override this.
+        """
+        pass
