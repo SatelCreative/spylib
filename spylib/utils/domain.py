@@ -1,12 +1,16 @@
 from re import search
 
 
+class StoreNameException(ValueError):
+    pass
+
+
 def domain_to_storename(domain: str) -> str:
     result = search(r'(https:\/\/)?([^.]+)\.myshopify\.com[\/]?', domain)
     if result:
         return result.group(2)
 
-    raise ValueError(f'{domain} is not a shopify domain')
+    raise StoreNameException(f'{domain} is not a shopify domain')
 
 
 def store_domain(shop: str) -> str:

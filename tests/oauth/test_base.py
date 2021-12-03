@@ -2,6 +2,10 @@ from typing import List
 from unittest.mock import AsyncMock
 from urllib.parse import ParseResult, parse_qs, urlencode, urlparse
 
+from spylib.oauth import validate_hmac
+from copy import deepcopy
+
+
 import pytest
 from box import Box  # type: ignore
 from fastapi import FastAPI
@@ -189,3 +193,13 @@ def check_oauth_redirect_query(query: str, scope: List[str], query_extra: dict =
     assert parsed_query == expected_query
 
     return state
+
+
+@pytest.mark.parametrize(
+    'param,value',
+    [],
+)
+@pytest.mark.asyncio
+async def test_validate_hmac(param, value):
+    components[param] = value
+    assert not compare_digest(COMPONENTS_HMAC, calculate_from_components(**components))

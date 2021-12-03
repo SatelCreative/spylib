@@ -1,42 +1,34 @@
-from copy import deepcopy
-from operator import itemgetter
-from typing import Any, List, Tuple
-from urllib.parse import parse_qsl
+from hmac import compare_digest
+from typing import Dict
+from urllib.parse import parse_qs
 
-from ..utils import domain_to_storename, now_epoch
-from ..utils import validate as validate_hmac
+import hmac
+import hashlib
+
+from ..utils import domain_to_storename, now_epoch, StoreNameException
 from .tokens import OAuthJWT
 
 
-def validate_callback(shop: str, timestamp: int, query_string: Any, api_secret_key: str) -> None:
-    q_str = query_string.decode('utf-8')
+class TimestampException(ValueError):
+    pass
+
+
+class HMACException(ValueError):
+    pass
+
+
+def validate_callback(shop: str, timestamp: int, query_string: bytes, api_secret_key: str) -> None:
     # 1) Check that the shop is a valid Shopify URL
     domain_to_storename(shop)
 
     # 2) Check the timestamp. Must not be more than 5min old
     if now_epoch() - timestamp > 300:
-        raise ValueError('Timestamp is too old')
+        raise TimestampException('Timestamp is too old')
 
     # 3) Check the hmac
-    # Extract HMAC
-    args = parse_qsl(q_str)
-    original_args = deepcopy(args)
-    try:
-        # Let's assume alphabetical sorting to avoid issues with scrambled args when using bonnette
-        args.sort(key=itemgetter(0))
-        validate_callback_args(args=args, api_secret_key=api_secret_key)
-    except ValueError:
-        # Try with the original ordering
-        validate_callback_args(args=original_args, api_secret_key=api_secret_key)
-
-
-def validate_callback_args(args: List[Tuple[str, str]], api_secret_key: str) -> None:
-    # We assume here that the arguments were validated prior to calling
-    # this function.
-    hmac_arg = [arg[1] for arg in args if arg[0] == 'hmac'][0]
-    message = '&'.join([f'{arg[0]}={arg[1]}' for arg in args if arg[0] != 'hmac'])
-    # Check HMAC
-    validate_hmac(secret=api_secret_key, sent_hmac=hmac_arg, message=message)
+    message = parse_qs(query_string.decode('utf-8'))
+    if not validate_hmac(secret=api_secret_key, message=message):
+        raise HMACException('HMAC not valid')
 
 
 def validate_oauthjwt(token: str, shop: str, jwt_key: str) -> OAuthJWT:
@@ -44,6 +36,20 @@ def validate_oauthjwt(token: str, shop: str, jwt_key: str) -> OAuthJWT:
 
     storename = domain_to_storename(shop)
     if oauthjwt.storename != storename:
-        raise ValueError("Token storename and query shop don't match")
+        raise StoreNameException("Token storename and query shop don't match")
 
     return oauthjwt
+
+
+def validate_hmac(secret: str, message: Dict[str, list]) -> bool:
+    """
+    Checks to see if the hmac for a str is valid.
+    """
+
+    hmac_actual = message.pop('hmac')
+    message_str = '&'.join([f'{arg}={",".join(message[arg])}' for arg in message.keys()])
+    message_hmac = hmac.new(
+        secret.encode('utf-8'), message_str.encode('utf-8'), hashlib.sha256
+    ).hexdigest()
+
+    return compare_digest(hmac_actual, message_hmac)

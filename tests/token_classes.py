@@ -54,8 +54,8 @@ class TestInformation(BaseModel):
 
     api_version: str = '2021-04'
     store_name: str = 'Test-Store'
-    client_id: int = 1
-    client_secret: int = 2
+    client_id: str = '1'
+    client_secret: str = '1'
     code: int = 3
     public_domain: str = 'test.testing.com'
     private_key: str = 'TESTPRIVATEKEY'
