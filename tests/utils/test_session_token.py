@@ -10,8 +10,8 @@ from spylib.utils.session_token import (
     TokenAuthenticationError,
 )
 
-API_KEY = "API_KEY"
-API_SECRET = "API_SECRET"
+API_KEY = 'API_KEY'
+API_SECRET = 'API_SECRET'
 now = datetime.now()
 
 
@@ -21,15 +21,15 @@ def get_token():
     as the fixtures will share the memory and overwrite the value, even with proper scopes.
     """
     return {
-        "iss": "https://test.myshopify.com/admin",
-        "dest": "https://test.myshopify.com",
-        "aud": API_KEY,
-        "sub": 1,
-        "exp": (now + timedelta(0, 60)).timestamp(),
-        "nbf": (now - timedelta(0, 60)).timestamp(),
-        "iat": now.timestamp(),
-        "jti": 123,
-        "sid": "abc123",
+        'iss': 'https://test.myshopify.com/admin',
+        'dest': 'https://test.myshopify.com',
+        'aud': API_KEY,
+        'sub': 1,
+        'exp': (now + timedelta(0, 60)).timestamp(),
+        'nbf': (now - timedelta(0, 60)).timestamp(),
+        'iat': now.timestamp(),
+        'jti': 123,
+        'sid': 'abc123',
     }
 
 
@@ -64,7 +64,7 @@ async def test_invalid_signature(token):
 
 
 @pytest.mark.parametrize(
-    "parameter,value,error",
+    'parameter,value,error',
     [
         ('iss', 'https://someinvalidhost.com', InvalidIssuerError),
         ('iss', 'https://someinvalidhost.myshopify.com/', MismatchedHostError),
