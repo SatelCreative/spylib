@@ -1,6 +1,6 @@
 """A library to facilitate interfacing with Shopify's API"""
 
-__version__ = '0.3.2'
+__version__ = '0.3.3'
 
 
 from .token import OfflineTokenABC, OnlineTokenABC, Token
