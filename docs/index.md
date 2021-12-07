@@ -309,11 +309,9 @@ mkdocs serve
 
 The default URL is at `127.0.0.1:8000`.
 
-## Maintenance
+## For package maintainers
 
-We use [poetry](https://python-poetry.org/) to manage the dependencies and
-[flit](https://flit.readthedocs.io/en/latest/index.html) to build and publish to pypi
-because unlike poetry it allows to set the metadata on pypi such as author or homepage.
+We use [poetry](https://python-poetry.org/) to manage the dependencies and publish to pypi.
 
 ### How to publish
 
@@ -323,13 +321,9 @@ because unlike poetry it allows to set the metadata on pypi such as author or ho
 3. Commit to git
 4. Open PR for other codeowners to review
 5. Once approved, squash and merge `release/x.y.z`
-6. Run `poetry build` to create the package folders in `/dist`
-7. Run `flit publish` to publish to PyPI
-8. Tag the release in git and push it to Github
+6. Run `poetry publish --build` to create the package and publish to PyPI
+7. Tag the release in git and push it to Github
 
 **Notes**:
 
 - It's better to tag after publishing in case there is an issue while publishing
-- `flit` will try to use the system's keyring if the keyring package is installed.
-  Run `flit` in a virtual environment without keyring if you prefer to bypass the
-  keyring and put your password whenever you publish
