@@ -14,7 +14,7 @@ class Multipass:
         self.encryption_key = key[0:16]
         self.signature_key = key[16:32]
 
-    def generate_token(self, contact_raw_data: Dict[str, Any]) -> str:
+    def generate_token(self, contact_raw_data: Dict[str, Any]) -> bytes:
         contact_raw_data['created_at'] = datetime.datetime.utcnow().isoformat()
         cypher_text = self.encrypt(json.dumps(contact_raw_data))
         return urlsafe_b64encode(cypher_text + self.sign(cypher_text))
