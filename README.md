@@ -206,7 +206,7 @@ from spylib import Multipass
 # Customer email is required to generate token or URL
 customer_data = {"email": "customer@email.com"}
 # Initiate the Multipass class
-multipass = Multipass("ShopifyMultipassToken")
+multipass = Multipass("MULTIPASSSECRET")
 # Generate URL
 url = multipass.generate_url(customer_data, "https://{ShopifyDomain}.myshopify.com")
 
