@@ -3,7 +3,6 @@ from typing import List, Optional
 from starlette.responses import RedirectResponse
 
 from ..utils import JWTBaseModel, domain_to_storename, get_unique_id
-from .config import conf
 from .tokens import OAuthJWT
 
 
@@ -11,8 +10,10 @@ def oauth_init_url(
     domain: str,
     requested_scopes: List[str],
     callback_domain: str,
+    callback_path: str,
     is_login: bool,
     jwt_key: str,
+    api_key: str,
 ) -> str:
     """
     Create the URL and the parameters needed to start the oauth process to install an app or to log
@@ -31,7 +32,7 @@ def oauth_init_url(
     URL with all needed parameters to trigger the oauth process
     """
     scopes = ','.join(requested_scopes)
-    redirect_uri = f'https://{callback_domain}/callback'
+    redirect_uri = f'https://{callback_domain}{callback_path}'
     oauthjwt = OAuthJWT(
         is_login=is_login, storename=domain_to_storename(domain), nonce=get_unique_id()
     )
@@ -39,16 +40,19 @@ def oauth_init_url(
     access_mode = 'per-user' if is_login else ''
 
     return (
-        f'https://{domain}/admin/oauth/authorize?client_id={conf.api_key}&'
+        f'https://{domain}/admin/oauth/authorize?client_id={api_key}&'
         f'scope={scopes}&redirect_uri={redirect_uri}&state={oauth_token}&'
         f'grant_options[]={access_mode}'
     )
 
 
 def app_redirect(
-    store_domain: str, app_domain: str, jwtoken: Optional[JWTBaseModel], jwt_key: str
+    store_domain: str,
+    app_domain: str,
+    jwtoken: Optional[JWTBaseModel],
+    jwt_key: str,
+    app_handle: str,
 ) -> RedirectResponse:
-    app_handle = conf.handle
 
     if jwtoken is None:
         return RedirectResponse(f'https://{store_domain}/admin/apps/{app_handle}')

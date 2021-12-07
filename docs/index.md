@@ -272,23 +272,6 @@ particular to record the offline and online tokens in your app's database.
 They can be synchronous or asynchronous functions taking the storename and the token
 as arguments.
 
-### Shopify Multipass
-[Shopify Multipass](https://shopify.dev/docs/admin-api/rest/reference/plus/multipass) <br>
-This helper class generates token or URL that's needed for Shopify Multipass login (Only available in Shopify Plus)
-```python
-from spylib import Multipass
-
-# Customer email is required to generate token or URL
-customer_data = {"email": "customer@email.com"}
-# Initiate the Multipass class
-multipass = Multipass("MULTIPASSSECRET")
-# Generate URL
-url = multipass.generate_url(customer_data, "https://{ShopifyDomain}.myshopify.com")
-
-# https://{ShopifyDomain}.myshopify.com/account/login/multipass/{MultipassToken}
-
-```
-
 ### Session Tokens
 
 The [session token](https://shopify.dev/apps/auth/session-tokens/authenticate-an-embedded-app-using-session-tokens)
