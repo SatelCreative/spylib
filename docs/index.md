@@ -45,8 +45,8 @@ scripts/test_watch.sh
 
 The token class contains the majority of the logic for communicating with shopify.
 To use the token class, you must define a child class for the tokens you are using
-and implement the `save` and `load` abstract methods. Your option for child classes
-are `OnlineTokenABC` or `OfflineTokenABC`:
+and implement a subset of the `save` and `load` abstract methods. Your option for
+child classes are `OnlineTokenABC`, `OfflineTokenABC` or `PrivateTokenABC`:
 
 #### Implement Token Classes
 
@@ -66,6 +66,12 @@ class OnlineToken(OnlineTokenABC):
   @classmethod
   async def load(cls, store_name: str, user_id: str):
       # Some code to load the token from the database
+
+class PrivateToken(PrivateTokenABC):
+  @classmethod
+  async def load(cls, store_name: str, user_id: str):
+      # Some code to load the token from the database
+      # No need for save, as it is static.
 ```
 
 #### Create Token
@@ -87,6 +93,12 @@ token = OnlineToken(
   expires_in,
   associated_user_scope,
   associated_user_id
+)
+
+token = PrivateToken(
+  store_name,
+  access_token,
+  scope
 )
 ```
 
