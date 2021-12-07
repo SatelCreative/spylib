@@ -45,7 +45,7 @@ scripts/test_watch.sh
 
 The token class contains the majority of the logic for communicating with shopify.
 To use the token class, you must define a child class for the tokens you are using
-and implement a subset of the `save` and `load` abstract methods. Your option for 
+and implement a subset of the `save` and `load` abstract methods. Your option for
 child classes are `OnlineTokenABC`, `OfflineTokenABC` or `PrivateTokenABC`:
 
 #### Implement Token Classes
