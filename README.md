@@ -280,7 +280,7 @@ functionality can be used to verify the session for the user. The suggested synt
 ```python
 from spylib.utils import SessionToken
 
-decode_session_token = partial(SessionToken.decode_token_from_header, api_key=api_key, secret=secret)
+decode_session_token = partial(SessionToken.parse, api_key=api_key, secret=secret)
 ```
 
 Then this can be used as a dependency in FastAPI by doing the following:
