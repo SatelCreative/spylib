@@ -45,7 +45,7 @@ class SessionToken(BaseModel):
     exp: Optional[float]
     nbf: Optional[float]
     iat: Optional[float]
-    jti: int
+    jti: str
     sid: str
 
     @root_validator()
