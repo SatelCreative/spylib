@@ -93,7 +93,7 @@ def parse_session_token(request: Request):
 async def test_depends(token):
     app = FastAPI()
 
-    @app.get("/token")
+    @app.get('/token')
     async def token_endpoint(token: SessionToken = Depends(parse_session_token)):
         return token
 
@@ -101,4 +101,4 @@ async def test_depends(token):
 
     header = generate_auth_header(token)
 
-    client.get("/token", headers={'Authorization': header})
+    client.get('/token', headers={'Authorization': header})
