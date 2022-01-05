@@ -3,7 +3,6 @@ from __future__ import annotations
 from typing import Any, Dict, Optional
 from urllib.parse import urlparse
 
-from fastapi import Request
 from jwt import decode
 from pydantic import root_validator
 from pydantic.main import BaseModel
@@ -63,10 +62,6 @@ class SessionToken(BaseModel):
             raise MismatchedHostError(f'The issuer {iss} does not match the destination {dest}')
 
         return values
-
-    @classmethod
-    def parse(cls, request: Request, api_key: str, secret: str):
-        cls.from_header(request.headers.get("authorization"), api_key, secret)
 
     @classmethod
     def from_header(
