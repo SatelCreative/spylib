@@ -12,9 +12,9 @@ homepage = "https://github.com/SatelCreative/satel-spylib"
 
 [tool.poetry.dependencies]
 python = "^3.9"
-fastapi = "^0.65.1"
-httpx = "^0.18.1"
-loguru = "^0.5.3"
+fastapi = "<1"
+httpx = "<1"
+loguru = "<1"
 tenacity = "^7.0.0"
 shortuuid = "^1.0.1"
 nest-asyncio = "^1.5.1"
