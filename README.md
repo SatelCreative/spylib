@@ -275,19 +275,20 @@ as arguments.
 ### Session Tokens
 
 The [session token](https://shopify.dev/apps/auth/session-tokens/authenticate-an-embedded-app-using-session-tokens)
-functionality can be used to verify the session for the user. The suggested syntax is to define a partial function:
+functionality can be used to verify the session for the user. The suggested syntax is to define a dependency:
 
 ```python
 from spylib.utils import SessionToken
 
-decode_session_token = partial(SessionToken.decode_token_from_header, api_key=api_key, secret=secret)
+def parse_session_token(request: Request):
+    SessionToken.from_header(request.headers.get('Authorization'), api_key, secret)
 ```
 
-Then this can be used as a dependency in FastAPI by doing the following:
+This can be used in FastAPI in the following way:
 
 ```python
 @app.get("/items/")
-async def read_items(session: SessionToken = Depends(decode_session_token)):
+async def read_items(session: SessionToken = Depends(parse_session_token)):
   # Some api code
 ```
 
