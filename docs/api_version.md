@@ -16,12 +16,13 @@ class OfflineToken(OfflineTokenABC):
 - If the Shopify API version used in Spylib is not the desired version, it can be changed with the following:
 ```python
 class OfflineToken(OfflineTokenABC):
-  # Add the version to be used here
-  api_version: '2022-01'
   async def save(self):
       pass
 
   @classmethod
   async def load(cls, store_name: str):
       pass
+      
+# Add the version to be used here
+OfflineToken.api_version: '2022-01'
 ```
