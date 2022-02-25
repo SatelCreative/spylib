@@ -73,7 +73,7 @@ class PrivateToken(PrivateTokenABC):
       # Some code to load the token from the database
       # No need for save, as it is static.
 ```
-
+- [Change Shopify API version](./docs/api_version.md)
 #### Create Token
 
 Once you have defined these methods, we can create an instance of a token using
