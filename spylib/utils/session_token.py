@@ -45,7 +45,7 @@ class SessionToken(BaseModel):
     exp: Optional[float]
     nbf: Optional[float]
     iat: Optional[float]
-    jti: int
+    jti: str
     sid: str
 
     @root_validator()
@@ -70,7 +70,6 @@ class SessionToken(BaseModel):
         api_key: str,
         secret: str,
     ) -> SessionToken:
-
         # Take the authorization headers and unload them
         if not authorization_header.startswith(PREFIX):
             raise TokenAuthenticationError(
