@@ -65,7 +65,7 @@ class Token(ABC, BaseModel):
     access_token: Optional[str]
     access_token_invalid: bool = False
 
-    api_version: ClassVar[str] = '2021-04'
+    api_version: ClassVar[str] = '2022-01'
 
     rest_bucket_max: int = 80
     rest_bucket: int = rest_bucket_max
