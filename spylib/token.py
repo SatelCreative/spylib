@@ -256,6 +256,8 @@ class Token(ABC, BaseModel):
                 )
             else:
                 raise ValueError(f'GraphQL query is incorrect:\n{errorlist}')
+        elif 'errors' in jsondata:
+            logger.warning(jsondata['errors'])
 
         return jsondata['data']
 
