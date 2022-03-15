@@ -4,8 +4,14 @@ from urllib.parse import ParseResult, parse_qs, urlencode, urlparse
 
 import pytest
 from box import Box  # type: ignore
-from fastapi import FastAPI
-from fastapi.testclient import TestClient
+
+from ..helper import skip_tests
+
+try:
+    from fastapi import FastAPI  # type: ignore
+    from fastapi.testclient import TestClient  # type: ignore
+except ImportError:
+    skip_tests(module='fastapi')
 from pydantic.dataclasses import dataclass
 from requests import Response  # type: ignore
 

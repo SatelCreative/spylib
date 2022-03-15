@@ -2,8 +2,14 @@ from datetime import datetime, timedelta
 
 import jwt
 import pytest
-from fastapi import Depends, FastAPI
-from fastapi.testclient import TestClient
+
+from ..helper import skip_tests
+
+try:
+    from fastapi import Depends, FastAPI  # type: ignore
+    from fastapi.testclient import TestClient  # type: ignore
+except ImportError:
+    skip_tests(module='fastapi')
 from starlette.requests import Request
 
 from spylib.utils.session_token import (
