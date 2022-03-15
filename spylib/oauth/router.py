@@ -2,7 +2,10 @@ from dataclasses import dataclass
 from inspect import isawaitable
 from typing import Awaitable, Callable, List, Optional, Union
 
-from fastapi import APIRouter, Depends, HTTPException, Query
+try:
+    from fastapi import APIRouter, Depends, HTTPException, Query  # type: ignore
+except ImportError as e:
+    raise ImportError('fastapi is not installed, run `pip install spylib[fastapi]`') from e
 from loguru import logger
 from starlette.requests import Request
 from starlette.responses import RedirectResponse
