@@ -133,7 +133,8 @@ product_json = await token.execute_rest(
 ```
 
 The `REST` method takes a `request` parameter which is one of the `Request` constants defined in
-the [rest](./spylib/utils/rest.py) file. The options are `GET`, `POST`, `PUT`, or `DELETE`.
+the [rest](https://github.com/SatelCreative/spylib/blob/main/spylib/utils/rest.py) file.
+The options are `GET`, `POST`, `PUT`, or `DELETE`.
 
 Endpoint is the API endpoint string that we are querying, this should be similar to
 the following format:
