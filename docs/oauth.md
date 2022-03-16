@@ -34,6 +34,9 @@ oauth_router = init_oauth_router(
     app_handle='SHOPIFY_APP_HANDLE',
     post_install=my_post_install,
     post_login=my_post_login,
+    install_init_path='/install_path',
+    callback_path='/callback_path',
+    path_prefix= '/api',
 )
 ```
 
@@ -56,3 +59,11 @@ result of the installation and the login processes respectivaly. They are meant 
 particular to record the offline and online tokens in your app's database.
 They can be synchronous or asynchronous functions taking the storename and the token
 as arguments.
+
+The `install_init_path` is used to set the path for initiating the OAuth process. 
+It has a default value `/shopify/auth`. <br>
+The `callback_path` is used to set the callback path once user has accepted the permissions required by installing the app. 
+It has a default value  `/callback`. <br>
+The `path_prefix` applies to both `install_init_path` and `callback_path` and it's empty by default. <br>
+With the example above the URL to install the app will be `https://my.app.com/api/install_path` 
+and the callback URL will be `https://my.app.com/api/callback_path`
