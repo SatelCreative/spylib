@@ -37,6 +37,7 @@ def init_oauth_router(
     post_login: Optional[Callable[[str, OnlineToken], Optional[Awaitable]]] = None,
     install_init_path='/shopify/auth',
     callback_path='/callback',
+    path_prefix: str = '',
 ) -> APIRouter:
     router = APIRouter()
 
@@ -44,6 +45,8 @@ def init_oauth_router(
         raise ValueError('The install_init_path argument must start with "/"')
     if not callback_path.startswith('/'):
         raise ValueError('The callback_path argument must start with "/"')
+    if path_prefix and not path_prefix.startswith('/'):
+        raise ValueError('The path_prefix argument must start with "/"')
 
     @router.get(install_init_path, include_in_schema=False)
     async def shopify_auth(shop: str):
@@ -55,6 +58,7 @@ def init_oauth_router(
                 requested_scopes=app_scopes,
                 callback_domain=public_domain,
                 callback_path=callback_path,
+                path_prefix=path_prefix,
                 jwt_key=private_key,
                 api_key=api_key,
             )
@@ -111,6 +115,7 @@ def init_oauth_router(
                     requested_scopes=user_scopes,
                     callback_domain=public_domain,
                     callback_path=callback_path,
+                    path_prefix=path_prefix,
                     jwt_key=private_key,
                     api_key=api_key,
                 )
