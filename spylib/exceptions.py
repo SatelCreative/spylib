@@ -27,6 +27,12 @@ class ShopifyExceedingMaxCostError(ShopifyError):
     pass
 
 
+class FastAPIImportError(ImportError):
+    """Exception to identify errors when spylip.oauth is accessed without fastapi installed"""
+
+    pass
+
+
 def not_our_fault(exception: Exception):
     """Simple function to identify invalid Shopify calls, i.e. our mistake.
 
