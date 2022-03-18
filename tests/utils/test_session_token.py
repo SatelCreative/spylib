@@ -2,14 +2,6 @@ from datetime import datetime, timedelta
 
 import jwt
 import pytest
-
-from ..helper import skip_tests
-
-try:
-    from fastapi import Depends, FastAPI  # type: ignore
-    from fastapi.testclient import TestClient  # type: ignore
-except ImportError:
-    skip_tests(module='fastapi')
 from starlette.requests import Request
 
 from spylib.utils.session_token import (
@@ -97,14 +89,18 @@ def parse_session_token(request: Request):
 
 @pytest.mark.asyncio
 async def test_depends(token):
-    app = FastAPI()
+    with pytest.raises(ImportError):
+        from fastapi import Depends, FastAPI  # type: ignore
+        from fastapi.testclient import TestClient  # type: ignore
 
-    @app.get('/token')
-    async def token_endpoint(token: SessionToken = Depends(parse_session_token)):
-        return token
+        app = FastAPI()
 
-    client = TestClient(app=app)
+        @app.get('/token')
+        async def token_endpoint(token: SessionToken = Depends(parse_session_token)):
+            return token
 
-    header = generate_auth_header(token)
+        client = TestClient(app=app)
 
-    client.get('/token', headers={'Authorization': header})
+        header = generate_auth_header(token)
+
+        client.get('/token', headers={'Authorization': header})
