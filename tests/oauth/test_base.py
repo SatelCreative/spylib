@@ -63,7 +63,7 @@ class MockHTTPResponse:
 @pytest.mark.asyncio
 async def test_oauth_without_fastapi():
     with pytest.raises(FastAPIImportError):
-        import spylib.oauth  # noqa
+        import spylib.oauth  # noqa: F401
 
 
 @pytest.mark.asyncio
