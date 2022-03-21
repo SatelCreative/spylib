@@ -71,8 +71,8 @@ async def test_oauth_with_fastapi(mocker):
     if 'fastapi' not in modules and util.find_spec('fastapi') is None:
         return
 
-    from fastapi import FastAPI  # type: ignore
-    from fastapi.testclient import TestClient  # type: ignore
+    from fastapi import FastAPI  # type: ignore[import]
+    from fastapi.testclient import TestClient  # type: ignore[import]
 
     from spylib.oauth import OfflineToken, OnlineToken, init_oauth_router
 
