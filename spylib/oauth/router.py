@@ -7,7 +7,10 @@ from spylib.exceptions import FastAPIImportError
 try:
     from fastapi import APIRouter, Depends, HTTPException, Query  # type: ignore
 except ImportError as e:
-    raise FastAPIImportError('The oauth router is a fastapi router and fastapi is not installed. Run `pip install spylib[fastapi]` to be able to use the oauth router.') from e
+    raise FastAPIImportError(
+        'The oauth router is a fastapi router and fastapi is not installed. '
+        'Run `pip install spylib[fastapi]` to be able to use the oauth router.'
+    ) from e
 from loguru import logger
 from starlette.requests import Request
 from starlette.responses import RedirectResponse
