@@ -11,7 +11,8 @@ except ImportError as e:
         'The oauth router is a fastapi router and fastapi is not installed. '
         'Run `pip install spylib[fastapi]` to be able to use the oauth router.'
     ) from e
-from loguru import logger
+import logging
+
 from starlette.requests import Request
 from starlette.responses import RedirectResponse
 
@@ -97,7 +98,7 @@ def init_oauth_router(
                     api_secret_key=api_secret_key,
                 )
             except Exception as e:
-                logger.exception(f'Could not retrieve offline token for shop {args.shop}')
+                logging.exception(f'Could not retrieve offline token for shop {args.shop}')
                 raise HTTPException(status_code=400, detail=str(e))
 
             # Await if the provided function is async
