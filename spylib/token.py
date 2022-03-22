@@ -1,3 +1,4 @@
+import logging
 from abc import ABC, abstractclassmethod, abstractmethod
 from asyncio import sleep
 from datetime import datetime, timedelta
@@ -6,7 +7,6 @@ from time import monotonic
 from typing import Any, ClassVar, Dict, List, Optional
 
 from httpx import AsyncClient, Response
-from loguru import logger
 from pydantic import BaseModel, validator
 from starlette import status
 from tenacity import retry
@@ -213,7 +213,7 @@ class Token(ABC, BaseModel):
             raise ValueError('JSON data is not a dictionary')
         if 'Invalid API key or access token' in jsondata.get('errors', ''):
             self.access_token_invalid = True
-            logger.warning(
+            logging.warning(
                 f'Store {self.store_name}: The Shopify API token is invalid. '
                 'Flag the access token as invalid.'
             )

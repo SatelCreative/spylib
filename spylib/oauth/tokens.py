@@ -1,6 +1,6 @@
+import logging
 from typing import List, Optional
 
-from loguru import logger
 from pydantic import BaseModel, validator
 
 from ..utils import HTTPClient, JWTBaseModel
@@ -34,7 +34,7 @@ async def _get_token(
             f'Problem retrieving access token. Status code: {response.status_code} {jsondata}'
             f'response=> {response.text}'
         )
-        logger.error(message)
+        logging.error(message)
         raise ValueError(message)
 
     jresp = response.json()
@@ -48,7 +48,7 @@ class OfflineToken(BaseModel):
 
     @classmethod
     async def get(cls, domain: str, code: str, api_key: str, api_secret_key: str):
-        logger.debug(f'Retrieve {cls.__name__} for shop {domain}')
+        logging.debug(f'Retrieve {cls.__name__} for shop {domain}')
         jsontoken = await _get_token(
             domain=domain,
             code=code,

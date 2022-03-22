@@ -14,7 +14,6 @@ repository = "https://github.com/SatelCreative/spylib"
 [tool.poetry.dependencies]
 python = "^3.8"
 httpx = ">= 0.18.1"
-loguru = ">= 0.5.3"
 tenacity = "^7.0.0"
 shortuuid = "^1.0.1"
 starlette = ">= 0.15.0"
