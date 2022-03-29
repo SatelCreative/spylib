@@ -6,10 +6,6 @@ import os
 ALPHABET = '23456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz'
 
 
-def get_unique_id() -> str:
-    return random(length=10)
-
-
 def random(length):
     """
     Generate and return a cryptographically-secure short random string
