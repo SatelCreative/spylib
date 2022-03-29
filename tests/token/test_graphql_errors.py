@@ -18,10 +18,7 @@ async def test_store_graphql_happypath(mocker):
       }
     }"""
 
-    gql_response = {
-        'data': {},
-        'errors': []
-    }
+    gql_response = {'data': {}, 'errors': []}
 
     shopify_request_mock = mocker.patch(
         'httpx.AsyncClient.request',
