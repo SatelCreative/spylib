@@ -1,6 +1,6 @@
 import pytest
 
-from spylib.utils.misc import get_unique_id
+from spylib.utils.shortuuid import get_unique_id
 
 
 @pytest.mark.asyncio
