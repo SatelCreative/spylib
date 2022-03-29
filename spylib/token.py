@@ -24,6 +24,7 @@ from spylib.exceptions import (
     ShopifyCallInvalidError,
     ShopifyError,
     ShopifyExceedingMaxCostError,
+    ShopifyGQLError,
     ShopifyThrottledError,
     not_our_fault,
 )
@@ -189,6 +190,7 @@ class Token(ABC, BaseModel):
         query: str,
         variables: Dict[str, Any] = {},
         operation_name: Optional[str] = None,
+        suppress_errors: bool = True,
     ) -> Dict[str, Any]:
 
         if not self.access_token:
@@ -218,7 +220,11 @@ class Token(ABC, BaseModel):
                 'Flag the access token as invalid.'
             )
             raise ConnectionRefusedError
-        if 'data' not in jsondata and 'errors' in jsondata:
+
+        if not suppress_errors and 'errors' in jsondata:
+            raise ShopifyGQLError(jsondata)
+
+        if suppress_errors and 'data' not in jsondata and 'errors' in jsondata:
             errorlist = '\n'.join(
                 [err['message'] for err in jsondata['errors'] if 'message' in err]
             )
