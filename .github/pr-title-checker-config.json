@@ -1,8 +1,4 @@
 {
-    "LABEL":{
-       "name":"Title need formatting",
-       "color":"EEEEEE"
-    },
     "CHECKS": {
 		"prefixes": ["🎉", ":tada:", "🔖", ":bookmark:", "👥", ":busts_in_silhouette:", "📄", ":page_facing_up:", "✨", ":sparkles:", "👽️", ":alien:",
 			"🚚", ":truck:", "🏗️", ":building_construction:", "🔧", ":wrench:", "🔨", ":hammer:", "💥", ":collision:", "🗃️", ":card_file_box:",
@@ -19,7 +15,7 @@
 	},
 	"MESSAGES": {
 		"success": "All OK",
-		"failure": "Failing CI test",
+		"failure": "Add emoji to your PR title",
 		"notice": ""
 	}
 }
