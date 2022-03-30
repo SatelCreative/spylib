@@ -1,5 +1,7 @@
 {    	
    "LABEL":{
+       "name":"Gitmoji missing ",
+       "color":"EEEEEE"
     },
 	
     "CHECKS": {
