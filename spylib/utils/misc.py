@@ -1,6 +1,6 @@
 from datetime import datetime, timezone
 
-from shortuuid import ShortUUID  # type: ignore
+from .shortuuid import random
 
 
 def now_epoch() -> int:
@@ -8,4 +8,4 @@ def now_epoch() -> int:
 
 
 def get_unique_id() -> str:
-    return ShortUUID().random(length=10)
+    return random(length=10)
