@@ -221,10 +221,10 @@ class Token(ABC, BaseModel):
             )
             raise ConnectionRefusedError
 
-        if not suppress_errors and 'errors' in jsondata:
+        if not suppress_errors and 'data' in jsondata and 'errors' in jsondata:
             raise ShopifyGQLError(jsondata)
 
-        if suppress_errors and 'data' not in jsondata and 'errors' in jsondata:
+        if 'data' not in jsondata and 'errors' in jsondata:
             errorlist = '\n'.join(
                 [err['message'] for err in jsondata['errors'] if 'message' in err]
             )
