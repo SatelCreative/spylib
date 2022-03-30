@@ -1,4 +1,7 @@
-{
+{    	
+   "LABEL":{
+    },
+	
     "CHECKS": {
 		"prefixes": ["🎉", ":tada:", "🔖", ":bookmark:", "👥", ":busts_in_silhouette:", "📄", ":page_facing_up:", "✨", ":sparkles:", "👽️", ":alien:",
 			"🚚", ":truck:", "🏗️", ":building_construction:", "🔧", ":wrench:", "🔨", ":hammer:", "💥", ":collision:", "🗃️", ":card_file_box:",
