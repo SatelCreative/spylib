@@ -8,7 +8,7 @@ from ..token_classes import MockHTTPResponse, OfflineToken, test_information
 
 
 @pytest.mark.asyncio
-async def test_store_graphql_happypath(mocker):
+async def test_store_graphql_surface_errors(mocker):
     token = await OfflineToken.load(store_name=test_information.store_name)
 
     query = """
@@ -18,7 +18,7 @@ async def test_store_graphql_happypath(mocker):
       }
     }"""
 
-    gql_response = {'data': {}, 'errors': []}
+    gql_response = {'data': {}, 'errors': [{'message': 'any error'}]}
 
     shopify_request_mock = mocker.patch(
         'httpx.AsyncClient.request',
