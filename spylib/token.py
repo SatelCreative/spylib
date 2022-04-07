@@ -190,7 +190,7 @@ class Token(ABC, BaseModel):
         query: str,
         variables: Dict[str, Any] = {},
         operation_name: Optional[str] = None,
-        suppress_errors: bool = True,
+        suppress_errors: bool = False,
     ) -> Dict[str, Any]:
 
         if not self.access_token:
@@ -220,9 +220,6 @@ class Token(ABC, BaseModel):
                 'Flag the access token as invalid.'
             )
             raise ConnectionRefusedError
-
-        if not suppress_errors and 'data' in jsondata and 'errors' in jsondata:
-            raise ShopifyGQLError(jsondata)
 
         if 'data' not in jsondata and 'errors' in jsondata:
             errorlist = '\n'.join(
@@ -262,6 +259,9 @@ class Token(ABC, BaseModel):
                 )
             else:
                 raise ValueError(f'GraphQL query is incorrect:\n{errorlist}')
+
+        if not suppress_errors and 'errors' in jsondata and len(jsondata['errors']) >= 1:
+            raise ShopifyGQLError(jsondata)
 
         return jsondata['data']
 
