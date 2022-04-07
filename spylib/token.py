@@ -24,6 +24,7 @@ from spylib.exceptions import (
     ShopifyCallInvalidError,
     ShopifyError,
     ShopifyExceedingMaxCostError,
+    ShopifyGQLError,
     ShopifyThrottledError,
     not_our_fault,
 )
@@ -189,6 +190,7 @@ class Token(ABC, BaseModel):
         query: str,
         variables: Dict[str, Any] = {},
         operation_name: Optional[str] = None,
+        suppress_errors: bool = False,
     ) -> Dict[str, Any]:
 
         if not self.access_token:
@@ -218,6 +220,7 @@ class Token(ABC, BaseModel):
                 'Flag the access token as invalid.'
             )
             raise ConnectionRefusedError
+
         if 'data' not in jsondata and 'errors' in jsondata:
             errorlist = '\n'.join(
                 [err['message'] for err in jsondata['errors'] if 'message' in err]
@@ -256,6 +259,9 @@ class Token(ABC, BaseModel):
                 )
             else:
                 raise ValueError(f'GraphQL query is incorrect:\n{errorlist}')
+
+        if not suppress_errors and len(jsondata.get('errors', [])) >= 1:
+            raise ShopifyGQLError(jsondata)
 
         return jsondata['data']
 
