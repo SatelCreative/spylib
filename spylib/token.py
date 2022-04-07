@@ -260,7 +260,7 @@ class Token(ABC, BaseModel):
             else:
                 raise ValueError(f'GraphQL query is incorrect:\n{errorlist}')
 
-        if not suppress_errors and 'errors' in jsondata and len(jsondata['errors']) >= 1:
+        if not suppress_errors and len(jsondata.get('errors', [])) >= 1:
             raise ShopifyGQLError(jsondata)
 
         return jsondata['data']
