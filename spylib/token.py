@@ -2,6 +2,7 @@ import logging
 from abc import ABC, abstractclassmethod, abstractmethod
 from asyncio import sleep
 from datetime import datetime, timedelta
+from enum import Enum
 from math import ceil, floor
 from time import monotonic
 from typing import Any, ClassVar, Dict, List, Optional
@@ -53,6 +54,14 @@ class OnlineTokenResponse(BaseModel):
     expires_in: int
     associated_user_scope: str
     associated_user: AssociatedUser
+
+
+class WebhookTopic(Enum):
+    ORDERS_CREATE = 'ORDERS_CREATE'
+
+
+class WebhookResponse(BaseModel):
+    id: str
 
 
 class Token(ABC, BaseModel):
@@ -264,6 +273,47 @@ class Token(ABC, BaseModel):
             raise ShopifyGQLError(jsondata)
 
         return jsondata['data']
+
+    async def create_http_webhook(
+        self,
+        topic: WebhookTopic,
+        callback_url: str,
+        include_fields=None,
+        metafield_namespaces=None,
+        private_metafield_namespaces=None,
+    ) -> WebhookResponse:
+        """Uses graphql to create a webhook"""
+        query = '''
+        mutation webhookSubscriptionCreate($topic: WebhookSubscriptionTopic!,
+                                           $webhookSubscription: WebhookSubscriptionInput!) {
+            webhookSubscriptionCreate(topic: $topic, webhookSubscription: $webhookSubscription) {
+                webhookSubscription {
+                id
+                topic
+                format
+                endpoint {
+                    __typename
+                    ... on WebhookHttpEndpoint {
+                    callbackUrl
+                    }
+                  }
+                }
+              }
+            }
+        '''
+        variables = {
+            'topic': topic.value,
+            'webhookSubscription': {
+                'callbackUrl': callback_url,
+                'format': 'JSON',
+                'includeFields': include_fields,
+                'metafieldNamespaces': metafield_namespaces,
+                'privateMetafieldNamespaces': private_metafield_namespaces,
+            },
+        }
+        res = await self.execute_gql(query=query, variables=variables)
+
+        return WebhookResponse(id=res['webhookSubscriptionCreate']['webhookSubscription']['id'])
 
 
 class OfflineTokenABC(Token, ABC):

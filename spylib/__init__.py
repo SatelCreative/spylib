@@ -3,6 +3,20 @@
 __version__ = '0.5.0'
 
 
-from .token import OfflineTokenABC, OnlineTokenABC, PrivateTokenABC, Token
+from .token import (
+    OfflineTokenABC,
+    OnlineTokenABC,
+    PrivateTokenABC,
+    Token,
+    WebhookResponse,
+    WebhookTopic,
+)
 
-__all__ = ['OfflineTokenABC', 'OnlineTokenABC', 'PrivateTokenABC', 'Token']
+__all__ = [
+    'OfflineTokenABC',
+    'OnlineTokenABC',
+    'PrivateTokenABC',
+    'Token',
+    'WebhookResponse',
+    'WebhookTopic',
+]
