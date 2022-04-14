@@ -26,6 +26,7 @@ from spylib.exceptions import (
     ShopifyError,
     ShopifyExceedingMaxCostError,
     ShopifyGQLError,
+    ShopifyGQLUserError,
     ShopifyThrottledError,
     not_our_fault,
 )
@@ -298,6 +299,10 @@ class Token(ABC, BaseModel):
                     }
                   }
                 }
+                userErrors {
+                    field
+                    message
+                }
               }
             }
         '''
@@ -312,8 +317,10 @@ class Token(ABC, BaseModel):
             },
         }
         res = await self.execute_gql(query=query, variables=variables)
-
-        return WebhookResponse(id=res['webhookSubscriptionCreate']['webhookSubscription']['id'])
+        webhook_create = res.get('webhookSubscriptionCreate', None)
+        if webhook_create and webhook_create.get('userErrors', None):
+            raise ShopifyGQLUserError(res)
+        return WebhookResponse(id=webhook_create['webhookSubscription']['id'])
 
 
 class OfflineTokenABC(Token, ABC):

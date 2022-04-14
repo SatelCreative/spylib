@@ -10,6 +10,12 @@ class ShopifyGQLError(Exception):
     pass
 
 
+class ShopifyGQLUserError(Exception):
+    """Exception to identify any Shopify admin graphql error caused by the user mistake"""
+
+    pass
+
+
 class ShopifyCallInvalidError(ShopifyError):
     """Exception to identify errors that our due to bad data sent by us
 
