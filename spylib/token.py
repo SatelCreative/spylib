@@ -323,6 +323,29 @@ class Token(ABC, BaseModel):
             raise ShopifyGQLUserError(res)
         return WebhookResponse(id=webhook_create['webhookSubscription']['id'])
 
+    async def create_event_bridge_webhook(
+        self,
+        topic: Union[WebhookTopic, str],
+        arn: str,
+        include_fields=None,
+        metafield_namespaces=None,
+        private_metafield_namespaces=None,
+    ) -> WebhookResponse:
+        # TODO
+        pass
+
+    async def create_pubsub_webhook(
+        self,
+        topic: Union[WebhookTopic, str],
+        pubsub_project: str,
+        pubsub_topic: str,
+        include_fields=None,
+        metafield_namespaces=None,
+        private_metafield_namespaces=None,
+    ) -> WebhookResponse:
+        # TODO
+        pass
+
 
 class OfflineTokenABC(Token, ABC):
     """
