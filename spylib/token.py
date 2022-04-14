@@ -5,7 +5,7 @@ from datetime import datetime, timedelta
 from enum import Enum
 from math import ceil, floor
 from time import monotonic
-from typing import Any, ClassVar, Dict, List, Optional
+from typing import Any, ClassVar, Dict, List, Optional, Union
 
 from httpx import AsyncClient, Response
 from pydantic import BaseModel, validator
@@ -278,7 +278,7 @@ class Token(ABC, BaseModel):
 
     async def create_http_webhook(
         self,
-        topic: WebhookTopic,
+        topic: Union[WebhookTopic, str],
         callback_url: str,
         include_fields=None,
         metafield_namespaces=None,
@@ -308,7 +308,7 @@ class Token(ABC, BaseModel):
             }
         '''
         variables = {
-            'topic': topic.value,
+            'topic': topic.value if isinstance(topic, WebhookTopic) else topic,
             'webhookSubscription': {
                 'callbackUrl': callback_url,
                 'format': WEBHOOK_JSON_FORMAT,
