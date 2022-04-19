@@ -12,7 +12,9 @@ def calculate_from_message(secret: str, message: str, use_base64: bool = False) 
     return hmac_hash.hexdigest()
 
 
-def calculate_from_components(datetime, path, query_string, body, secret, use_base64: bool = False):
+def calculate_from_components(
+    datetime, path, query_string, body, secret, use_base64: bool = False
+):
     if query_string != '':
         path = path + '?' + query_string
     message = path + datetime + body
