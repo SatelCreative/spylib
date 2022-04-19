@@ -30,7 +30,7 @@ online_token_data = OnlineTokenResponse(
 
 offline_token_data = OfflineTokenResponse(
     access_token='OFFLINETOKEN',
-    scope=','.join(['write_products', 'read_customers']),
+    scope=','.join(['write_products', 'read_customers', 'write_orders']),
 )
 
 
