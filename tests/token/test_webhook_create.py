@@ -79,3 +79,32 @@ async def test_store_http_webhook_create_usererrors(mocker):
         )
 
     assert shopify_request_mock.call_count == 1
+
+
+@pytest.mark.asyncio
+async def test_store_http_webhook_create_invalidtopic(mocker):
+    token = await OfflineToken.load(store_name=test_information.store_name)
+
+    gql_response = {
+        'errors': [
+            {
+                'message': 'Variable $topic of type WebhookSubscriptionTopic! '
+                'was provided invalid value',
+                'locations': [{'line': 1, 'column': 36}],
+            }
+        ]
+    }
+
+    shopify_request_mock = mocker.patch(
+        'httpx.AsyncClient.request',
+        new_callable=AsyncMock,
+        return_value=MockHTTPResponse(status_code=200, jsondata=gql_response),
+    )
+    with pytest.raises(ValueError):
+        await token.create_http_webhook(
+            topic='invalid topic',
+            callback_url='https://example.org/endpoint',
+            include_fields=["id", "note"],
+        )
+
+    assert shopify_request_mock.call_count == 1
