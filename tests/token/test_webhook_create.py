@@ -75,7 +75,7 @@ async def test_store_http_webhook_create_usererrors(mocker):
         await token.create_http_webhook(
             topic=WebhookTopic.ORDERS_CREATE,
             callback_url='https://example.org/endpoint',
-            include_fields=["id", "note"],
+            include_fields=['id', 'note'],
         )
 
     assert shopify_request_mock.call_count == 1
@@ -104,7 +104,7 @@ async def test_store_http_webhook_create_invalidtopic(mocker):
         await token.create_http_webhook(
             topic='invalid topic',
             callback_url='https://example.org/endpoint',
-            include_fields=["id", "note"],
+            include_fields=['id', 'note'],
         )
 
     assert shopify_request_mock.call_count == 1
