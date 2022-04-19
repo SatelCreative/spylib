@@ -279,9 +279,9 @@ class Token(ABC, BaseModel):
         self,
         topic: Union[WebhookTopic, str],
         callback_url: str,
-        include_fields=None,
-        metafield_namespaces=None,
-        private_metafield_namespaces=None,
+        include_fields: Optional[List[str]] = None,
+        metafield_namespaces: Optional[List[str]] = None,
+        private_metafield_namespaces: Optional[List[str]] = None,
     ) -> WebhookResponse:
         """Uses graphql to create a webhook"""
         query = '''
@@ -326,9 +326,9 @@ class Token(ABC, BaseModel):
         self,
         topic: Union[WebhookTopic, str],
         arn: str,
-        include_fields=None,
-        metafield_namespaces=None,
-        private_metafield_namespaces=None,
+        include_fields: Optional[List[str]] = None,
+        metafield_namespaces: Optional[List[str]] = None,
+        private_metafield_namespaces: Optional[List[str]] = None,
     ) -> WebhookResponse:
         # TODO
         raise NotImplementedError
@@ -338,9 +338,9 @@ class Token(ABC, BaseModel):
         topic: Union[WebhookTopic, str],
         pubsub_project: str,
         pubsub_topic: str,
-        include_fields=None,
-        metafield_namespaces=None,
-        private_metafield_namespaces=None,
+        include_fields: Optional[List[str]] = None,
+        metafield_namespaces: Optional[List[str]] = None,
+        private_metafield_namespaces: Optional[List[str]] = None,
     ) -> WebhookResponse:
         # TODO
         raise NotImplementedError
