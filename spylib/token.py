@@ -19,7 +19,6 @@ from spylib.constants import (
     MAX_COST_EXCEEDED_ERROR_CODE,
     OPERATION_NAME_REQUIRED_ERROR_MESSAGE,
     THROTTLED_ERROR_CODE,
-    WEBHOOK_JSON_FORMAT,
     WRONG_OPERATION_NAME_ERROR_MESSAGE,
 )
 from spylib.exceptions import (
@@ -311,7 +310,7 @@ class Token(ABC, BaseModel):
             'topic': topic.value if isinstance(topic, WebhookTopic) else topic,
             'webhookSubscription': {
                 'callbackUrl': callback_url,
-                'format': WEBHOOK_JSON_FORMAT,
+                'format': 'JSON',
                 'includeFields': include_fields,
                 'metafieldNamespaces': metafield_namespaces,
                 'privateMetafieldNamespaces': private_metafield_namespaces,
