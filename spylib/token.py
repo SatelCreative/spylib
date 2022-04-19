@@ -30,6 +30,7 @@ from spylib.exceptions import (
     ShopifyThrottledError,
     not_our_fault,
 )
+from spylib.utils.hmac import validate
 from spylib.utils.rest import Request
 
 
@@ -400,3 +401,11 @@ class PrivateTokenABC(Token, ABC):
         therefore the developer should override this.
         """
         pass
+
+
+def verify_webhook(data: str, hmac_header: str, api_secret_key: str) -> bool:
+    try:
+        validate(secret=api_secret_key, sent_hmac=hmac_header, message=data, use_base64=True)
+    except ValueError:
+        return False
+    return True
