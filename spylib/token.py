@@ -332,7 +332,7 @@ class Token(ABC, BaseModel):
         private_metafield_namespaces=None,
     ) -> WebhookResponse:
         # TODO
-        pass
+        raise NotImplementedError
 
     async def create_pubsub_webhook(
         self,
@@ -344,7 +344,7 @@ class Token(ABC, BaseModel):
         private_metafield_namespaces=None,
     ) -> WebhookResponse:
         # TODO
-        pass
+        raise NotImplementedError
 
 
 class OfflineTokenABC(Token, ABC):
