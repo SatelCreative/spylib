@@ -10,7 +10,7 @@ from .token import (
     Token,
     WebhookResponse,
     WebhookTopic,
-    verify_webhook,
+    is_webhook_valid,
 )
 
 __all__ = [
@@ -20,5 +20,5 @@ __all__ = [
     'Token',
     'WebhookResponse',
     'WebhookTopic',
-    'verify_webhook',
+    'is_webhook_valid',
 ]

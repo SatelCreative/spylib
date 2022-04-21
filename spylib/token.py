@@ -403,7 +403,7 @@ class PrivateTokenABC(Token, ABC):
         pass
 
 
-def verify_webhook(data: str, hmac_header: str, api_secret_key: str) -> bool:
+def is_webhook_valid(data: str, hmac_header: str, api_secret_key: str) -> bool:
     try:
         validate(secret=api_secret_key, sent_hmac=hmac_header, message=data, use_base64=True)
     except ValueError:
