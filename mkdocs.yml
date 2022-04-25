@@ -12,3 +12,7 @@ nav:
 plugins:
   - search
   - awesome-pages
+markdown_extensions:
+- mdx_include:
+    base_path: docs
+- pymdownx.superfences
