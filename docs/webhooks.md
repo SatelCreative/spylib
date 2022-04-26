@@ -20,6 +20,9 @@ async def register_webhook_with_http_endpoint():
 ```
 
 ## Validate Webhooks
+
+Shopify webhooks are signed with an HMAC in a header. You can use `is_webhook_valid` to [verify this signature](https://shopify.dev/apps/webhooks/configuration/https#step-5-verify-the-webhook):
+
 ```python
 is_valid = is_webhook_valid(data='data', hmac_header='hmac', api_secret_key='API_SECRET_KEY')
 if is_valid:
