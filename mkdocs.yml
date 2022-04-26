@@ -12,3 +12,5 @@ nav:
 plugins:
   - search
   - awesome-pages
+markdown_extensions:
+- pymdownx.superfences
