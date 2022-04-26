@@ -25,13 +25,10 @@ class OfflineToken(OfflineTokenABC):
         return cls(store_name=store_name, scope=['write_orders'], access_token='ACCESS_TOKEN')
 
 async def register_webhook_with_http_endpoint():
-
     token = await OfflineToken.load(store_name='my-store')
     # topics from https://shopify.dev/api/admin-graphql/<API-VERSION>/enums/webhooksubscriptiontopic
     res = await token.create_http_webhook(topic='ORDERS_CREATE', callback_url='https://sometest.com/example')
     print(f'Webhook registered with id {res.id}')
-    # topics from https://shopify.dev/api/admin-graphql/<API-VERSION>/enums/webhooksubscriptiontopic
-    res = await token.create_http_webhook(topic='ORDERS_CREATE', callback_url='https://sometest.com/example') 
 ```
 
 ## Validate Webhooks
