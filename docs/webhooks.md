@@ -3,7 +3,7 @@
 The [webhook](https://shopify.dev/apps/webhooks/configuration)
 functionality can be used to register webhooks and validate that the webhook notifications are from Shopify
 
-**Breaking Changes**: <br>
+**Breaking Changes in version 0.6.0**: <br>
 The param `is_base64` used in function `validate` from module `spylib.utils.hmac` is renamed to `use_base64`
 to better convey the meaning of the parameter
 
