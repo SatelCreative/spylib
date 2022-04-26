@@ -12,11 +12,24 @@ to better convey the meaning of the parameter
 
 You can easily register your endpoint to receive webhooks from Shopify using an admin API access token:
 ```python
-from spylib import Token
+from spylib import OfflineTokenABC
+
+class OfflineToken(OfflineTokenABC):
+    """Example offline token"""
+    async def save(self):
+        # Write to storage
+        pass
+
+    async def load(cls, store_name: str):
+        # API access scopes from https://shopify.dev/api/usage/access-scopes
+        return cls(store_name=store_name, scope=['write_orders'], access_token='ACCESS_TOKEN')
 
 async def register_webhook_with_http_endpoint():
-    # API access scopes from https://shopify.dev/api/usage/access-scopes
-    token = Token(store_name='my-store', scope=['write_orders'], access_token='ACCESS_TOKEN')
+
+    token = await OfflineToken.load(store_name='my-store')
+    # topics from https://shopify.dev/api/admin-graphql/<API-VERSION>/enums/webhooksubscriptiontopic
+    res = await token.create_http_webhook(topic='ORDERS_CREATE', callback_url='https://sometest.com/example')
+    print(f'Webhook registered with id {res.id}')
     # topics from https://shopify.dev/api/admin-graphql/<API-VERSION>/enums/webhooksubscriptiontopic
     res = await token.create_http_webhook(topic='ORDERS_CREATE', callback_url='https://sometest.com/example') 
 ```
