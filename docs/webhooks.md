@@ -9,6 +9,8 @@ to better convey the meaning of the parameter
 
 
 ## Register Webhooks
+
+You can easily register your endpoint to receive webhooks from Shopify using an admin API access token:
 ```python
 from spylib import Token
 
