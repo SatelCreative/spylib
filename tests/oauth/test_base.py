@@ -1,15 +1,15 @@
+from importlib import util
+from sys import modules
 from typing import List
 from unittest.mock import AsyncMock
 from urllib.parse import ParseResult, parse_qs, urlencode, urlparse
 
 import pytest
 from box import Box  # type: ignore
-from fastapi import FastAPI
-from fastapi.testclient import TestClient
 from pydantic.dataclasses import dataclass
 from requests import Response  # type: ignore
 
-from spylib.oauth import OfflineToken, OnlineToken, init_oauth_router
+from spylib.exceptions import FastAPIImportError
 from spylib.utils import JWTBaseModel, hmac, now_epoch
 
 HANDLE = 'HANDLE'
@@ -61,7 +61,20 @@ class MockHTTPResponse:
 
 
 @pytest.mark.asyncio
-async def test_oauth(mocker):
+async def test_oauth_without_fastapi():
+    with pytest.raises(FastAPIImportError):
+        import spylib.oauth  # noqa: F401
+
+
+@pytest.mark.asyncio
+async def test_oauth_with_fastapi(mocker):
+    if 'fastapi' not in modules and util.find_spec('fastapi') is None:
+        return
+
+    from fastapi import FastAPI  # type: ignore[import]
+    from fastapi.testclient import TestClient  # type: ignore[import]
+
+    from spylib.oauth import OfflineToken, OnlineToken, init_oauth_router
 
     app = FastAPI()
 
@@ -84,7 +97,10 @@ async def test_oauth(mocker):
     # Happy path
     response = client.get('/shopify/auth', params=dict(shop=TEST_STORE), allow_redirects=False)
     query = check_oauth_redirect_url(
-        response=response, client=client, path='/admin/oauth/authorize', scope=TEST_DATA.app_scopes
+        response=response,
+        client=client,
+        path='/admin/oauth/authorize',
+        scope=TEST_DATA.app_scopes,
     )
     state = check_oauth_redirect_query(query=query, scope=TEST_DATA.app_scopes)
 
@@ -129,7 +145,8 @@ async def test_oauth(mocker):
 
     # --------- Test the callback endpoint for login -----------
     query_str = urlencode(
-        dict(shop=TEST_STORE, state=state, timestamp=now_epoch(), code='LOGINCODE'), safe='=,&/[]:'
+        dict(shop=TEST_STORE, state=state, timestamp=now_epoch(), code='LOGINCODE'),
+        safe='=,&/[]:',
     )
     hmac_arg = hmac.calculate_from_message(secret=SHOPIFY_SECRET_KEY, message=query_str)
     query_str += '&hmac=' + hmac_arg

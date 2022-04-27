@@ -2,6 +2,7 @@ from datetime import datetime, timedelta
 
 import jwt
 import pytest
+from starlette.requests import Request
 
 from spylib.utils.session_token import (
     InvalidIssuerError,
@@ -28,7 +29,7 @@ def get_token():
         'exp': (now + timedelta(0, 60)).timestamp(),
         'nbf': (now - timedelta(0, 60)).timestamp(),
         'iat': now.timestamp(),
-        'jti': 123,
+        'jti': '3512a085-ee9a-4914-b252-3aabcd1ada14',
         'sid': 'abc123',
     }
 
@@ -80,3 +81,26 @@ async def test_invalid_token_parameters(token, parameter, value, error):
     header = generate_auth_header(token)
     with pytest.raises(error):
         SessionToken.from_header(header, API_KEY, API_SECRET)
+
+
+def parse_session_token(request: Request):
+    SessionToken.from_header(request.headers.get('Authorization'), API_KEY, API_SECRET)
+
+
+@pytest.mark.asyncio
+async def test_depends(token):
+    with pytest.raises(ImportError):
+        from fastapi import Depends, FastAPI  # type: ignore
+        from fastapi.testclient import TestClient  # type: ignore
+
+        app = FastAPI()
+
+        @app.get('/token')
+        async def token_endpoint(token: SessionToken = Depends(parse_session_token)):
+            return token
+
+        client = TestClient(app=app)
+
+        header = generate_auth_header(token)
+
+        client.get('/token', headers={'Authorization': header})

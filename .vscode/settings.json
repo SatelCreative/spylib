@@ -1,0 +1,26 @@
+{
+  // hide cache files
+  "files.exclude": {
+    "**/__pycache__": true,
+    "**/.mypy_cache": true,
+    "**/.pytest_cache": true,
+  },
+  // brunette & black
+  "editor.formatOnSave": true,
+  "python.formatting.provider": "black",
+  "python.formatting.blackPath": "brunette",
+  // isort
+  "[python]": {
+    "editor.codeActionsOnSave": {
+      "source.organizeImports": true
+    }
+  },
+  // mypy
+  "python.linting.mypyEnabled": true,
+  // pytest
+  "python.testing.unittestEnabled": false,
+  "python.testing.pytestEnabled": true,
+  "python.testing.pytestArgs": [
+    "tests"
+  ],
+}

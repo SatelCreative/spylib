@@ -30,7 +30,7 @@ online_token_data = OnlineTokenResponse(
 
 offline_token_data = OfflineTokenResponse(
     access_token='OFFLINETOKEN',
-    scope=','.join(['write_products', 'read_customers']),
+    scope=','.join(['write_products', 'read_customers', 'write_orders']),
 )
 
 
@@ -52,7 +52,7 @@ class TestInformation(BaseModel):
     Information about the store for tests.
     """
 
-    api_version: str = '2021-04'
+    api_version: str = '2022-01'
     store_name: str = 'Test-Store'
     client_id: int = 1
     client_secret: int = 2

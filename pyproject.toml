@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "spylib"
-version = "0.4"
+version = "0.5.0"
 description = "A library to facilitate interfacing with Shopify's API"
 authors = ["Anthony Hillairet <ant@satel.ca>"]
 maintainers = ["Anthony Hillairet <ant@satel.ca>", "Nathan Nesbitt <nathan@satel.ca>"]
@@ -8,41 +8,46 @@ license = "MIT"
 readme = "README.md"
 exclude = ["tests", "scripts"]
 classifiers = [ "License :: OSI Approved :: MIT License",]
-homepage = "https://github.com/SatelCreative/satel-spylib"
+homepage = "https://satelcreative.github.io/spylib"
+repository = "https://github.com/SatelCreative/spylib"
 
 [tool.poetry.dependencies]
-python = "^3.9"
-fastapi = "^0.65.1"
-httpx = "^0.18.1"
-loguru = "^0.5.3"
+python = "^3.8"
+httpx = ">= 0.18.1"
 tenacity = "^7.0.0"
-shortuuid = "^1.0.1"
+starlette = ">= 0.15.0"
 nest-asyncio = "^1.5.1"
+pydantic ="^1.8.2"
 PyJWT = "^2.1.0"
 pycryptodome = "^3.10.1"
 
 [tool.poetry.dev-dependencies]
-pytest = "^6.2.4"
-pytest-asyncio = "^0.15.1"
-pytest-cov = "^2.12.1"
-pytest-mock = "^3.6.1"
-mypy = "^0.812"
-mypy-extensions = "^0.4.3"
-flake8 = "^3.9.2"
-flake8-isort = "^4.0.0"
-python-box = "^5.3.0"
-requests = "^2.25.1"
-watchdog = "^2.1.2"
-PyYAML = "^5.4.1"
-argh = "^0.26.2"
-black = "^21.5b2"
-tox = "^3.24.4"
-flake8-quotes = "^3.3.1"
-mkdocs = "^1.2.3"
-mkdocs-awesome-pages-plugin = "^v2.6.0"
-mkdocs-material = "^7.3.6"
-lazydocs = "^0.4.8"
-pydocstyle = "^6.1.1"
+pytest = "6.2.4"
+pytest-asyncio = "0.15.1"
+pytest-cov = "2.12.1"
+pytest-mock = "3.6.1"
+mypy = "0.812"
+mypy-extensions = "0.4.3"
+flake8 = "3.9.2"
+flake8-isort = "4.0.0"
+python-box = "5.3.0"
+requests = "2.25.1"
+watchdog = "2.1.2"
+PyYAML = "5.4.1"
+argh = "0.26.2"
+black = "21.5b2"
+tox = "3.24.4"
+mkdocs = "1.3.0"
+mkdocs-awesome-pages-plugin = "v2.6.0"
+mkdocs-material = "7.3.6"
+lazydocs = "0.4.8"
+pydocstyle = "6.1.1"
+brunette = "0.2.4"
+
+fastapi = { version = ">= 0.69.0", optional = true }
+
+[tool.poetry.extras]
+fastapi = ["fastapi"]
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
@@ -55,3 +60,12 @@ skip-string-normalization = true
 [tool.isort]
 profile = "black"
 known_third_party = ["fastapi", "pydantic", "starlette"]
+
+[tool.mypy]
+plugins = "pydantic.mypy"
+show_error_codes = true
+
+# https://mypy.readthedocs.io/en/stable/config_file.html#using-a-pyproject-toml-file
+[[tool.mypy.overrides]]
+ignore_missing_imports = true
+module = []

@@ -1,12 +1,13 @@
+import logging
 from abc import ABC, abstractclassmethod, abstractmethod
 from asyncio import sleep
 from datetime import datetime, timedelta
+from enum import Enum
 from math import ceil, floor
 from time import monotonic
-from typing import Any, ClassVar, Dict, List, Optional
+from typing import Any, ClassVar, Dict, List, Optional, Union
 
 from httpx import AsyncClient, Response
-from loguru import logger
 from pydantic import BaseModel, validator
 from starlette import status
 from tenacity import retry
@@ -24,9 +25,12 @@ from spylib.exceptions import (
     ShopifyCallInvalidError,
     ShopifyError,
     ShopifyExceedingMaxCostError,
+    ShopifyGQLError,
+    ShopifyGQLUserError,
     ShopifyThrottledError,
     not_our_fault,
 )
+from spylib.utils.hmac import validate
 from spylib.utils.rest import Request
 
 
@@ -54,6 +58,14 @@ class OnlineTokenResponse(BaseModel):
     associated_user: AssociatedUser
 
 
+class WebhookTopic(Enum):
+    ORDERS_CREATE = 'ORDERS_CREATE'
+
+
+class WebhookResponse(BaseModel):
+    id: str
+
+
 class Token(ABC, BaseModel):
     """
     Abstract class for token objects. This should never be extended, as you
@@ -65,7 +77,7 @@ class Token(ABC, BaseModel):
     access_token: Optional[str]
     access_token_invalid: bool = False
 
-    api_version: ClassVar[str] = '2021-04'
+    api_version: ClassVar[str] = '2022-01'
 
     rest_bucket_max: int = 80
     rest_bucket: int = rest_bucket_max
@@ -189,6 +201,7 @@ class Token(ABC, BaseModel):
         query: str,
         variables: Dict[str, Any] = {},
         operation_name: Optional[str] = None,
+        suppress_errors: bool = False,
     ) -> Dict[str, Any]:
 
         if not self.access_token:
@@ -213,11 +226,12 @@ class Token(ABC, BaseModel):
             raise ValueError('JSON data is not a dictionary')
         if 'Invalid API key or access token' in jsondata.get('errors', ''):
             self.access_token_invalid = True
-            logger.warning(
+            logging.warning(
                 f'Store {self.store_name}: The Shopify API token is invalid. '
                 'Flag the access token as invalid.'
             )
             raise ConnectionRefusedError
+
         if 'data' not in jsondata and 'errors' in jsondata:
             errorlist = '\n'.join(
                 [err['message'] for err in jsondata['errors'] if 'message' in err]
@@ -257,7 +271,80 @@ class Token(ABC, BaseModel):
             else:
                 raise ValueError(f'GraphQL query is incorrect:\n{errorlist}')
 
+        if not suppress_errors and len(jsondata.get('errors', [])) >= 1:
+            raise ShopifyGQLError(jsondata)
+
         return jsondata['data']
+
+    async def create_http_webhook(
+        self,
+        topic: Union[WebhookTopic, str],
+        callback_url: str,
+        include_fields: Optional[List[str]] = None,
+        metafield_namespaces: Optional[List[str]] = None,
+        private_metafield_namespaces: Optional[List[str]] = None,
+    ) -> WebhookResponse:
+        """Uses graphql to create a webhook"""
+        query = '''
+        mutation webhookSubscriptionCreate($topic: WebhookSubscriptionTopic!,
+                                           $webhookSubscription: WebhookSubscriptionInput!) {
+            webhookSubscriptionCreate(topic: $topic, webhookSubscription: $webhookSubscription) {
+                webhookSubscription {
+                id
+                topic
+                format
+                endpoint {
+                    __typename
+                    ... on WebhookHttpEndpoint {
+                    callbackUrl
+                    }
+                  }
+                }
+                userErrors {
+                    field
+                    message
+                }
+              }
+            }
+        '''
+        variables = {
+            'topic': topic.value if isinstance(topic, WebhookTopic) else topic,
+            'webhookSubscription': {
+                'callbackUrl': callback_url,
+                'format': 'JSON',
+                'includeFields': include_fields,
+                'metafieldNamespaces': metafield_namespaces,
+                'privateMetafieldNamespaces': private_metafield_namespaces,
+            },
+        }
+        res = await self.execute_gql(query=query, variables=variables)
+        webhook_create = res.get('webhookSubscriptionCreate', None)
+        if webhook_create and webhook_create.get('userErrors', None):
+            raise ShopifyGQLUserError(res)
+        return WebhookResponse(id=webhook_create['webhookSubscription']['id'])
+
+    async def create_event_bridge_webhook(
+        self,
+        topic: Union[WebhookTopic, str],
+        arn: str,
+        include_fields: Optional[List[str]] = None,
+        metafield_namespaces: Optional[List[str]] = None,
+        private_metafield_namespaces: Optional[List[str]] = None,
+    ) -> WebhookResponse:
+        # TODO
+        raise NotImplementedError
+
+    async def create_pubsub_webhook(
+        self,
+        topic: Union[WebhookTopic, str],
+        pubsub_project: str,
+        pubsub_topic: str,
+        include_fields: Optional[List[str]] = None,
+        metafield_namespaces: Optional[List[str]] = None,
+        private_metafield_namespaces: Optional[List[str]] = None,
+    ) -> WebhookResponse:
+        # TODO
+        raise NotImplementedError
 
 
 class OfflineTokenABC(Token, ABC):
@@ -314,3 +401,11 @@ class PrivateTokenABC(Token, ABC):
         therefore the developer should override this.
         """
         pass
+
+
+def is_webhook_valid(data: str, hmac_header: str, api_secret_key: str) -> bool:
+    try:
+        validate(secret=api_secret_key, sent_hmac=hmac_header, message=data, use_base64=True)
+    except ValueError:
+        return False
+    return True

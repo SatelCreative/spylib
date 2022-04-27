@@ -4,6 +4,18 @@ class ShopifyError(Exception):
     pass
 
 
+class ShopifyGQLError(Exception):
+    """Exception to identify any Shopify admin graphql error"""
+
+    pass
+
+
+class ShopifyGQLUserError(Exception):
+    """Exception to identify any Shopify admin graphql error caused by the user mistake"""
+
+    pass
+
+
 class ShopifyCallInvalidError(ShopifyError):
     """Exception to identify errors that our due to bad data sent by us
 
@@ -23,6 +35,12 @@ class ShopifyExceedingMaxCostError(ShopifyError):
     """
     Exception to identify errors that are due to queries exceeding the max query size
     """
+
+    pass
+
+
+class FastAPIImportError(ImportError):
+    """Exception to identify errors when spylip.oauth is accessed without fastapi installed"""
 
     pass
 

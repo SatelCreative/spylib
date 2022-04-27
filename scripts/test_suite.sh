@@ -23,7 +23,7 @@ FLAKE8OUT=`flake8`
 reportvalidation "$FLAKE8OUT"
 
 echo -ne "\n######### CHECK FORMATTING: "
-BLACKOUT=`black spylib tests --check 2>&1`
+BLACKOUT=`brunette spylib tests --check 2>&1 --skip-string-normalization`
 if [[ $BLACKOUT == "All done!"* ]]
 then
   echo "OK"

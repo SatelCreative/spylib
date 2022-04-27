@@ -2,8 +2,17 @@ from dataclasses import dataclass
 from inspect import isawaitable
 from typing import Awaitable, Callable, List, Optional, Union
 
-from fastapi import APIRouter, Depends, HTTPException, Query
-from loguru import logger
+from spylib.exceptions import FastAPIImportError
+
+try:
+    from fastapi import APIRouter, Depends, HTTPException, Query  # type: ignore
+except ImportError as e:
+    raise FastAPIImportError(
+        'The oauth router is a fastapi router and fastapi is not installed. '
+        'Run `pip install spylib[fastapi]` to be able to use the oauth router.'
+    ) from e
+import logging
+
 from starlette.requests import Request
 from starlette.responses import RedirectResponse
 
@@ -34,6 +43,7 @@ def init_oauth_router(
     post_login: Optional[Callable[[str, OnlineToken], Optional[Awaitable]]] = None,
     install_init_path='/shopify/auth',
     callback_path='/callback',
+    path_prefix: str = '',
 ) -> APIRouter:
     router = APIRouter()
 
@@ -41,6 +51,8 @@ def init_oauth_router(
         raise ValueError('The install_init_path argument must start with "/"')
     if not callback_path.startswith('/'):
         raise ValueError('The callback_path argument must start with "/"')
+    if path_prefix and not path_prefix.startswith('/'):
+        raise ValueError('The path_prefix argument must start with "/"')
 
     @router.get(install_init_path, include_in_schema=False)
     async def shopify_auth(shop: str):
@@ -52,6 +64,7 @@ def init_oauth_router(
                 requested_scopes=app_scopes,
                 callback_domain=public_domain,
                 callback_path=callback_path,
+                path_prefix=path_prefix,
                 jwt_key=private_key,
                 api_key=api_key,
             )
@@ -85,7 +98,7 @@ def init_oauth_router(
                     api_secret_key=api_secret_key,
                 )
             except Exception as e:
-                logger.exception(f'Could not retrieve offline token for shop {args.shop}')
+                logging.exception(f'Could not retrieve offline token for shop {args.shop}')
                 raise HTTPException(status_code=400, detail=str(e))
 
             # Await if the provided function is async
@@ -108,6 +121,7 @@ def init_oauth_router(
                     requested_scopes=user_scopes,
                     callback_domain=public_domain,
                     callback_path=callback_path,
+                    path_prefix=path_prefix,
                     jwt_key=private_key,
                     api_key=api_key,
                 )
