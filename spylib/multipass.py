@@ -21,7 +21,7 @@ class Multipass:
 
     def generate_url(self, contact_raw_data: Dict[str, Any], url) -> str:
         token = self.generate_token(contact_raw_data).decode('utf-8')
-        return '{0}/account/login/multipass/{1}'.format(url, token)
+        return f'{url}/account/login/multipass/{token}'
 
     def encrypt(self, plainText) -> bytes:
         plainText = self.pad(plainText)
