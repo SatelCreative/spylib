@@ -15,7 +15,7 @@ class WebhookResponse(BaseModel):
 class WebhookSubscriptionCreate(Enum):
     HTTP = 'webhookSubscriptionCreate'
     EVENT_BRIDGE = 'eventBridgeWebhookSubscriptionCreate'
-    PUBSUB = 'pubSubWebhookSubscriptionUpdate'
+    PUBSUB = 'pubSubWebhookSubscriptionCreate'
 
 
 class WebhookSubscriptionInput(Enum):
