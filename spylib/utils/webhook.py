@@ -71,6 +71,7 @@ def generate_variables(
     private_metafield_namespaces: Optional[List[str]] = None,
     **endpoint_kwargs,
 ) -> dict:
+    """Generate the webhook creation variables"""
     variables = {
         'topic': topic.value if isinstance(topic, WebhookTopic) else topic,
         'webhookSubscription': {
