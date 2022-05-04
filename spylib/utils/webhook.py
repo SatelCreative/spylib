@@ -3,6 +3,8 @@ from typing import List, Optional, Union
 
 from pydantic import BaseModel
 
+from spylib.utils.misc import snake_to_camel_case
+
 
 class WebhookTopic(Enum):
     ORDERS_CREATE = 'ORDERS_CREATE'
@@ -72,6 +74,10 @@ def generate_variables(
     **endpoint_kwargs,
 ) -> dict:
     """Generate the webhook creation variables"""
+    endpoint_kwargs_camel_case_name = {}
+    for key, value in endpoint_kwargs.items():
+        endpoint_kwargs_camel_case_name[snake_to_camel_case(text=key)] = value
+
     variables = {
         'topic': topic.value if isinstance(topic, WebhookTopic) else topic,
         'webhookSubscription': {
@@ -79,7 +85,7 @@ def generate_variables(
             'includeFields': include_fields,
             'metafieldNamespaces': metafield_namespaces,
             'privateMetafieldNamespaces': private_metafield_namespaces,
-            **endpoint_kwargs,
+            **endpoint_kwargs_camel_case_name,
         },
     }
     return variables
