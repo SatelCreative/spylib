@@ -24,13 +24,13 @@ from spylib.utils.webhook import (
             'EventBridgeWebhookSubscriptionInput!',
         ),
         (
-            WebhookSubscriptionCreate.PUBSUB,
-            WebhookSubscriptionInput.PUBSUB,
+            WebhookSubscriptionCreate.PUB_SUB,
+            WebhookSubscriptionInput.PUB_SUB,
             'pubSubWebhookSubscriptionCreate',
             'PubSubWebhookSubscriptionInput!',
         ),
     ],
-    ids=['http', 'event_bridge', 'pubsub'],
+    ids=['http', 'event_bridge', 'pub_sub'],
 )
 def test_generate_query(webhook_create, webhook_input, operation_name, operation_input):
     query_generated = generate_query(
@@ -84,7 +84,7 @@ def test_generate_variables_http_webhook(topic, callback_url):
             'includeFields': None,
             'metafieldNamespaces': None,
             'privateMetafieldNamespaces': None,
-            'callback_url': callback_url,
+            'callbackUrl': callback_url,
         },
     }
     assert variables_generated == variables_expected
@@ -113,15 +113,15 @@ def test_generate_variables_event_bridge_webhook(topic, arn):
 
 
 @pytest.mark.parametrize(
-    'topic,pubsub_project,pubsub_topic',
+    'topic,pub_sub_project,pub_sub_topic',
     [
         ('ORDERS_CREATE', 'PROJECT', 'TOPIC'),
     ],
-    ids=['pubsub'],
+    ids=['pub_sub'],
 )
-def test_generate_variables_pubsub_webhook(topic, pubsub_project, pubsub_topic):
+def test_generate_variables_pub_sub_webhook(topic, pub_sub_project, pub_sub_topic):
     variables_generated = generate_variables(
-        topic=topic, pubsub_project=pubsub_project, pubsub_topic=pubsub_topic
+        topic=topic, pub_sub_project=pub_sub_project, pub_sub_topic=pub_sub_topic
     )
     variables_expected = {
         'topic': topic,
@@ -130,8 +130,8 @@ def test_generate_variables_pubsub_webhook(topic, pubsub_project, pubsub_topic):
             'includeFields': None,
             'metafieldNamespaces': None,
             'privateMetafieldNamespaces': None,
-            'pubsub_project': pubsub_project,
-            'pubsub_topic': pubsub_topic,
+            'pubSubProject': pub_sub_project,
+            'pubSubTopic': pub_sub_topic,
         },
     }
     assert variables_generated == variables_expected

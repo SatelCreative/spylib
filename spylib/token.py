@@ -310,7 +310,7 @@ class Token(ABC, BaseModel):
         private_metafield_namespaces: Optional[List[str]] = None,
     ) -> WebhookResponse:
         """Uses graphql to subscribe to a webhook and associated it with
-        and AWS Event Bridge with ARN (Amazon Resource Number)"""
+        and AWS Event Bridge with ARN (Amazon Resource Name)"""
         query = generate_query(
             webhook_subscription_create=WebhookSubscriptionCreate.EVENT_BRIDGE,
             webhook_subscription_input=WebhookSubscriptionInput.EVENT_BRIDGE,
@@ -328,30 +328,30 @@ class Token(ABC, BaseModel):
             raise ShopifyGQLUserError(res)
         return WebhookResponse(id=webhook_create['webhookSubscription']['id'])
 
-    async def create_pubsub_webhook(
+    async def create_pub_sub_webhook(
         self,
         topic: Union[WebhookTopic, str],
-        pubsub_project: str,
-        pubsub_topic: str,
+        pub_sub_project: str,
+        pub_sub_topic: str,
         include_fields: Optional[List[str]] = None,
         metafield_namespaces: Optional[List[str]] = None,
         private_metafield_namespaces: Optional[List[str]] = None,
     ) -> WebhookResponse:
         """Uses graphql to subscribe to a webhook and associate it with a Google PubSub endpoint"""
         query = generate_query(
-            webhook_subscription_create=WebhookSubscriptionCreate.PUBSUB,
-            webhook_subscription_input=WebhookSubscriptionInput.PUBSUB,
+            webhook_subscription_create=WebhookSubscriptionCreate.PUB_SUB,
+            webhook_subscription_input=WebhookSubscriptionInput.PUB_SUB,
         )
         variables = generate_variables(
             topic=topic,
             include_fields=include_fields,
             metafield_namespaces=metafield_namespaces,
             private_metafield_namespaces=private_metafield_namespaces,
-            pubsub_project=pubsub_project,
-            pubsub_topic=pubsub_topic,
+            pub_sub_project=pub_sub_project,
+            pub_sub_topic=pub_sub_topic,
         )
         res = await self.execute_gql(query=query, variables=variables)
-        webhook_create = res.get(WebhookSubscriptionCreate.PUBSUB.value, None)
+        webhook_create = res.get(WebhookSubscriptionCreate.PUB_SUB.value, None)
         if webhook_create and webhook_create.get('userErrors', None):
             raise ShopifyGQLUserError(res)
         return WebhookResponse(id=webhook_create['webhookSubscription']['id'])

@@ -15,13 +15,13 @@ class WebhookResponse(BaseModel):
 class WebhookSubscriptionCreate(Enum):
     HTTP = 'webhookSubscriptionCreate'
     EVENT_BRIDGE = 'eventBridgeWebhookSubscriptionCreate'
-    PUBSUB = 'pubSubWebhookSubscriptionCreate'
+    PUB_SUB = 'pubSubWebhookSubscriptionCreate'
 
 
 class WebhookSubscriptionInput(Enum):
     HTTP = 'WebhookSubscriptionInput!'
     EVENT_BRIDGE = 'EventBridgeWebhookSubscriptionInput!'
-    PUBSUB = 'PubSubWebhookSubscriptionInput!'
+    PUB_SUB = 'PubSubWebhookSubscriptionInput!'
 
 
 def generate_query(
