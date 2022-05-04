@@ -2,7 +2,6 @@ import logging
 from abc import ABC, abstractclassmethod, abstractmethod
 from asyncio import sleep
 from datetime import datetime, timedelta
-from enum import Enum
 from math import ceil, floor
 from time import monotonic
 from typing import Any, ClassVar, Dict, List, Optional, Union
@@ -32,6 +31,14 @@ from spylib.exceptions import (
 )
 from spylib.utils.hmac import validate
 from spylib.utils.rest import Request
+from spylib.utils.webhook import (
+    WebhookResponse,
+    WebhookSubscriptionCreate,
+    WebhookSubscriptionInput,
+    WebhookTopic,
+    generate_query,
+    generate_variables,
+)
 
 
 class AssociatedUser(BaseModel):
@@ -56,14 +63,6 @@ class OnlineTokenResponse(BaseModel):
     expires_in: int
     associated_user_scope: str
     associated_user: AssociatedUser
-
-
-class WebhookTopic(Enum):
-    ORDERS_CREATE = 'ORDERS_CREATE'
-
-
-class WebhookResponse(BaseModel):
-    id: str
 
 
 class Token(ABC, BaseModel):
@@ -284,41 +283,20 @@ class Token(ABC, BaseModel):
         metafield_namespaces: Optional[List[str]] = None,
         private_metafield_namespaces: Optional[List[str]] = None,
     ) -> WebhookResponse:
-        """Uses graphql to create a webhook"""
-        query = '''
-        mutation webhookSubscriptionCreate($topic: WebhookSubscriptionTopic!,
-                                           $webhookSubscription: WebhookSubscriptionInput!) {
-            webhookSubscriptionCreate(topic: $topic, webhookSubscription: $webhookSubscription) {
-                webhookSubscription {
-                id
-                topic
-                format
-                endpoint {
-                    __typename
-                    ... on WebhookHttpEndpoint {
-                    callbackUrl
-                    }
-                  }
-                }
-                userErrors {
-                    field
-                    message
-                }
-              }
-            }
-        '''
-        variables = {
-            'topic': topic.value if isinstance(topic, WebhookTopic) else topic,
-            'webhookSubscription': {
-                'callbackUrl': callback_url,
-                'format': 'JSON',
-                'includeFields': include_fields,
-                'metafieldNamespaces': metafield_namespaces,
-                'privateMetafieldNamespaces': private_metafield_namespaces,
-            },
-        }
+        """Uses graphql to subscribe to a webhook and associate it with an HTTP endpoint"""
+        query = generate_query(
+            webhook_subscription_create=WebhookSubscriptionCreate.HTTP,
+            webhook_subscription_input=WebhookSubscriptionInput.HTTP,
+        )
+        variables = generate_variables(
+            topic=topic,
+            include_fields=include_fields,
+            metafield_namespaces=metafield_namespaces,
+            private_metafield_namespaces=private_metafield_namespaces,
+            callback_url=callback_url,
+        )
         res = await self.execute_gql(query=query, variables=variables)
-        webhook_create = res.get('webhookSubscriptionCreate', None)
+        webhook_create = res.get(WebhookSubscriptionCreate.HTTP.value, None)
         if webhook_create and webhook_create.get('userErrors', None):
             raise ShopifyGQLUserError(res)
         return WebhookResponse(id=webhook_create['webhookSubscription']['id'])
@@ -331,8 +309,24 @@ class Token(ABC, BaseModel):
         metafield_namespaces: Optional[List[str]] = None,
         private_metafield_namespaces: Optional[List[str]] = None,
     ) -> WebhookResponse:
-        # TODO
-        raise NotImplementedError
+        """Uses graphql to subscribe to a webhook and associated it with
+        and AWS Event Bridge with ARN (Amazon Resource Number)"""
+        query = generate_query(
+            webhook_subscription_create=WebhookSubscriptionCreate.EVENT_BRIDGE,
+            webhook_subscription_input=WebhookSubscriptionInput.EVENT_BRIDGE,
+        )
+        variables = generate_variables(
+            topic=topic,
+            include_fields=include_fields,
+            metafield_namespaces=metafield_namespaces,
+            private_metafield_namespaces=private_metafield_namespaces,
+            arn=arn,
+        )
+        res = await self.execute_gql(query=query, variables=variables)
+        webhook_create = res.get(WebhookSubscriptionCreate.EVENT_BRIDGE.value, None)
+        if webhook_create and webhook_create.get('userErrors', None):
+            raise ShopifyGQLUserError(res)
+        return WebhookResponse(id=webhook_create['webhookSubscription']['id'])
 
     async def create_pubsub_webhook(
         self,
@@ -343,8 +337,24 @@ class Token(ABC, BaseModel):
         metafield_namespaces: Optional[List[str]] = None,
         private_metafield_namespaces: Optional[List[str]] = None,
     ) -> WebhookResponse:
-        # TODO
-        raise NotImplementedError
+        """Uses graphql to subscribe to a webhook and associate it with a Google PubSub endpoint"""
+        query = generate_query(
+            webhook_subscription_create=WebhookSubscriptionCreate.PUBSUB,
+            webhook_subscription_input=WebhookSubscriptionInput.PUBSUB,
+        )
+        variables = generate_variables(
+            topic=topic,
+            include_fields=include_fields,
+            metafield_namespaces=metafield_namespaces,
+            private_metafield_namespaces=private_metafield_namespaces,
+            pubsub_project=pubsub_project,
+            pubsub_topic=pubsub_topic,
+        )
+        res = await self.execute_gql(query=query, variables=variables)
+        webhook_create = res.get(WebhookSubscriptionCreate.PUBSUB.value, None)
+        if webhook_create and webhook_create.get('userErrors', None):
+            raise ShopifyGQLUserError(res)
+        return WebhookResponse(id=webhook_create['webhookSubscription']['id'])
 
 
 class OfflineTokenABC(Token, ABC):
