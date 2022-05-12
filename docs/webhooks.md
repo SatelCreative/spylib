@@ -29,6 +29,18 @@ async def register_webhook_with_http_endpoint():
     # topics from https://shopify.dev/api/admin-graphql/<API-VERSION>/enums/webhooksubscriptiontopic
     res = await token.create_http_webhook(topic='ORDERS_CREATE', callback_url='https://sometest.com/example')
     print(f'Webhook registered with id {res.id}')
+
+async def register_webhook_with_event_bridge_endpoint():
+    token = await OfflineToken.load(store_name='my-store')
+    # configure AWS Event Bridge https://shopify.dev/apps/webhooks/configuration/eventbridge
+    res = await token.create_event_bridge_webhook(topic='ORDERS_CREATE', arn='<RESOURCE_NAME>')
+    print(f'Webhook registered with id {res.id}')
+
+async def register_webhook_with_pub_sub_endpoint():
+    token = await OfflineToken.load(store_name='my-store')
+    # configure Google Cloud PubSub https://shopify.dev/apps/webhooks/configuration/google-cloud
+    res = await token.create_pub_sub_webhook(topic='ORDERS_CREATE', pub_sub_project='<PROJECT>', pub_sub_topic='<TOPIC>')
+    print(f'Webhook registered with id {res.id}')
 ```
 
 ## Validate Webhooks
