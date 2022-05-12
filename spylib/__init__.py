@@ -3,7 +3,7 @@
 __version__ = '0.5.0'
 
 
-from .multipass import Multipass
+from .multipass import generate_token, generate_url
 from .token import (
     OfflineTokenABC,
     OnlineTokenABC,
@@ -22,5 +22,6 @@ __all__ = [
     'WebhookResponse',
     'WebhookTopic',
     'is_webhook_valid',
-    'Multipass',
+    'generate_token',
+    'generate_url',
 ]

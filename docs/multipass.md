@@ -13,10 +13,10 @@ customer_data = {"email": "customer@email.com"}
 multipass = Multipass("MULTIPASS_SECRET")
 
 # Generate URL
-url = multipass.generate_url(customer_data, "https://example.myshopify.com")
+url = multipass.generate_url(customer_data, 'https://example.myshopify.com')
 # https://example.myshopify.com/account/login/multipass/{MultipassToken}
 
-# Generate token
+# If for some reason you need it, you can also generate separately the token used in the URL:
 token = multipass.generate_token(customer_data)
 
 ```
