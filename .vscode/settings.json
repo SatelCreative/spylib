@@ -5,10 +5,10 @@
     "**/.mypy_cache": true,
     "**/.pytest_cache": true,
   },
-  // brunette & black
+  // blue & black
   "editor.formatOnSave": true,
   "python.formatting.provider": "black",
-  "python.formatting.blackPath": "brunette",
+  "python.formatting.blackPath": "blue",
   // isort
   "[python]": {
     "editor.codeActionsOnSave": {

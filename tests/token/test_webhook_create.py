@@ -40,7 +40,7 @@ async def test_store_http_webhook_create_happypath(mocker):
     res = await token.create_http_webhook(
         topic=WebhookTopic.ORDERS_CREATE,
         callback_url='https://example.org/endpoint',
-        include_fields=["id", "note"],
+        include_fields=['id', 'note'],
     )
 
     shopify_request_mock.assert_called_once()
