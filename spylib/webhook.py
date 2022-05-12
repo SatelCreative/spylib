@@ -14,7 +14,7 @@ class WebhookResponse(BaseModel):
     id: str
 
 
-class WebhookSubscriptionCreate(Enum):
+class WebhookCreate(Enum):
     HTTP = 'webhookSubscriptionCreate'
     EVENT_BRIDGE = 'eventBridgeWebhookSubscriptionCreate'
     PUB_SUB = 'pubSubWebhookSubscriptionCreate'

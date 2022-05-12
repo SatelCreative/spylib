@@ -33,8 +33,8 @@ from spylib.utils.hmac import validate
 from spylib.utils.rest import Request
 from spylib.webhook import (
     WEBHOOK_CREATE_GQL,
+    WebhookCreate,
     WebhookResponse,
-    WebhookSubscriptionCreate,
     WebhookTopic,
 )
 
@@ -294,10 +294,10 @@ class Token(ABC, BaseModel):
         }
         res = await self.execute_gql(
             query=WEBHOOK_CREATE_GQL,
-            operation_name=WebhookSubscriptionCreate.HTTP.value,
+            operation_name=WebhookCreate.HTTP.value,
             variables=variables,
         )
-        webhook_create = res.get(WebhookSubscriptionCreate.HTTP.value, None)
+        webhook_create = res.get(WebhookCreate.HTTP.value, None)
         if webhook_create and webhook_create.get('userErrors', None):
             raise ShopifyGQLUserError(res)
         return WebhookResponse(id=webhook_create['webhookSubscription']['id'])
@@ -324,10 +324,10 @@ class Token(ABC, BaseModel):
         }
         res = await self.execute_gql(
             query=WEBHOOK_CREATE_GQL,
-            operation_name=WebhookSubscriptionCreate.EVENT_BRIDGE.value,
+            operation_name=WebhookCreate.EVENT_BRIDGE.value,
             variables=variables,
         )
-        webhook_create = res.get(WebhookSubscriptionCreate.EVENT_BRIDGE.value, None)
+        webhook_create = res.get(WebhookCreate.EVENT_BRIDGE.value, None)
         if webhook_create and webhook_create.get('userErrors', None):
             raise ShopifyGQLUserError(res)
         return WebhookResponse(id=webhook_create['webhookSubscription']['id'])
@@ -355,10 +355,10 @@ class Token(ABC, BaseModel):
         }
         res = await self.execute_gql(
             query=WEBHOOK_CREATE_GQL,
-            operation_name=WebhookSubscriptionCreate.PUB_SUB.value,
+            operation_name=WebhookCreate.PUB_SUB.value,
             variables=variables,
         )
-        webhook_create = res.get(WebhookSubscriptionCreate.PUB_SUB.value, None)
+        webhook_create = res.get(WebhookCreate.PUB_SUB.value, None)
         if webhook_create and webhook_create.get('userErrors', None):
             raise ShopifyGQLUserError(res)
         return WebhookResponse(id=webhook_create['webhookSubscription']['id'])
