@@ -6,21 +6,29 @@ from typing import Any, Dict
 from Crypto.Cipher import AES
 from Crypto.Hash import HMAC, SHA256
 from Crypto.Random import get_random_bytes
+from pydantic import BaseModel
 
 
-def generate_token(secret: str, contact_data: Dict[str, Any]) -> bytes:
+class CustomerData(BaseModel):
+    email: str
+
+
+def generate_token(secret: str, customer_data: Dict[str, Any]) -> bytes:
     key = SHA256.new(secret.encode('utf-8')).digest()
     encryption_key = key[0:16]
     signature_key = key[16:32]
 
-    contact_data['created_at'] = datetime.datetime.utcnow().isoformat()
-    cypher_text = _encrypt(encryption_key, json.dumps(contact_data))
+    if 'email' not in customer_data:
+        raise ValueError('Missing email in customer data')
+
+    customer_data['created_at'] = datetime.datetime.utcnow().isoformat()
+    cypher_text = _encrypt(encryption_key, json.dumps(customer_data))
     return urlsafe_b64encode(cypher_text + _sign(signature_key, cypher_text))
 
 
-def generate_url(secret: str, contact_data: Dict[str, Any], url) -> str:
-    token = generate_token(secret, contact_data).decode('utf-8')
-    return f'{url}/account/login/multipass/{token}'
+def generate_url(secret: str, customer_data: Dict[str, Any], store_url) -> str:
+    token = generate_token(secret, customer_data).decode('utf-8')
+    return f'{store_url}/account/login/multipass/{token}'
 
 
 def _encrypt(encryption_key, plainText) -> bytes:
