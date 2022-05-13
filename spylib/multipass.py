@@ -31,15 +31,15 @@ def generate_url(secret: str, customer_data: Dict[str, Any], store_url) -> str:
     return f'{store_url}/account/login/multipass/{token}'
 
 
-def _encrypt(encryption_key, plainText) -> bytes:
-    plainText = _pad(plainText)
+def _encrypt(encryption_key, plain_text) -> bytes:
+    plain_text = _pad(plain_text)
     iv = get_random_bytes(AES.block_size)
     cipher = AES.new(encryption_key, AES.MODE_CBC, iv)
-    return iv + cipher.encrypt(str.encode(plainText))
+    return iv + cipher.encrypt(str.encode(plain_text))
 
 
-def _sign(signature_key, secret):
-    return HMAC.new(signature_key, secret, SHA256).digest()
+def _sign(signature_key, cypher_text):
+    return HMAC.new(signature_key, cypher_text, SHA256).digest()
 
 
 def _pad(s):
