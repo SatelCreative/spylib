@@ -1,6 +1,6 @@
 # Session Tokens
 
-The [session token](https://shopify.dev/apps/auth/session-tokens/authenticate-an-embedded-app-using-session-tokens)
+The [session token](https://shopify.dev/apps/auth/oauth/session-tokens/getting-started)
 functionality can be used to verify the session for the user. The suggested syntax is to define a dependency:
 
 ```python

@@ -1,6 +1,6 @@
 """A library to facilitate interfacing with Shopify's API"""
 
-__version__ = '0.5.0'
+__version__ = '0.6.0'
 
 
 from .multipass import generate_token, generate_url
