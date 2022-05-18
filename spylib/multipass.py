@@ -6,11 +6,6 @@ from typing import Any, Dict
 from Crypto.Cipher import AES
 from Crypto.Hash import HMAC, SHA256
 from Crypto.Random import get_random_bytes
-from pydantic import BaseModel
-
-
-class CustomerData(BaseModel):
-    email: str
 
 
 def generate_token(secret: str, customer_data: Dict[str, Any]) -> bytes:
