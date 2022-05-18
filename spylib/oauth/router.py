@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 from inspect import isawaitable
-from typing import Awaitable, Callable, List, Optional, Union
+from typing import Awaitable, Callable, List, Optional
 
 from spylib.exceptions import FastAPIImportError
 
@@ -16,7 +16,7 @@ import logging
 from starlette.requests import Request
 from starlette.responses import RedirectResponse
 
-from ..utils import JWTBaseModel, store_domain
+from ..utils import store_domain
 from .redirects import app_redirect, oauth_init_url
 from .tokens import OAuthJWT, OfflineToken, OnlineToken
 from .validations import validate_callback, validate_oauthjwt
@@ -39,7 +39,7 @@ def init_oauth_router(
     app_handle: str,
     api_key: str,
     api_secret_key: str,
-    post_install: Callable[[str, OfflineToken], Union[Awaitable[JWTBaseModel], JWTBaseModel]],
+    post_install: Callable[[str, OfflineToken], Optional[Awaitable]],
     post_login: Optional[Callable[[str, OnlineToken], Optional[Awaitable]]] = None,
     install_init_path='/shopify/auth',
     callback_path='/callback',
@@ -108,8 +108,6 @@ def init_oauth_router(
             if post_login is None:
                 return app_redirect(
                     store_domain=args.shop,
-                    jwtoken=None,
-                    jwt_key=private_key,
                     app_domain=public_domain,
                     app_handle=app_handle,
                 )
@@ -137,19 +135,13 @@ def init_oauth_router(
         )
 
         # Await if the provided function is async
-        jwtoken = None
         if post_login:
-            pl_return = post_login(oauthjwt.storename, online_token)
-            if isawaitable(pl_return):
-                jwtoken = await pl_return  # type: ignore
-            else:
-                jwtoken = pl_return
+            if isawaitable(pl_return := post_login(oauthjwt.storename, online_token)):
+                await pl_return  # type: ignore
 
         # Redirect to the app in Shopify admin
         return app_redirect(
             store_domain=args.shop,
-            jwtoken=jwtoken,
-            jwt_key=private_key,
             app_domain=public_domain,
             app_handle=app_handle,
         )
