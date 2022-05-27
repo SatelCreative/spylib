@@ -2,8 +2,8 @@ from unittest.mock import AsyncMock
 
 import pytest
 
-from spylib import WebhookResponse, WebhookTopic
 from spylib.exceptions import ShopifyGQLUserError
+from spylib.webhook import WebhookResponse, WebhookTopic
 
 from ..token_classes import MockHTTPResponse, OfflineToken, test_information
 
