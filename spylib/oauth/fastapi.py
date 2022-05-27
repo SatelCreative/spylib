@@ -106,10 +106,12 @@ def init_oauth_router(
                 await pi_return  # type: ignore
 
             if post_login is None:
-                return app_redirect(
-                    store_domain=args.shop,
-                    app_domain=public_domain,
-                    app_handle=app_handle,
+                return RedirectResponse(
+                    app_redirect(
+                        store_domain=args.shop,
+                        app_domain=public_domain,
+                        app_handle=app_handle,
+                    )
                 )
             # Initiate the oauth loop for login
             return RedirectResponse(
@@ -140,10 +142,12 @@ def init_oauth_router(
                 await pl_return  # type: ignore
 
         # Redirect to the app in Shopify admin
-        return app_redirect(
-            store_domain=args.shop,
-            app_domain=public_domain,
-            app_handle=app_handle,
+        return RedirectResponse(
+            app_redirect(
+                store_domain=args.shop,
+                app_domain=public_domain,
+                app_handle=app_handle,
+            )
         )
 
     return router

@@ -1,7 +1,5 @@
 from typing import List
 
-from starlette.responses import RedirectResponse
-
 from ..utils import domain_to_storename, get_unique_id
 from .tokens import OAuthJWT
 
@@ -51,6 +49,6 @@ def app_redirect(
     store_domain: str,
     app_domain: str,
     app_handle: str,
-) -> RedirectResponse:
+) -> str:
 
-    return RedirectResponse(f'https://{store_domain}/admin/apps/{app_handle}')
+    return f'https://{store_domain}/admin/apps/{app_handle}'
