@@ -8,7 +8,7 @@ from pydantic import root_validator
 from pydantic.main import BaseModel
 from pydantic.networks import HttpUrl
 
-from .domain import store_domain
+from .utils.domain import store_domain
 
 REQUIRED_FIELDS = ['iss', 'dest', 'sub', 'jti', 'sid']
 ALGORITHM = 'HS256'
