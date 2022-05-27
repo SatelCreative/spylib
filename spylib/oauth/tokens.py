@@ -31,7 +31,7 @@ async def _get_token(
     )
     if response.status_code != 200:
         message = (
-            f'Problem retrieving access token. Status code: {response.status_code} {jsondata}'
+            f'Problem retrieving access token. Status code: {response.status_code}'
             f'response=> {response.text}'
         )
         logging.error(message)
