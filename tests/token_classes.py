@@ -3,7 +3,7 @@ from __future__ import annotations
 from pydantic.class_validators import validator
 from pydantic.main import BaseModel
 
-from spylib.token import (
+from spylib.admin_api import (
     OfflineTokenABC,
     OfflineTokenResponse,
     OnlineTokenABC,

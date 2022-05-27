@@ -1,7 +1,7 @@
 import pytest
 from pytest import param
 
-from spylib.token import is_webhook_valid
+from spylib.admin_api import is_webhook_valid
 
 API_SECRET = 'secret'
 MESSAGE = 'message'
