@@ -9,8 +9,9 @@ from box import Box  # type: ignore
 from pydantic.dataclasses import dataclass
 from requests import Response  # type: ignore
 
+from spylib import hmac
 from spylib.exceptions import FastAPIImportError
-from spylib.utils import JWTBaseModel, hmac, now_epoch
+from spylib.utils import JWTBaseModel, now_epoch
 
 HANDLE = 'HANDLE'
 SHOPIFY_API_KEY = 'API_KEY'
