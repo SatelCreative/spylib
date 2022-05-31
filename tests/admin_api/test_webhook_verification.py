@@ -1,7 +1,7 @@
 import pytest
 from pytest import param
 
-from spylib.admin_api import is_webhook_valid
+from spylib import webhook
 
 API_SECRET = 'secret'
 MESSAGE = 'message'
@@ -16,5 +16,5 @@ params = [
 
 @pytest.mark.parametrize('api_secret,data, hmac_header, expected_is_valid', params)
 def test_is_webhook_valid(api_secret, data, hmac_header, expected_is_valid):
-    is_valid = is_webhook_valid(data=data, hmac_header=hmac_header, api_secret_key=api_secret)
+    is_valid = webhook.is_valid(data=data, hmac_header=hmac_header, api_secret_key=api_secret)
     assert is_valid is expected_is_valid
