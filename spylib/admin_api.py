@@ -29,7 +29,7 @@ from spylib.exceptions import (
     ShopifyThrottledError,
     not_our_fault,
 )
-from spylib.utils.hmac import validate
+from spylib.hmac import validate
 from spylib.utils.rest import Request
 from spylib.webhook import (
     WEBHOOK_CREATE_GQL,
