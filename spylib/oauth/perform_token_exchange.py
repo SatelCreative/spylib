@@ -108,7 +108,7 @@ async def perform_token_exchange(
         raise Exception(message)   # Not sure what the convention is here
 
     raw_response_body = response.json()
-    is_online_token = hasattr(raw_response_body, 'associated_user')
+    is_online_token = 'associated_user' in raw_response_body
 
     if is_online_token:
         return OnlineTokenResponse.parse_obj(raw_response_body)
