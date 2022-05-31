@@ -5,7 +5,7 @@ import pytest
 from spylib.exceptions import ShopifyGQLUserError
 from spylib.webhook import WebhookResponse, WebhookTopic, create_http
 
-from ..token_classes import MockHTTPResponse, OfflineToken, test_information
+from .token_classes import MockHTTPResponse, OfflineToken, test_information
 
 
 @pytest.mark.asyncio
