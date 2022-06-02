@@ -1,19 +1,15 @@
 import pytest
 from respx import MockRouter
 
-from spylib.oauth import (
-    OfflineTokenResponse,
-    OnlineTokenResponse,
-    perform_token_exchange,
-)
+from spylib.oauth import OfflineTokenModel, OnlineTokenModel, exchange_token
 
-perform_token_exchange_params = [
+exchange_token_params = [
     (
         dict(
             access_token='offline-token',
             scope='read_products',
         ),
-        OfflineTokenResponse,
+        OfflineTokenModel,
     ),
     (
         dict(
@@ -32,14 +28,14 @@ perform_token_exchange_params = [
                 collaborator=False,
             ),
         ),
-        OnlineTokenResponse,
+        OnlineTokenModel,
     ),
 ]
 
 
 @pytest.mark.asyncio
-@pytest.mark.parametrize('token_dict,token_model', perform_token_exchange_params)
-async def test_perform_token_exchange(respx_mock: MockRouter, token_dict, token_model):
+@pytest.mark.parametrize('token_dict,token_model', exchange_token_params)
+async def test_exchange_token(respx_mock: MockRouter, token_dict, token_model):
     shop = 'example.myshopify.com'
     code = 'code'
     api_key = 'api-key'
@@ -54,7 +50,7 @@ async def test_perform_token_exchange(respx_mock: MockRouter, token_dict, token_
         json=token_dict,
     )
 
-    result = await perform_token_exchange(
+    result = await exchange_token(
         shop=shop,
         code=code,
         api_key=api_key,

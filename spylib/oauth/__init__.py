@@ -1,8 +1,14 @@
-from .perform_token_exchange import (
-    OfflineTokenResponse,
-    OnlineTokenResponse,
-    perform_token_exchange,
+from .exchange_token import (
+    exchange_offline_token,
+    exchange_online_token,
+    exchange_token,
 )
-from .tokens import OfflineToken, OnlineToken  # noqa: F401
+from .types import OfflineTokenModel, OnlineTokenModel
 
-__all__ = ['perform_token_exchange']
+__all__ = [
+    'exchange_token',
+    'exchange_offline_token',
+    'exchange_online_token',
+    'OfflineTokenModel',
+    'OnlineTokenModel',
+]
