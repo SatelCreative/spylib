@@ -17,8 +17,10 @@ from starlette.requests import Request
 from starlette.responses import RedirectResponse
 
 from ..utils import store_domain
+from .exchange_token import exchange_offline_token, exchange_online_token
 from .redirects import app_redirect, oauth_init_url
-from .tokens import OAuthJWT, OfflineToken, OnlineToken
+from .tokens import OAuthJWT
+from .types import OfflineTokenModel, OnlineTokenModel
 from .validations import validate_callback, validate_oauthjwt
 
 
@@ -39,8 +41,8 @@ def init_oauth_router(
     app_handle: str,
     api_key: str,
     api_secret_key: str,
-    post_install: Callable[[str, OfflineToken], Optional[Awaitable]],
-    post_login: Optional[Callable[[str, OnlineToken], Optional[Awaitable]]] = None,
+    post_install: Callable[[str, OfflineTokenModel], Optional[Awaitable]],
+    post_login: Optional[Callable[[str, OnlineTokenModel], Optional[Awaitable]]] = None,
     install_init_path='/shopify/auth',
     callback_path='/callback',
     path_prefix: str = '',
@@ -71,7 +73,7 @@ def init_oauth_router(
         )
 
     @router.get(callback_path, include_in_schema=False)
-    async def shopify_callback(request: Request, args: Callback = Depends(Callback)):
+    async def shopify_callback(request: Request, shop: str, args: Callback = Depends(Callback)):
         """REST endpoint called by Shopify during the OAuth process for installation and login"""
         try:
             validate_callback(
@@ -91,8 +93,8 @@ def init_oauth_router(
         if not oauthjwt.is_login:
             try:
                 # Get the offline token from Shopify
-                offline_token = await OfflineToken.get(
-                    domain=args.shop,
+                offline_token = await exchange_offline_token(
+                    shop=shop,
                     code=args.code,
                     api_key=api_key,
                     api_secret_key=api_secret_key,
@@ -129,8 +131,8 @@ def init_oauth_router(
 
         # === If login ===
         # Get the online token from Shopify
-        online_token = await OnlineToken.get(
-            domain=args.shop,
+        online_token = await exchange_online_token(
+            shop=shop,
             code=args.code,
             api_key=api_key,
             api_secret_key=api_secret_key,
