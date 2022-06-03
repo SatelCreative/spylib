@@ -7,16 +7,16 @@ exchange_token_params = [
     (
         dict(
             access_token='offline-token',
-            scope='read_products',
+            scope='read_products,read_orders',
         ),
         OfflineTokenModel,
     ),
     (
         dict(
             access_token='online-token',
-            scope='write_products',
+            scope='write_products,read_orders',
             expires_in=86399,
-            associated_user_scope='read_products',
+            associated_user_scope='read_products,read_orders',
             associated_user=dict(
                 id=902541635,
                 first_name='John',
