@@ -56,7 +56,7 @@ class AssociatedUser(BaseModel):
     """
     If the user's email has been verified.
 
-    If `False` or `None` email cannot be trusted (legacy accounts).
+    If `False` email cannot be trusted (legacy accounts).
     """
 
     account_owner: bool
