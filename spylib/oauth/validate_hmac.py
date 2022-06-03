@@ -4,14 +4,25 @@ from urllib.parse import parse_qsl, urlencode
 
 from spylib.hmac import validate
 
-# Any random unguessable symbol used as a placeholder
+# A random symbol used as a placeholder
 _SYMBOL = 'zQMAUY2pdppBsVRBUsJAXDbU2fngq2'
 
 
 def validate_hmac(*, query_string: str, api_secret_key: str):
+    """https://shopify.dev/apps/auth/oauth/getting-started#step-7-verify-a-request
+
+    Args:
+        query_string: _description_
+        api_secret_key: _description_
+
+    Raises:
+        Exception: _description_
+    """
+
     provided_hmac: Optional[str] = None
     query_params: List[Tuple[str, str]] = []
 
+    # https://shopify.dev/apps/auth/oauth/getting-started#ids-array-parameter
     ids: List[str] = []
     for key, value in parse_qsl(query_string, strict_parsing=True):
         if key == 'hmac':
