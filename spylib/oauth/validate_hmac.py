@@ -4,7 +4,8 @@ from urllib.parse import parse_qsl, urlencode
 
 from spylib.hmac import validate
 
-SYMBOL = 'zQMAUY2pdppBsVRBUsJAXDbU2fngq2'
+# Any random unguessable symbol used as a placeholder
+_SYMBOL = 'zQMAUY2pdppBsVRBUsJAXDbU2fngq2'
 
 
 def validate_hmac(*, query_string: str, api_secret_key: str):
@@ -18,12 +19,12 @@ def validate_hmac(*, query_string: str, api_secret_key: str):
             continue
         if key == 'ids[]':
             if not ids:
-                query_params.append(('ids', SYMBOL))
+                query_params.append(('ids', _SYMBOL))
             ids.append(value)
             continue
         query_params.append((key, value))
 
-    message = urlencode(query_params, safe=':/').replace(SYMBOL, dumps(ids))
+    message = urlencode(query_params, safe=':/').replace(_SYMBOL, dumps(ids))
 
     if not provided_hmac:
         raise Exception('todo')
@@ -33,6 +34,31 @@ def validate_hmac(*, query_string: str, api_secret_key: str):
         message=message,
         secret=api_secret_key,
     )
+
+    # query_params = parse_qs(query_string, strict_parsing=True)
+    # (provided_hmac,) = query_params.pop('hmac')
+
+    # ids_encoded = ''
+    # if 'ids[]' in query_params:
+    #     ids_encoded = dumps(query_params['ids[]'])
+    #     query_params['ids[]'] = [SYMBOL]
+    #     query_params = {
+    #         key if key != 'ids[]' else 'ids': value for key, value in query_params.items()
+    #     }
+
+    # message = urlencode(query_params, safe=':/', doseq=True, quote_via=quote).replace(
+    #     SYMBOL, ids_encoded
+    # )
+
+    # print('QUERY', query_params)
+    # print('HMAC', provided_hmac)
+    # print('MESSAGE', message)
+
+    # validate(
+    #     sent_hmac=provided_hmac,
+    #     message=message,
+    #     secret=api_secret_key,
+    # )
 
     # query_params = parse_qsl(query_string, strict_parsing=True)
     # provided_hmac = dict(query_params)['hmac']
