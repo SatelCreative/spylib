@@ -20,7 +20,7 @@ from ..utils import store_domain
 from .exchange_token import exchange_offline_token, exchange_online_token
 from .redirects import app_redirect, oauth_init_url
 from .tokens import OAuthJWT
-from .types import OfflineTokenModel, OnlineTokenModel
+from .models import OfflineTokenModel, OnlineTokenModel
 from .validations import validate_callback, validate_oauthjwt
 
 

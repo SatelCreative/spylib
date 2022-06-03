@@ -3,7 +3,7 @@ from .exchange_token import (
     exchange_online_token,
     exchange_token,
 )
-from .types import OfflineTokenModel, OnlineTokenModel
+from .models import OfflineTokenModel, OnlineTokenModel
 
 __all__ = [
     'exchange_token',

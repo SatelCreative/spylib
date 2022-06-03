@@ -2,7 +2,7 @@ from typing import Union
 
 from httpx import AsyncClient, codes
 
-from .types import OfflineTokenModel, OnlineTokenModel
+from .models import OfflineTokenModel, OnlineTokenModel
 
 
 async def exchange_token(
