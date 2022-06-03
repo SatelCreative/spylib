@@ -43,6 +43,7 @@ async def test_exchange_token(respx_mock: MockRouter, token_dict, token_model):
 
     respx_mock.post(
         f'https://{shop}/admin/oauth/access_token',
+        # https://lundberg.github.io/respx/api/#json
         json__code=code,
         json__client_id=api_key,
         json__client_secret=api_secret_key,
