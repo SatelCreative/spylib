@@ -1,11 +1,41 @@
+from dataclasses import dataclass
 from json import dumps
 from typing import List, Optional, Tuple
 from urllib.parse import parse_qsl, urlencode
 
 from spylib.hmac import validate
 
+
+@dataclass(frozen=True)
+class ShopifyQueryString:   # Help with naming please!
+    query: str = ''
+    hmac: Optional[str] = None
+
+
 # A random symbol used as a placeholder
 _SYMBOL = 'zQMAUY2pdppBsVRBUsJAXDbU2fngq2'
+
+
+def parse_query_string(query_string: str) -> ShopifyQueryString:
+    hmac: Optional[str] = None
+    query_params: List[Tuple[str, str]] = []
+
+    # https://shopify.dev/apps/auth/oauth/getting-started#ids-array-parameter
+    ids: List[str] = []
+    for key, value in parse_qsl(query_string, strict_parsing=True):
+        if key == 'hmac':
+            hmac = value
+            continue
+        if key == 'ids[]':
+            if not ids:
+                query_params.append(('ids', _SYMBOL))   # Replace the whole thing instead!
+            ids.append(value)
+            continue
+        query_params.append((key, value))
+
+    query = urlencode(query_params, safe=':/').replace(_SYMBOL, dumps(ids))
+
+    return ShopifyQueryString(query=query, hmac=hmac)
 
 
 def validate_hmac(*, query_string: str, api_secret_key: str):
@@ -19,30 +49,11 @@ def validate_hmac(*, query_string: str, api_secret_key: str):
         Exception: _description_
     """
 
-    provided_hmac: Optional[str] = None
-    query_params: List[Tuple[str, str]] = []
-
-    # https://shopify.dev/apps/auth/oauth/getting-started#ids-array-parameter
-    ids: List[str] = []
-    for key, value in parse_qsl(query_string, strict_parsing=True):
-        if key == 'hmac':
-            provided_hmac = value
-            continue
-        if key == 'ids[]':
-            if not ids:
-                query_params.append(('ids', _SYMBOL))
-            ids.append(value)
-            continue
-        query_params.append((key, value))
-
-    message = urlencode(query_params, safe=':/').replace(_SYMBOL, dumps(ids))
-
-    if not provided_hmac:
-        raise Exception('todo')
+    parsed = parse_query_string(query_string)
 
     validate(
-        sent_hmac=provided_hmac,
-        message=message,
+        sent_hmac=parsed.hmac or '',
+        message=parsed.query,
         secret=api_secret_key,
     )
 
