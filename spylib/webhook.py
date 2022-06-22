@@ -6,7 +6,7 @@ from pydantic import BaseModel
 
 from spylib.admin_api import OfflineTokenABC
 from spylib.exceptions import ShopifyGQLUserError
-from spylib.hmac import validate
+from spylib.hmac import validate as validate_hmac
 
 WEBHOOK_CREATE_GQL = Path('./spylib/webhook.graphql').read_text()
 
@@ -27,7 +27,7 @@ class WebhookCreate(Enum):
 
 def validate(data: str, hmac_header: str, api_secret_key: str) -> bool:
     try:
-        validate(secret=api_secret_key, sent_hmac=hmac_header, message=data, use_base64=True)
+        validate_hmac(secret=api_secret_key, sent_hmac=hmac_header, message=data, use_base64=True)
     except ValueError:
         return False
     return True
