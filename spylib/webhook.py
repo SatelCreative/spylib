@@ -25,7 +25,7 @@ class WebhookCreate(Enum):
     PUB_SUB = 'pubSubWebhookSubscriptionCreate'
 
 
-def is_valid(data: str, hmac_header: str, api_secret_key: str) -> bool:
+def validate(data: str, hmac_header: str, api_secret_key: str) -> bool:
     try:
         validate(secret=api_secret_key, sent_hmac=hmac_header, message=data, use_base64=True)
     except ValueError:
