@@ -9,8 +9,9 @@ to better convey the meaning of the parameter
 
 
 **Breaking Changes in version 0.7.0**: <br>
-The webhook features become available from `spylib.webhook` module as functions 
+* The webhook features become available from `spylib.webhook` module as functions 
 instead of from the `Token` class as methods. 
+* The function `spylib.webook_is_valid` is now available at `spylib.webhook.validate`
 
 ## Register Webhooks
 
