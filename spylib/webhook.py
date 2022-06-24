@@ -1,4 +1,5 @@
 from enum import Enum
+from pathlib import Path
 from typing import List, Optional, Union
 
 from pydantic import BaseModel
@@ -6,7 +7,8 @@ from pydantic import BaseModel
 from spylib.admin_api import OfflineTokenABC
 from spylib.exceptions import ShopifyGQLUserError
 from spylib.hmac import validate as validate_hmac
-from spylib.webhook_graphql import WEBHOOK_CREATE_GQL
+
+WEBHOOK_CREATE_GQL = Path('./spylib/webhook.graphql').read_text()
 
 
 class WebhookTopic(Enum):
