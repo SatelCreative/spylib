@@ -120,7 +120,7 @@ async def create_pub_sub(
         operation_name=WebhookCreate.PUB_SUB.value,
         variables=variables,
     )
-    webhook_create = res.get(WebhookCreate.PUB_SUB.value, None)
-    if webhook_create and webhook_create.get('userErrors', None):
+    webhook_create = res.get(WebhookCreate.PUB_SUB.value)
+    if webhook_create and webhook_create.get('userErrors'):
         raise ShopifyGQLUserError(res)
     return WebhookResponse(id=webhook_create['webhookSubscription']['id'])
