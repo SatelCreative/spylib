@@ -58,7 +58,7 @@ async def create_http(
         variables=variables,
     )
     webhook_create = res.get(WebhookCreate.HTTP.value, None)
-    if webhook_create and webhook_create.get('userErrors', None):
+    if webhook_create and webhook_create.get('userErrors'):
         raise ShopifyGQLUserError(res)
     return WebhookResponse(id=webhook_create['webhookSubscription']['id'])
 
@@ -89,7 +89,7 @@ async def create_event_bridge(
         variables=variables,
     )
     webhook_create = res.get(WebhookCreate.EVENT_BRIDGE.value, None)
-    if webhook_create and webhook_create.get('userErrors', None):
+    if webhook_create and webhook_create.get('userErrors'):
         raise ShopifyGQLUserError(res)
     return WebhookResponse(id=webhook_create['webhookSubscription']['id'])
 
