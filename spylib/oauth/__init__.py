@@ -12,7 +12,5 @@ __all__ = [
     'exchange_online_token',
     'OfflineTokenModel',
     'OnlineTokenModel',
-    'SignedQueryString',
-    'parse_signed_query_string',
     'validate_signed_query_string',
 ]
