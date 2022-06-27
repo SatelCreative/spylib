@@ -3,9 +3,9 @@ from unittest.mock import AsyncMock
 import pytest
 
 from spylib.exceptions import ShopifyGQLUserError
-from spylib.webhook import WebhookResponse, WebhookTopic
+from spylib.webhook import WebhookResponse, WebhookTopic, create_http
 
-from ..token_classes import MockHTTPResponse, OfflineToken, test_information
+from .token_classes import MockHTTPResponse, OfflineToken, test_information
 
 
 @pytest.mark.asyncio
@@ -37,7 +37,8 @@ async def test_store_http_webhook_create_happypath(mocker):
         return_value=MockHTTPResponse(status_code=200, jsondata=gql_response),
     )
 
-    res = await token.create_http_webhook(
+    res = await create_http(
+        offline_token=token,
         topic=WebhookTopic.ORDERS_CREATE,
         callback_url='https://example.org/endpoint',
         include_fields=['id', 'note'],
@@ -72,7 +73,8 @@ async def test_store_http_webhook_create_usererrors(mocker):
         return_value=MockHTTPResponse(status_code=200, jsondata=gql_response),
     )
     with pytest.raises(ShopifyGQLUserError):
-        await token.create_http_webhook(
+        await create_http(
+            offline_token=token,
             topic=WebhookTopic.ORDERS_CREATE,
             callback_url='https://example.org/endpoint',
             include_fields=['id', 'note'],
@@ -101,7 +103,8 @@ async def test_store_http_webhook_create_invalidtopic(mocker):
         return_value=MockHTTPResponse(status_code=200, jsondata=gql_response),
     )
     with pytest.raises(ValueError):
-        await token.create_http_webhook(
+        await create_http(
+            offline_token=token,
             topic='invalid topic',
             callback_url='https://example.org/endpoint',
             include_fields=['id', 'note'],

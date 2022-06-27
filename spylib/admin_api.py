@@ -4,7 +4,7 @@ from asyncio import sleep
 from datetime import datetime, timedelta
 from math import ceil, floor
 from time import monotonic
-from typing import Any, ClassVar, Dict, List, Optional, Union
+from typing import Any, ClassVar, Dict, List, Optional
 
 from httpx import AsyncClient, Response
 from pydantic import BaseModel, validator
@@ -25,18 +25,10 @@ from spylib.exceptions import (
     ShopifyError,
     ShopifyExceedingMaxCostError,
     ShopifyGQLError,
-    ShopifyGQLUserError,
     ShopifyThrottledError,
     not_our_fault,
 )
-from spylib.hmac import validate
 from spylib.utils.rest import Request
-from spylib.webhook import (
-    WEBHOOK_CREATE_GQL,
-    WebhookCreate,
-    WebhookResponse,
-    WebhookTopic,
-)
 
 
 class AssociatedUser(BaseModel):
@@ -273,96 +265,6 @@ class Token(ABC, BaseModel):
 
         return jsondata['data']
 
-    async def create_http_webhook(
-        self,
-        topic: Union[WebhookTopic, str],
-        callback_url: str,
-        include_fields: Optional[List[str]] = None,
-        metafield_namespaces: Optional[List[str]] = None,
-        private_metafield_namespaces: Optional[List[str]] = None,
-    ) -> WebhookResponse:
-        """Uses graphql to subscribe to a webhook and associate it with an HTTP endpoint"""
-        variables = {
-            'topic': topic.value if isinstance(topic, WebhookTopic) else topic,
-            'webhookSubscription': {
-                'format': 'JSON',
-                'includeFields': include_fields,
-                'metafieldNamespaces': metafield_namespaces,
-                'privateMetafieldNamespaces': private_metafield_namespaces,
-                'callbackUrl': callback_url,
-            },
-        }
-        res = await self.execute_gql(
-            query=WEBHOOK_CREATE_GQL,
-            operation_name=WebhookCreate.HTTP.value,
-            variables=variables,
-        )
-        webhook_create = res.get(WebhookCreate.HTTP.value, None)
-        if webhook_create and webhook_create.get('userErrors', None):
-            raise ShopifyGQLUserError(res)
-        return WebhookResponse(id=webhook_create['webhookSubscription']['id'])
-
-    async def create_event_bridge_webhook(
-        self,
-        topic: Union[WebhookTopic, str],
-        arn: str,
-        include_fields: Optional[List[str]] = None,
-        metafield_namespaces: Optional[List[str]] = None,
-        private_metafield_namespaces: Optional[List[str]] = None,
-    ) -> WebhookResponse:
-        """Uses graphql to subscribe to a webhook and associated it with
-        and AWS Event Bridge with ARN (Amazon Resource Name)"""
-        variables = {
-            'topic': topic.value if isinstance(topic, WebhookTopic) else topic,
-            'webhookSubscription': {
-                'format': 'JSON',
-                'includeFields': include_fields,
-                'metafieldNamespaces': metafield_namespaces,
-                'privateMetafieldNamespaces': private_metafield_namespaces,
-                'arn': arn,
-            },
-        }
-        res = await self.execute_gql(
-            query=WEBHOOK_CREATE_GQL,
-            operation_name=WebhookCreate.EVENT_BRIDGE.value,
-            variables=variables,
-        )
-        webhook_create = res.get(WebhookCreate.EVENT_BRIDGE.value, None)
-        if webhook_create and webhook_create.get('userErrors', None):
-            raise ShopifyGQLUserError(res)
-        return WebhookResponse(id=webhook_create['webhookSubscription']['id'])
-
-    async def create_pub_sub_webhook(
-        self,
-        topic: Union[WebhookTopic, str],
-        pub_sub_project: str,
-        pub_sub_topic: str,
-        include_fields: Optional[List[str]] = None,
-        metafield_namespaces: Optional[List[str]] = None,
-        private_metafield_namespaces: Optional[List[str]] = None,
-    ) -> WebhookResponse:
-        """Uses graphql to subscribe to a webhook and associate it with a Google PubSub endpoint"""
-        variables = {
-            'topic': topic.value if isinstance(topic, WebhookTopic) else topic,
-            'webhookSubscription': {
-                'format': 'JSON',
-                'includeFields': include_fields,
-                'metafieldNamespaces': metafield_namespaces,
-                'privateMetafieldNamespaces': private_metafield_namespaces,
-                'pubSubProject': pub_sub_project,
-                'pubSubTopic': pub_sub_topic,
-            },
-        }
-        res = await self.execute_gql(
-            query=WEBHOOK_CREATE_GQL,
-            operation_name=WebhookCreate.PUB_SUB.value,
-            variables=variables,
-        )
-        webhook_create = res.get(WebhookCreate.PUB_SUB.value, None)
-        if webhook_create and webhook_create.get('userErrors', None):
-            raise ShopifyGQLUserError(res)
-        return WebhookResponse(id=webhook_create['webhookSubscription']['id'])
-
 
 class OfflineTokenABC(Token, ABC):
     """
@@ -418,11 +320,3 @@ class PrivateTokenABC(Token, ABC):
         therefore the developer should override this.
         """
         pass
-
-
-def is_webhook_valid(data: str, hmac_header: str, api_secret_key: str) -> bool:
-    try:
-        validate(secret=api_secret_key, sent_hmac=hmac_header, message=data, use_base64=True)
-    except ValueError:
-        return False
-    return True
