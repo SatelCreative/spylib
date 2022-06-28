@@ -4,6 +4,7 @@ from .exchange_token import (
     exchange_token,
 )
 from .models import OfflineTokenModel, OnlineTokenModel
+from .signature_validation import validate_signed_query_string
 
 __all__ = [
     'exchange_token',
@@ -11,4 +12,5 @@ __all__ = [
     'exchange_online_token',
     'OfflineTokenModel',
     'OnlineTokenModel',
+    'validate_signed_query_string',
 ]
