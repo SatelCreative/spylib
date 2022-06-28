@@ -1,3 +1,4 @@
+WEBHOOK_CREATE_GQL = """
 mutation webhookSubscriptionCreate($topic: WebhookSubscriptionTopic!, $webhookSubscription: WebhookSubscriptionInput!) {
   webhookSubscriptionCreate(topic: $topic, webhookSubscription: $webhookSubscription) {
     webhookSubscription {
@@ -52,3 +53,4 @@ fragment WebhookSubscription on WebhookSubscription {
     }
   }
 }
+"""
