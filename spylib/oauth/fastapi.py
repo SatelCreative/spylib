@@ -17,11 +17,10 @@ from starlette.requests import Request
 from starlette.responses import RedirectResponse
 
 from ..utils import store_domain
+from .callback import process_callback
 from .exchange_token import exchange_offline_token, exchange_online_token
 from .models import OfflineTokenModel, OnlineTokenModel
 from .redirects import app_redirect, oauth_init_url
-from .tokens import OAuthJWT
-from .validations import validate_callback, validate_oauthjwt
 
 
 @dataclass
@@ -76,14 +75,13 @@ def init_oauth_router(
     async def shopify_callback(request: Request, shop: str, args: Callback = Depends(Callback)):
         """REST endpoint called by Shopify during the OAuth process for installation and login"""
         try:
-            validate_callback(
+            oauthjwt = process_callback(
                 shop=args.shop,
                 timestamp=args.timestamp,
                 query_string=request.scope['query_string'],
                 api_secret_key=api_secret_key,
-            )
-            oauthjwt: OAuthJWT = validate_oauthjwt(
-                token=args.state, shop=args.shop, jwt_key=private_key
+                state=args.state,
+                private_key=private_key,
             )
         except Exception as e:
             raise HTTPException(status_code=400, detail=f'Validation failed: {e}')
