@@ -1,5 +1,4 @@
 from dataclasses import dataclass
-from inspect import isawaitable
 from typing import Awaitable, Callable, List, Optional
 
 from spylib.exceptions import FastAPIImportError
@@ -11,14 +10,12 @@ except ImportError as e:
         'The oauth router is a fastapi router and fastapi is not installed. '
         'Run `pip install spylib[fastapi]` to be able to use the oauth router.'
     ) from e
-import logging
 
 from starlette.requests import Request
 from starlette.responses import RedirectResponse
 
 from ..utils import store_domain
 from .callback import process_callback
-from .exchange_token import exchange_offline_token, exchange_online_token
 from .models import OfflineTokenModel, OnlineTokenModel
 from .redirects import app_redirect, oauth_init_url
 
@@ -75,13 +72,15 @@ def init_oauth_router(
     async def shopify_callback(request: Request, shop: str, args: Callback = Depends(Callback)):
         """REST endpoint called by Shopify during the OAuth process for installation and login"""
         try:
-            oauthjwt = process_callback(
+            oauthjwt = await process_callback(
                 shop=args.shop,
                 timestamp=args.timestamp,
                 query_string=request.scope['query_string'],
                 api_secret_key=api_secret_key,
                 state=args.state,
                 private_key=private_key,
+                post_install=post_install,
+                post_login=post_login,
             )
         except Exception as e:
             raise HTTPException(status_code=400, detail=f'Validation failed: {e}')
@@ -89,22 +88,6 @@ def init_oauth_router(
         # === If installation ===
         # Setup the login obj and redirect to oauth_redirect
         if not oauthjwt.is_login:
-            try:
-                # Get the offline token from Shopify
-                offline_token = await exchange_offline_token(
-                    shop=shop,
-                    code=args.code,
-                    api_key=api_key,
-                    api_secret_key=api_secret_key,
-                )
-            except Exception as e:
-                logging.exception(f'Could not retrieve offline token for shop {args.shop}')
-                raise HTTPException(status_code=400, detail=str(e))
-
-            # Await if the provided function is async
-            if isawaitable(pi_return := post_install(oauthjwt.storename, offline_token)):
-                await pi_return  # type: ignore
-
             if post_login is None:
                 return RedirectResponse(
                     app_redirect(
@@ -126,20 +109,6 @@ def init_oauth_router(
                     api_key=api_key,
                 )
             )
-
-        # === If login ===
-        # Get the online token from Shopify
-        online_token = await exchange_online_token(
-            shop=shop,
-            code=args.code,
-            api_key=api_key,
-            api_secret_key=api_secret_key,
-        )
-
-        # Await if the provided function is async
-        if post_login:
-            if isawaitable(pl_return := post_login(oauthjwt.storename, online_token)):
-                await pl_return  # type: ignore
 
         # Redirect to the app in Shopify admin
         return RedirectResponse(
