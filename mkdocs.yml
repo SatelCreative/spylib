@@ -14,3 +14,7 @@ plugins:
   - awesome-pages
 markdown_extensions:
 - pymdownx.superfences
+
+extra:
+  version:
+    provider: mike
