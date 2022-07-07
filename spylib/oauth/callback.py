@@ -38,12 +38,10 @@ async def process_callback(
 async def process_install_callback(
     oauthjwt: OAuthJWT,
     shop: str,
-    code,
-    str,
+    code: str,
     api_key: str,
     api_secret_key: str,
     post_install: Callable[[str, OfflineTokenModel], Optional[Awaitable]],
-    post_login: Optional[Callable[[str, OnlineTokenModel], Optional[Awaitable]]],
 ):
     offline_token = await exchange_offline_token(
         shop=shop,
