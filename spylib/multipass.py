@@ -41,7 +41,3 @@ def _pad(s):
     return s + (AES.block_size - len(s) % AES.block_size) * chr(
         AES.block_size - len(s) % AES.block_size
     )
-
-
-def test(a):
-    return a
