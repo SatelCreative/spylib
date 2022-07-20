@@ -12,6 +12,14 @@ jobs:
     steps:
       - name: Checkout main
         uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+        # Config user for mike to push commit
+        run: |
+          git config user.name github-actions
+          git config user.email github-actions@github.com
+      - name: Set env
+        run: echo "RELEASE_VERSION=${GITHUB_REF#refs/*/}" >> $GITHUB_ENV
       - name: Set up python
         uses: actions/setup-python@v2
         with:
@@ -37,6 +45,9 @@ jobs:
         run: |
           source .venv/bin/activate
           lazydocs --overview-file="index.md" --src-base-url="https://github.com/SatelCreative/satel-spylib/tree/main" --output-path="./docs/api-docs" --no-validate spylib
+      - name: Release doc of new version
+      - run: |
+        poetry run mike deploy --push --update-aliases ${RELEASE_VERSION} latest
       - name: Deploy MkDocs
         uses: mhausenblas/mkdocs-deploy-gh-pages@1.24
         # Or use mhausenblas/mkdocs-deploy-gh-pages@nomaterial to build without the mkdocs-material theme
