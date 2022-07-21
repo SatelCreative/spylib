@@ -45,13 +45,13 @@ jobs:
         run: |
           source .venv/bin/activate
           lazydocs --overview-file="index.md" --src-base-url="https://github.com/SatelCreative/satel-spylib/tree/main" --output-path="./docs/api-docs" --no-validate spylib
-      - name: Release doc of new version
-      - run: |
-        poetry run mike deploy --push --update-aliases ${RELEASE_VERSION} latest
-      - name: Deploy MkDocs
-        uses: mhausenblas/mkdocs-deploy-gh-pages@1.24
-        # Or use mhausenblas/mkdocs-deploy-gh-pages@nomaterial to build without the mkdocs-material theme
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          EXTRA_PACKAGES: build-base
-          REQUIREMENTS: docs/requirements.txt
+      - name: Deployment setup
+        # Use builtin token to deploy
+        run: |
+          git config user.name github-actions
+          git config user.email github-actions@github.com 
+      - name: Deploy document
+        run: |
+          echo "RELEASE_TAG_VERSION=${RELEASE_VERSION}"
+          poetry run mike deploy --push --update-aliases ${RELEASE_VERSION} latest
+
