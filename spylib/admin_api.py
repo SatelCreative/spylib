@@ -214,7 +214,7 @@ class Token(ABC, BaseModel):
         # Handle any error that is doesn't response with 200
         if resp.status_code != 200:
             error_msg = jsondata['errors']
-            raise Exception(f"GQL query failed, status code: {resp.status_code}. {error_msg}")
+            raise Exception(f'GQL query failed, status code: {resp.status_code}. {error_msg}')
 
         if type(jsondata) is not dict:
             raise ValueError('JSON data is not a dictionary')
