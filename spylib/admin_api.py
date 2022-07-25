@@ -1,5 +1,5 @@
 import logging
-from abc import ABC, abstractclassmethod, abstractmethod
+from abc import ABC, abstractmethod
 from asyncio import sleep
 from datetime import datetime, timedelta
 from math import ceil, floor
@@ -275,7 +275,8 @@ class OfflineTokenABC(Token, ABC):
     async def save(self):
         pass
 
-    @abstractclassmethod
+    @classmethod
+    @abstractmethod
     def load(cls, store_name: str):
         pass
 
@@ -298,7 +299,8 @@ class OnlineTokenABC(Token, ABC):
         therefore the developer should override this.
         """
 
-    @abstractclassmethod
+    @classmethod
+    @abstractmethod
     def load(cls, store_name: str, associated_user: str):
         """
         This method handles loading the token. By default this does nothing,
@@ -313,7 +315,8 @@ class PrivateTokenABC(Token, ABC):
     no calls to the OAuth endpoints for shopify.
     """
 
-    @abstractclassmethod
+    @classmethod
+    @abstractmethod
     def load(cls, store_name: str):
         """
         This method handles loading the token. By default this does nothing,
