@@ -3,15 +3,10 @@ from __future__ import annotations
 from pydantic.class_validators import validator
 from pydantic.main import BaseModel
 
-from spylib.admin_api import (
-    OfflineTokenABC,
-    OfflineTokenResponse,
-    OnlineTokenABC,
-    OnlineTokenResponse,
-    PrivateTokenABC,
-)
+from spylib.admin_api import OfflineTokenABC, OnlineTokenABC, PrivateTokenABC
+from spylib.oauth.models import OfflineTokenModel, OnlineTokenModel
 
-online_token_data = OnlineTokenResponse(
+online_token_data = OnlineTokenModel(
     access_token='ONLINETOKEN',
     scope=','.join(['write_products', 'read_customers']),
     expires_in=86399,
@@ -28,7 +23,7 @@ online_token_data = OnlineTokenResponse(
     },
 )
 
-offline_token_data = OfflineTokenResponse(
+offline_token_data = OfflineTokenModel(
     access_token='OFFLINETOKEN',
     scope=','.join(['write_products', 'read_customers', 'write_orders']),
 )
@@ -72,9 +67,9 @@ class OnlineToken(OnlineTokenABC):
     async def load(cls, store_name: str, user_id: str) -> OnlineToken:
         return OnlineToken(
             access_token=online_token_data.access_token,
-            scope=online_token_data.scope.split(','),
+            scope=online_token_data.scope,
             associated_user_id=online_token_data.associated_user.id,
-            associated_user_scope=online_token_data.associated_user_scope.split(','),
+            associated_user_scope=online_token_data.associated_user_scope,
             expires_in=online_token_data.expires_in,
             store_name=test_information.store_name,
         )
@@ -88,7 +83,7 @@ class OfflineToken(OfflineTokenABC):
     async def load(cls, store_name: str) -> OfflineToken:
         return OfflineToken(
             access_token=offline_token_data.access_token,
-            scope=offline_token_data.scope.split(','),
+            scope=offline_token_data.scope,
             store_name=test_information.store_name,
         )
 
@@ -98,6 +93,6 @@ class PrivateToken(PrivateTokenABC):
     async def load(cls, store_name: str) -> PrivateToken:
         return PrivateToken(
             access_token=offline_token_data.access_token,
-            scope=offline_token_data.scope.split(','),
+            scope=offline_token_data.scope,
             store_name=test_information.store_name,
         )

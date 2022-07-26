@@ -31,30 +31,6 @@ from spylib.exceptions import (
 from spylib.utils.rest import Request
 
 
-class AssociatedUser(BaseModel):
-    id: int
-    first_name: str
-    last_name: str
-    email: str
-    email_verified: bool
-    account_owner: bool
-    locale: str
-    collaborator: bool
-
-
-class OfflineTokenResponse(BaseModel):
-    access_token: str
-    scope: str
-
-
-class OnlineTokenResponse(BaseModel):
-    access_token: str
-    scope: str
-    expires_in: int
-    associated_user_scope: str
-    associated_user: AssociatedUser
-
-
 class Token(ABC, BaseModel):
     """
     Abstract class for token objects. This should never be extended, as you
