@@ -77,8 +77,10 @@ def init_oauth_router(
                 timestamp=args.timestamp,
                 query_string=request.scope['query_string'],
                 api_secret_key=api_secret_key,
+                api_key=api_key,
                 state=args.state,
                 private_key=private_key,
+                code=args.code,
                 post_install=post_install,
                 post_login=post_login,
             )

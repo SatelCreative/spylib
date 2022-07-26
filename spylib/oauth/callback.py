@@ -12,8 +12,10 @@ async def process_callback(
     timestamp: int,
     query_string: str,
     api_secret_key: str,
+    api_key: str,
     state: str,
     private_key: str,
+    code: str,
     post_install: Callable[[str, OfflineTokenModel], Optional[Awaitable]],
     post_login: Optional[Callable[[str, OnlineTokenModel], Optional[Awaitable]]],
 ) -> OAuthJWT:
@@ -27,10 +29,24 @@ async def process_callback(
     oauthjwt: OAuthJWT = validate_oauthjwt(token=state, shop=shop, jwt_key=private_key)
 
     if not oauthjwt.is_login:
-        await process_install_callback()
+        await process_install_callback(
+            oauthjwt=oauthjwt,
+            shop=shop,
+            code=code,
+            api_key=api_key,
+            api_secret_key=api_secret_key,
+            post_install=post_install,
+        )
         return oauthjwt
 
-    await process_login_callback()
+    await process_login_callback(
+        oauthjwt=oauthjwt,
+        shop=shop,
+        code=code,
+        api_key=api_key,
+        api_secret_key=api_secret_key,
+        post_login=post_login,
+    )
 
     return oauthjwt
 
