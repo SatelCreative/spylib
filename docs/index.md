@@ -22,3 +22,4 @@ Shopify components managed by SPyLib:
 * Install an app through OAuth
 * Session tokens
 * Webhooks
+* Multipass

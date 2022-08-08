@@ -1,11 +1,10 @@
 import logging
-from abc import ABC, abstractclassmethod, abstractmethod
+from abc import ABC, abstractmethod
 from asyncio import sleep
 from datetime import datetime, timedelta
-from enum import Enum
 from math import ceil, floor
 from time import monotonic
-from typing import Any, ClassVar, Dict, List, Optional, Union
+from typing import Any, ClassVar, Dict, List, Optional
 
 from httpx import AsyncClient, Response
 from pydantic import BaseModel, validator
@@ -26,44 +25,10 @@ from spylib.exceptions import (
     ShopifyError,
     ShopifyExceedingMaxCostError,
     ShopifyGQLError,
-    ShopifyGQLUserError,
     ShopifyThrottledError,
     not_our_fault,
 )
-from spylib.utils.hmac import validate
 from spylib.utils.rest import Request
-
-
-class AssociatedUser(BaseModel):
-    id: int
-    first_name: str
-    last_name: str
-    email: str
-    email_verified: bool
-    account_owner: bool
-    locale: str
-    collaborator: bool
-
-
-class OfflineTokenResponse(BaseModel):
-    access_token: str
-    scope: str
-
-
-class OnlineTokenResponse(BaseModel):
-    access_token: str
-    scope: str
-    expires_in: int
-    associated_user_scope: str
-    associated_user: AssociatedUser
-
-
-class WebhookTopic(Enum):
-    ORDERS_CREATE = 'ORDERS_CREATE'
-
-
-class WebhookResponse(BaseModel):
-    id: str
 
 
 class Token(ABC, BaseModel):
@@ -276,76 +241,6 @@ class Token(ABC, BaseModel):
 
         return jsondata['data']
 
-    async def create_http_webhook(
-        self,
-        topic: Union[WebhookTopic, str],
-        callback_url: str,
-        include_fields: Optional[List[str]] = None,
-        metafield_namespaces: Optional[List[str]] = None,
-        private_metafield_namespaces: Optional[List[str]] = None,
-    ) -> WebhookResponse:
-        """Uses graphql to create a webhook"""
-        query = '''
-        mutation webhookSubscriptionCreate($topic: WebhookSubscriptionTopic!,
-                                           $webhookSubscription: WebhookSubscriptionInput!) {
-            webhookSubscriptionCreate(topic: $topic, webhookSubscription: $webhookSubscription) {
-                webhookSubscription {
-                id
-                topic
-                format
-                endpoint {
-                    __typename
-                    ... on WebhookHttpEndpoint {
-                    callbackUrl
-                    }
-                  }
-                }
-                userErrors {
-                    field
-                    message
-                }
-              }
-            }
-        '''
-        variables = {
-            'topic': topic.value if isinstance(topic, WebhookTopic) else topic,
-            'webhookSubscription': {
-                'callbackUrl': callback_url,
-                'format': 'JSON',
-                'includeFields': include_fields,
-                'metafieldNamespaces': metafield_namespaces,
-                'privateMetafieldNamespaces': private_metafield_namespaces,
-            },
-        }
-        res = await self.execute_gql(query=query, variables=variables)
-        webhook_create = res.get('webhookSubscriptionCreate', None)
-        if webhook_create and webhook_create.get('userErrors', None):
-            raise ShopifyGQLUserError(res)
-        return WebhookResponse(id=webhook_create['webhookSubscription']['id'])
-
-    async def create_event_bridge_webhook(
-        self,
-        topic: Union[WebhookTopic, str],
-        arn: str,
-        include_fields: Optional[List[str]] = None,
-        metafield_namespaces: Optional[List[str]] = None,
-        private_metafield_namespaces: Optional[List[str]] = None,
-    ) -> WebhookResponse:
-        # TODO
-        raise NotImplementedError
-
-    async def create_pubsub_webhook(
-        self,
-        topic: Union[WebhookTopic, str],
-        pubsub_project: str,
-        pubsub_topic: str,
-        include_fields: Optional[List[str]] = None,
-        metafield_namespaces: Optional[List[str]] = None,
-        private_metafield_namespaces: Optional[List[str]] = None,
-    ) -> WebhookResponse:
-        # TODO
-        raise NotImplementedError
-
 
 class OfflineTokenABC(Token, ABC):
     """
@@ -356,7 +251,8 @@ class OfflineTokenABC(Token, ABC):
     async def save(self):
         pass
 
-    @abstractclassmethod
+    @classmethod
+    @abstractmethod
     def load(cls, store_name: str):
         pass
 
@@ -379,7 +275,8 @@ class OnlineTokenABC(Token, ABC):
         therefore the developer should override this.
         """
 
-    @abstractclassmethod
+    @classmethod
+    @abstractmethod
     def load(cls, store_name: str, associated_user: str):
         """
         This method handles loading the token. By default this does nothing,
@@ -394,18 +291,11 @@ class PrivateTokenABC(Token, ABC):
     no calls to the OAuth endpoints for shopify.
     """
 
-    @abstractclassmethod
+    @classmethod
+    @abstractmethod
     def load(cls, store_name: str):
         """
         This method handles loading the token. By default this does nothing,
         therefore the developer should override this.
         """
         pass
-
-
-def is_webhook_valid(data: str, hmac_header: str, api_secret_key: str) -> bool:
-    try:
-        validate(secret=api_secret_key, sent_hmac=hmac_header, message=data, use_base64=True)
-    except ValueError:
-        return False
-    return True
