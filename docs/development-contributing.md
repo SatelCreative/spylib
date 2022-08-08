@@ -35,9 +35,9 @@ Inside `poetry shell`:
 
 ```bash
 lazydocs --overview-file="index.md" \
---src-base-url="https://github.com/SatelCreative/satel-spylib/tree/main" \
+--src-base-url="https://github.com/SatelCreative/spylib/tree/main" \
 --output-path="./docs/api-docs" \
---validate spylib
+spylib
 
 mkdocs build
 mkdocs serve

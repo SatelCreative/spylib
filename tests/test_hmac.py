@@ -3,11 +3,7 @@ from hmac import compare_digest
 
 import pytest
 
-from spylib.utils.hmac import (
-    calculate_from_components,
-    calculate_from_message,
-    validate,
-)
+from spylib.hmac import calculate_from_components, calculate_from_message, validate
 
 API_KEY = 'API_KEY'
 API_SECRET = 'API_SECRET'

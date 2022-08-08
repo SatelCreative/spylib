@@ -4,7 +4,7 @@ import jwt
 import pytest
 from starlette.requests import Request
 
-from spylib.utils.session_token import (
+from spylib.session_token import (
     InvalidIssuerError,
     MismatchedHostError,
     SessionToken,

@@ -1,8 +1,6 @@
-from typing import List, Optional
+from typing import List
 
-from starlette.responses import RedirectResponse
-
-from ..utils import JWTBaseModel, domain_to_storename, get_unique_id
+from ..utils import domain_to_storename, get_unique_id
 from .tokens import OAuthJWT
 
 
@@ -50,24 +48,7 @@ def oauth_init_url(
 def app_redirect(
     store_domain: str,
     app_domain: str,
-    jwtoken: Optional[JWTBaseModel],
-    jwt_key: str,
     app_handle: str,
-) -> RedirectResponse:
+) -> str:
 
-    if jwtoken is None:
-        return RedirectResponse(f'https://{store_domain}/admin/apps/{app_handle}')
-
-    jwtarg, signature = jwtoken.encode_hp_s(key=jwt_key)
-    redir = RedirectResponse(f'https://{store_domain}/admin/apps/{app_handle}?jwt={jwtarg}')
-
-    # TODO set 'expires'
-    redir.set_cookie(
-        key=jwtoken.cookie_key,
-        value=signature,
-        domain=app_domain,
-        httponly=True,
-        secure=True,
-    )
-
-    return redir
+    return f'https://{store_domain}/admin/apps/{app_handle}'
