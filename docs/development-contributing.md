@@ -65,7 +65,7 @@ We use [poetry](https://python-poetry.org/) to manage the dependencies and publi
 2. Change the version in the `pyproject.toml` and `spylib/__init__.py` files
     * you can use `poetry version XXXXX` to change `pyproject.toml`
 3. Generate the CHANGELOG.md using Github's [automatically generated release notes](https://docs.github.com/en/repositories/releasing-projects-on-github/automatically-generated-release-notes),
-   just **don't create the release**, just make the changelog through the UI.
+   but **don't create the release**, just make the changelog through the UI.
 3. Commit to git
 4. Open PR for other codeowners to review
 5. Once approved, squash and merge `release/x.y.z`
