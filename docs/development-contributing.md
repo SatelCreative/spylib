@@ -56,9 +56,9 @@ We want only one homepage for simplicity sake so make sure to edit both files id
 or just edit one file and copy the new version to overwrite the other file when you're done editing.
 A Github action verifies that the two files are identical and will prevent a PR merge is they aren't.
 
-## Publishing to pipy
+## Publishing to PyPI
 
-We use [poetry](https://python-poetry.org/) to manage the dependencies and publish to pypi.
+We use [poetry](https://python-poetry.org/) to manage the dependencies and publish to PyPI.
 
 
 1. Create branch `release/x.y.z`
