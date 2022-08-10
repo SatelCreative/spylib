@@ -240,36 +240,6 @@
   
   
     <li class="md-nav__item">
-      <a href="../hmac/" class="md-nav__link">
-        HMAC
-      </a>
-    </li>
-  
-
-    
-      
-      
-      
-
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../multipass/" class="md-nav__link">
-        Multipass
-      </a>
-    </li>
-  
-
-    
-      
-      
-      
-
-  
-  
-  
-    <li class="md-nav__item">
       <a href="../oauth/" class="md-nav__link">
         Install an app through OAuth
       </a>
@@ -318,18 +288,18 @@
     <li class="md-nav__item md-nav__item--nested">
       
       
-        <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_8" type="checkbox" id="__nav_8" >
+        <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_6" type="checkbox" id="__nav_6" >
       
       
       
       
-        <label class="md-nav__link" for="__nav_8">
+        <label class="md-nav__link" for="__nav_6">
           API Reference
           <span class="md-nav__icon md-icon"></span>
         </label>
       
       <nav class="md-nav" aria-label="API Reference" data-md-level="1">
-        <label class="md-nav__title" for="__nav_8">
+        <label class="md-nav__title" for="__nav_6">
           <span class="md-nav__icon md-icon"></span>
           API Reference
         </label>
@@ -371,20 +341,6 @@
     <li class="md-nav__item">
       <a href="../api-docs/exceptions/" class="md-nav__link">
         Exceptions
-      </a>
-    </li>
-  
-
-            
-          
-            
-              
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../api-docs/multipass/" class="md-nav__link">
-        Multipass
       </a>
     </li>
   
@@ -729,18 +685,15 @@ A Github action verifies that the two files are identical and will prevent a PR 
 <p>We use <a href="https://python-poetry.org/">poetry</a> to manage the dependencies and publish to pypi.</p>
 <ol>
 <li>Create branch <code>release/x.y.z</code></li>
-<li>Change the version in the <code>pyproject.toml</code> and <code>spylib/__init__.py</code> files<ul>
+<li>Change the version in the <code>pyproject.toml</code> and <code>spylib/__init__.py</code> files</li>
 <li>you can use <code>poetry version XXXXX</code> to change <code>pyproject.toml</code></li>
-</ul>
-</li>
 <li>Generate the CHANGELOG.md using <a href="https://github.com/CookPete/auto-changelog">auto-changelog</a>:
    <code>node_modules/auto-changelog/src/index.js --tag-pattern "\d+\.\d+(\.\d+)?\$" -v x.y.z</code></li>
 <li>Commit to git</li>
 <li>Open PR for other codeowners to review</li>
 <li>Once approved, squash and merge <code>release/x.y.z</code></li>
 <li>Run <code>poetry publish --build</code> to create the package and publish to PyPI</li>
-<li>Create the matching release in Github with Github's
-<a href="https://docs.github.com/en/repositories/releasing-projects-on-github/automatically-generated-release-notes">automatically generated release notes</a></li>
+<li>Tag the release in git and push it to Github</li>
 </ol>
 <p><strong>Notes</strong>:</p>
 <ul>
@@ -803,7 +756,7 @@ A Github action verifies that the two files are identical and will prevent a PR 
     <div class="md-dialog" data-md-component="dialog">
       <div class="md-dialog__inner md-typeset"></div>
     </div>
-    <script id="__config" type="application/json">{"base": "..", "features": [], "search": "../assets/javascripts/workers/search.fcfe8b6d.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.config.lang": "en", "search.config.pipeline": "trimmer, stopWordFilter", "search.config.separator": "[\\s\\-]+", "search.placeholder": "Search", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version.title": "Select version"}, "version": {"provider": "mike"}}</script>
+    <script id="__config" type="application/json">{"base": "..", "features": [], "search": "../assets/javascripts/workers/search.fcfe8b6d.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.config.lang": "en", "search.config.pipeline": "trimmer, stopWordFilter", "search.config.separator": "[\\s\\-]+", "search.placeholder": "Search", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version.title": "Select version"}, "version": null}</script>
     
     
       <script src="../assets/javascripts/bundle.b1047164.min.js"></script>

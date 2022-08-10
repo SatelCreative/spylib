@@ -240,36 +240,6 @@
   
   
     <li class="md-nav__item">
-      <a href="../hmac/" class="md-nav__link">
-        HMAC
-      </a>
-    </li>
-  
-
-    
-      
-      
-      
-
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../multipass/" class="md-nav__link">
-        Multipass
-      </a>
-    </li>
-  
-
-    
-      
-      
-      
-
-  
-  
-  
-    <li class="md-nav__item">
       <a href="../oauth/" class="md-nav__link">
         Install an app through OAuth
       </a>
@@ -367,18 +337,18 @@
     <li class="md-nav__item md-nav__item--nested">
       
       
-        <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_8" type="checkbox" id="__nav_8" >
+        <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_6" type="checkbox" id="__nav_6" >
       
       
       
       
-        <label class="md-nav__link" for="__nav_8">
+        <label class="md-nav__link" for="__nav_6">
           API Reference
           <span class="md-nav__icon md-icon"></span>
         </label>
       
       <nav class="md-nav" aria-label="API Reference" data-md-level="1">
-        <label class="md-nav__title" for="__nav_8">
+        <label class="md-nav__title" for="__nav_6">
           <span class="md-nav__icon md-icon"></span>
           API Reference
         </label>
@@ -420,20 +390,6 @@
     <li class="md-nav__item">
       <a href="../api-docs/exceptions/" class="md-nav__link">
         Exceptions
-      </a>
-    </li>
-  
-
-            
-          
-            
-              
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../api-docs/multipass/" class="md-nav__link">
-        Multipass
       </a>
     </li>
   
@@ -637,35 +593,30 @@ functionality can be used to register webhooks and validate that the webhook not
 <p><strong>Breaking Changes in version 0.6.0</strong>: <br>
 The param <code>is_base64</code> used in function <code>validate</code> from module <code>spylib.utils.hmac</code> is renamed to <code>use_base64</code>
 to better convey the meaning of the parameter</p>
-<p><strong>Breaking Changes in version 0.7.0</strong>: <br>
-* The webhook features become available from <code>spylib.webhook</code> module as functions 
-instead of from the <code>Token</code> class as methods. 
-* The function <code>spylib.webook_is_valid</code> is now available at <code>spylib.webhook.validate</code></p>
 <h2 id="register-webhooks">Register Webhooks</h2>
 <p>You can easily register your endpoint to receive webhooks from Shopify using an admin API access token:
-<div class="highlight"><pre><span></span><code><span class="kn">from</span> <span class="nn">spylib</span> <span class="kn">import</span> <span class="n">webhook</span>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span> <span class="nn">spylib</span> <span class="kn">import</span> <span class="n">OfflineTokenABC</span>
+
+<span class="k">class</span> <span class="nc">OfflineToken</span><span class="p">(</span><span class="n">OfflineTokenABC</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Example offline token&quot;&quot;&quot;</span>
+    <span class="k">async</span> <span class="k">def</span> <span class="nf">save</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c1"># Write to storage</span>
+        <span class="k">pass</span>
+
+    <span class="k">async</span> <span class="k">def</span> <span class="nf">load</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">store_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="c1"># API access scopes from https://shopify.dev/api/usage/access-scopes</span>
+        <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="n">store_name</span><span class="o">=</span><span class="n">store_name</span><span class="p">,</span> <span class="n">scope</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;write_orders&#39;</span><span class="p">],</span> <span class="n">access_token</span><span class="o">=</span><span class="s1">&#39;ACCESS_TOKEN&#39;</span><span class="p">)</span>
 
 <span class="k">async</span> <span class="k">def</span> <span class="nf">register_webhook_with_http_endpoint</span><span class="p">():</span>
+    <span class="n">token</span> <span class="o">=</span> <span class="k">await</span> <span class="n">OfflineToken</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">store_name</span><span class="o">=</span><span class="s1">&#39;my-store&#39;</span><span class="p">)</span>
     <span class="c1"># topics from https://shopify.dev/api/admin-graphql/&lt;API-VERSION&gt;/enums/webhooksubscriptiontopic</span>
-    <span class="n">res</span> <span class="o">=</span> <span class="k">await</span> <span class="n">webhook</span><span class="o">.</span><span class="n">create_http</span><span class="p">(</span><span class="n">offline_token</span><span class="o">=&lt;</span><span class="n">concrete_offline_token</span><span class="o">&gt;</span><span class="p">,</span> <span class="n">topic</span><span class="o">=</span><span class="s1">&#39;ORDERS_CREATE&#39;</span><span class="p">,</span> <span class="n">callback_url</span><span class="o">=</span><span class="s1">&#39;https://sometest.com/example&#39;</span><span class="p">)</span>
-    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Webhook registered with id </span><span class="si">{</span><span class="n">res</span><span class="o">.</span><span class="n">id</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
-
-<span class="k">async</span> <span class="k">def</span> <span class="nf">register_webhook_with_event_bridge_endpoint</span><span class="p">():</span>
-    <span class="c1"># configure AWS Event Bridge https://shopify.dev/apps/webhooks/configuration/eventbridge</span>
-    <span class="n">res</span> <span class="o">=</span> <span class="k">await</span> <span class="n">webhook</span><span class="o">.</span><span class="n">create_event_bridge</span><span class="p">(</span><span class="n">offline_token</span><span class="o">=&lt;</span><span class="n">concrete_offline_token</span><span class="o">&gt;</span><span class="p">,</span> <span class="n">topic</span><span class="o">=</span><span class="s1">&#39;ORDERS_CREATE&#39;</span><span class="p">,</span> <span class="n">arn</span><span class="o">=</span><span class="s1">&#39;&lt;RESOURCE_NAME&gt;&#39;</span><span class="p">)</span>
-    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Webhook registered with id </span><span class="si">{</span><span class="n">res</span><span class="o">.</span><span class="n">id</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
-
-<span class="k">async</span> <span class="k">def</span> <span class="nf">register_webhook_with_pub_sub_endpoint</span><span class="p">():</span>
-    <span class="c1"># configure Google Cloud PubSub https://shopify.dev/apps/webhooks/configuration/google-cloud</span>
-    <span class="n">res</span> <span class="o">=</span> <span class="k">await</span> <span class="n">webhook</span><span class="o">.</span><span class="n">create_pub_sub</span><span class="p">(</span><span class="n">offline_token</span><span class="o">=&lt;</span><span class="n">concrete_offline_token</span><span class="o">&gt;</span><span class="p">,</span> <span class="n">topic</span><span class="o">=</span><span class="s1">&#39;ORDERS_CREATE&#39;</span><span class="p">,</span> <span class="n">pub_sub_project</span><span class="o">=</span><span class="s1">&#39;&lt;PROJECT&gt;&#39;</span><span class="p">,</span> <span class="n">pub_sub_topic</span><span class="o">=</span><span class="s1">&#39;&lt;TOPIC&gt;&#39;</span><span class="p">)</span>
+    <span class="n">res</span> <span class="o">=</span> <span class="k">await</span> <span class="n">token</span><span class="o">.</span><span class="n">create_http_webhook</span><span class="p">(</span><span class="n">topic</span><span class="o">=</span><span class="s1">&#39;ORDERS_CREATE&#39;</span><span class="p">,</span> <span class="n">callback_url</span><span class="o">=</span><span class="s1">&#39;https://sometest.com/example&#39;</span><span class="p">)</span>
     <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Webhook registered with id </span><span class="si">{</span><span class="n">res</span><span class="o">.</span><span class="n">id</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
 </code></pre></div></p>
 <h2 id="validate-webhooks">Validate Webhooks</h2>
-<p>Shopify webhooks are signed with an HMAC in a header. You can use <code>webhook.validate</code> to <a href="https://shopify.dev/apps/webhooks/configuration/https#step-5-verify-the-webhook">verify this signature</a>:</p>
-<div class="highlight"><pre><span></span><code><span class="kn">from</span> <span class="nn">spylib</span> <span class="kn">import</span> <span class="n">webhook</span>
-
-<span class="n">is_webhook_valid</span> <span class="o">=</span> <span class="n">webhook</span><span class="o">.</span><span class="n">validate</span><span class="p">(</span><span class="n">data</span><span class="o">=</span><span class="s1">&#39;data&#39;</span><span class="p">,</span> <span class="n">hmac_header</span><span class="o">=</span><span class="s1">&#39;hmac&#39;</span><span class="p">,</span> <span class="n">api_secret_key</span><span class="o">=</span><span class="s1">&#39;API_SECRET_KEY&#39;</span><span class="p">)</span>
-<span class="k">if</span> <span class="n">is_webhook_valid</span><span class="p">:</span>
+<p>Shopify webhooks are signed with an HMAC in a header. You can use <code>is_webhook_valid</code> to <a href="https://shopify.dev/apps/webhooks/configuration/https#step-5-verify-the-webhook">verify this signature</a>:</p>
+<div class="highlight"><pre><span></span><code><span class="n">is_valid</span> <span class="o">=</span> <span class="n">is_webhook_valid</span><span class="p">(</span><span class="n">data</span><span class="o">=</span><span class="s1">&#39;data&#39;</span><span class="p">,</span> <span class="n">hmac_header</span><span class="o">=</span><span class="s1">&#39;hmac&#39;</span><span class="p">,</span> <span class="n">api_secret_key</span><span class="o">=</span><span class="s1">&#39;API_SECRET_KEY&#39;</span><span class="p">)</span>
+<span class="k">if</span> <span class="n">is_valid</span><span class="p">:</span>
     <span class="c1"># do something</span>
 </code></pre></div>
                 
@@ -740,7 +691,7 @@ instead of from the <code>Token</code> class as methods.
     <div class="md-dialog" data-md-component="dialog">
       <div class="md-dialog__inner md-typeset"></div>
     </div>
-    <script id="__config" type="application/json">{"base": "..", "features": [], "search": "../assets/javascripts/workers/search.fcfe8b6d.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.config.lang": "en", "search.config.pipeline": "trimmer, stopWordFilter", "search.config.separator": "[\\s\\-]+", "search.placeholder": "Search", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version.title": "Select version"}, "version": {"provider": "mike"}}</script>
+    <script id="__config" type="application/json">{"base": "..", "features": [], "search": "../assets/javascripts/workers/search.fcfe8b6d.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.config.lang": "en", "search.config.pipeline": "trimmer, stopWordFilter", "search.config.separator": "[\\s\\-]+", "search.placeholder": "Search", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version.title": "Select version"}, "version": null}</script>
     
     
       <script src="../assets/javascripts/bundle.b1047164.min.js"></script>
