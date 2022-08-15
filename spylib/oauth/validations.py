@@ -1,5 +1,3 @@
-from copy import deepcopy
-from operator import itemgetter
 from typing import Any, List, Tuple
 from urllib.parse import parse_qsl
 
@@ -21,14 +19,7 @@ def validate_callback(shop: str, timestamp: int, query_string: Any, api_secret_k
     # 3) Check the hmac
     # Extract HMAC
     args = parse_qsl(q_str)
-    original_args = deepcopy(args)
-    try:
-        # Let's assume alphabetical sorting to avoid issues with scrambled args when using bonnette
-        args.sort(key=itemgetter(0))
-        validate_callback_args(args=args, api_secret_key=api_secret_key)
-    except ValueError:
-        # Try with the original ordering
-        validate_callback_args(args=original_args, api_secret_key=api_secret_key)
+    validate_callback_args(args=args, api_secret_key=api_secret_key)
 
 
 def validate_callback_args(args: List[Tuple[str, str]], api_secret_key: str) -> None:
