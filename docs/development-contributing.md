@@ -56,16 +56,16 @@ We want only one homepage for simplicity sake so make sure to edit both files id
 or just edit one file and copy the new version to overwrite the other file when you're done editing.
 A Github action verifies that the two files are identical and will prevent a PR merge is they aren't.
 
-## Publishing to pipy
+## Publishing to PyPI
 
-We use [poetry](https://python-poetry.org/) to manage the dependencies and publish to pypi.
+We use [poetry](https://python-poetry.org/) to manage the dependencies and publish to PyPI.
 
 
 1. Create branch `release/x.y.z`
 2. Change the version in the `pyproject.toml` and `spylib/__init__.py` files
     * you can use `poetry version XXXXX` to change `pyproject.toml`
-3. Generate the CHANGELOG.md using [auto-changelog](https://github.com/CookPete/auto-changelog):
-   `node_modules/auto-changelog/src/index.js --tag-pattern "\d+\.\d+(\.\d+)?\$" -v x.y.z`
+3. Generate the CHANGELOG.md using Github's [automatically generated release notes](https://docs.github.com/en/repositories/releasing-projects-on-github/automatically-generated-release-notes),
+   but **don't create the release**, just make the changelog through the UI.
 3. Commit to git
 4. Open PR for other codeowners to review
 5. Once approved, squash and merge `release/x.y.z`
