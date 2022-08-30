@@ -4,6 +4,7 @@ from typing import List, Optional, Union
 from pydantic import BaseModel
 
 from spylib.admin_api import OfflineTokenABC
+from spylib.constants import UTF8ENCODING
 from spylib.exceptions import ShopifyGQLUserError
 from spylib.hmac import validate as validate_hmac
 from spylib.webhook.graphql_queries import WEBHOOK_CREATE_GQL
@@ -23,7 +24,9 @@ class WebhookCreate(Enum):
     PUB_SUB = 'pubSubWebhookSubscriptionCreate'
 
 
-def validate(data: str, hmac_header: str, api_secret_key: str) -> bool:
+def validate(data: Union[str, bytes], hmac_header: str, api_secret_key: str) -> bool:
+    if isinstance(data, bytes):
+        data = data.decode(UTF8ENCODING)
     try:
         validate_hmac(secret=api_secret_key, sent_hmac=hmac_header, message=data, use_base64=True)
     except ValueError:

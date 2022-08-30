@@ -23,3 +23,4 @@ OPERATION_NAME_REQUIRED_ERROR_MESSAGE = 'An operation name is required'
 WRONG_OPERATION_NAME_ERROR_MESSAGE = (
     'No operation named "{}"'  # Required as they don't stay consistant
 )
+UTF8ENCODING = 'utf-8'
