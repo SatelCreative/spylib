@@ -26,9 +26,11 @@ class WebhookCreate(Enum):
 
 def validate(data: Union[str, bytes], hmac_header: str, api_secret_key: str) -> bool:
     if isinstance(data, bytes):
-        data = data.decode(UTF8ENCODING)
+        data_str: str = data.decode(UTF8ENCODING)
+    else:
+        data_str: str = data
     try:
-        validate_hmac(secret=api_secret_key, sent_hmac=hmac_header, message=data, use_base64=True)
+        validate_hmac(secret=api_secret_key, sent_hmac=hmac_header, message=data_str, use_base64=True)
     except ValueError:
         return False
     return True
