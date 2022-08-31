@@ -1,4 +1,6 @@
 from datetime import datetime, timedelta
+from importlib import util
+from sys import modules
 
 import jwt
 import pytest
@@ -89,18 +91,20 @@ def parse_session_token(request: Request):
 
 @pytest.mark.asyncio
 async def test_depends(token):
-    with pytest.raises(ImportError):
-        from fastapi import Depends, FastAPI  # type: ignore
-        from fastapi.testclient import TestClient  # type: ignore
+    if 'fastapi' not in modules and util.find_spec('fastapi') is None:
+        return
 
-        app = FastAPI()
+    from fastapi import Depends, FastAPI  # type: ignore
+    from fastapi.testclient import TestClient  # type: ignore
 
-        @app.get('/token')
-        async def token_endpoint(token: SessionToken = Depends(parse_session_token)):
-            return token
+    app = FastAPI()
 
-        client = TestClient(app=app)
+    @app.get('/token')
+    async def token_endpoint(token: SessionToken = Depends(parse_session_token)):
+        return token
 
-        header = generate_auth_header(token)
+    client = TestClient(app=app)
 
-        client.get('/token', headers={'Authorization': header})
+    header = generate_auth_header(token)
+
+    client.get('/token', headers={'Authorization': header})
