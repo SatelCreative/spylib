@@ -63,8 +63,9 @@ class MockHTTPResponse:
 
 @pytest.mark.asyncio
 async def test_oauth_without_fastapi():
-    with pytest.raises(FastAPIImportError):
-        import spylib.oauth.fastapi  # noqa: F401
+    if 'fastapi' not in modules and util.find_spec('fastapi') is None:
+        with pytest.raises(FastAPIImportError):
+            import spylib.oauth.fastapi  # noqa: F401
 
 
 @pytest.mark.asyncio
@@ -75,7 +76,8 @@ async def test_oauth_with_fastapi(mocker):
     from fastapi import FastAPI  # type: ignore[import]
     from fastapi.testclient import TestClient  # type: ignore[import]
 
-    from spylib.oauth import OfflineToken, OnlineToken, init_oauth_router
+    from spylib.oauth import OfflineTokenModel, OnlineTokenModel
+    from spylib.oauth.fastapi import init_oauth_router
 
     app = FastAPI()
 
@@ -142,7 +144,7 @@ async def test_oauth_with_fastapi(mocker):
     )
 
     TEST_DATA.post_install.assert_called_once()
-    TEST_DATA.post_install.assert_called_with('test', OfflineToken(**OFFLINETOKEN_DATA))
+    TEST_DATA.post_install.assert_called_with('test', OfflineTokenModel(**OFFLINETOKEN_DATA))
 
     # --------- Test the callback endpoint for login -----------
     query_str = urlencode(
@@ -171,7 +173,7 @@ async def test_oauth_with_fastapi(mocker):
     )
 
     TEST_DATA.post_login.assert_called_once()
-    TEST_DATA.post_login.assert_called_with('test', OnlineToken(**ONLINETOKEN_DATA))
+    TEST_DATA.post_login.assert_called_with('test', OnlineTokenModel(**ONLINETOKEN_DATA))
 
 
 def check_oauth_redirect_url(response: Response, client, path: str, scope: List[str]) -> str:
