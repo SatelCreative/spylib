@@ -2,6 +2,7 @@ import pytest
 from pytest import param
 
 from spylib import webhook
+from spylib.constants import UTF8ENCODING
 
 API_SECRET = 'secret'
 MESSAGE = 'message'
@@ -10,6 +11,13 @@ INVALID_HMAC = 'hmac'
 
 params = [
     param(API_SECRET, MESSAGE, VALID_HMAC, True, id='hmac is valid'),
+    param(
+        API_SECRET,
+        bytes(MESSAGE, UTF8ENCODING),
+        VALID_HMAC,
+        True,
+        id='hmac is valid with data in bytes',
+    ),
     param(API_SECRET, MESSAGE, INVALID_HMAC, False, id='hmac is invalid'),
 ]
 
