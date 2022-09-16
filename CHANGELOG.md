@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file. Dates are displayed in UTC.
 
+#### [0.8.0](https://github.com/SatelCreative/spylib/compare/0.7.0...0.8.0)
+> 16 September 2022
+
+* 💥🗑️ Remove bonnette specific code by @lishanl in [`#163`](https://github.com/SatelCreative/spylib/pull/163)
+* 🐛 Fix fastapi tests by @lishanl in [`#167`](https://github.com/SatelCreative/spylib/pull/167)
+* 🎨 add bytes type data support to webhook hmac validate function by @lishanl in [`#168`](https://github.com/SatelCreative/spylib/pull/168)
+* ✨ Extract the framework code by @ponty33 in [`#157`](https://github.com/SatelCreative/spylib/pull/157)
+
 
 #### [0.7.0](https://github.com/SatelCreative/spylib/compare/0.6.0...0.7.0)
 
