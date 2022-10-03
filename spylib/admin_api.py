@@ -186,7 +186,7 @@ class Token(ABC, BaseModel):
             json=body,
             headers=headers,
         )
-        jsondata = resp.json()
+        
         # Handle any response that is not 200, which will return with error message
         # https://shopify.dev/api/admin-graphql#status_and_error_codes
         if resp.status_code != 200:
@@ -194,6 +194,8 @@ class Token(ABC, BaseModel):
             raise ShopifyGQLError(
                 f'GQL query failed, status code: {resp.status_code}. {error_msg}'
             )
+
+        jsondata = resp.json()
 
         if type(jsondata) is not dict:
             raise ValueError('JSON data is not a dictionary')
