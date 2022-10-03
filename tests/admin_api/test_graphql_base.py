@@ -120,21 +120,16 @@ async def test_store_graphql_non_200(mocker):
         name
       }
     }"""
-    data = {
-        "errors": "An unexpected error occurred"
-    }
-    gql_response = {
-        "errors": "An unexpected error occurred"
-    }
+    data = {"errors": "An unexpected error occurred"}
+    gql_response = {"errors": "An unexpected error occurred"}
 
     shopify_request_mock = mocker.patch(
         'httpx.AsyncClient.request',
         new_callable=AsyncMock,
         return_value=MockHTTPResponse(status_code=500, jsondata=gql_response),
     )
-
-    jsondata = await token.execute_gql(query=query)
+    with pytest.raises(Exception):
+        jsondata = await token.execute_gql(query=query)
+        assert jsondata == data
 
     shopify_request_mock.assert_called_once()
-
-    assert jsondata == data
