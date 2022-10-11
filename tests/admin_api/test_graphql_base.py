@@ -120,8 +120,8 @@ async def test_store_graphql_non_200(mocker):
         name
       }
     }"""
-    data = {"errors": "An unexpected error occurred"}
-    gql_response = {"errors": "An unexpected error occurred"}
+    data = {'errors': 'An unexpected error occurred'}
+    gql_response = {'errors': 'An unexpected error occurred'}
 
     shopify_request_mock = mocker.patch(
         'httpx.AsyncClient.request',
