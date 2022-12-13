@@ -13,6 +13,7 @@ from .utils.domain import store_domain
 REQUIRED_FIELDS = ['iss', 'dest', 'sub', 'jti', 'sid']
 ALGORITHM = 'HS256'
 PREFIX = 'Bearer '
+LEEWAY_SECONDS = 10
 
 
 class TokenValidationError(Exception):
@@ -83,6 +84,9 @@ class SessionToken(BaseModel):
             secret,
             audience=api_key,
             algorithms=[ALGORITHM],
+            # AppBridge frequently sends future `nbf`, and it causes `ImmatureSignatureError`.
+            # Accept few seconds clock skew to avoid this error.
+            leeway=LEEWAY_SECONDS,
             options={'require': REQUIRED_FIELDS},
         )
 
