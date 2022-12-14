@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file. Dates are displayed in UTC.
 
+#### [0.8.1](https://github.com/SatelCreative/spylib/compare/0.8.0...0.8.1)
+> 14 December 2022
+* ✨ Handle GQL non-200 response by @ponty33 in https://github.com/SatelCreative/spylib/pull/155
+* 🐛 add 10 seconds leeway for session token check on the nbf by @lishanl in https://github.com/SatelCreative/spylib/pull/175
+
+
 #### [0.8.0](https://github.com/SatelCreative/spylib/compare/0.7.0...0.8.0)
 > 16 September 2022
 
