@@ -109,6 +109,6 @@ async def exchange_online_token(
         shop=shop, code=code, api_key=api_key, api_secret_key=api_secret_key
     )
 
-    assert isinstance(token, OnlineTokenModel)
+    assert isinstance(token, OnlineTokenModel), "Access token obtained is not an online token"
 
     return token
