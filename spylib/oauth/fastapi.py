@@ -85,7 +85,7 @@ def init_oauth_router(
                 post_login=post_login,
             )
         except Exception as e:
-            raise HTTPException(status_code=400, detail=f'Validation failed: {e}')
+            raise HTTPException(status_code=400, detail=f'Validation failed: {str(e)}')
 
         # === If installation ===
         # Setup the login obj and redirect to oauth_redirect
