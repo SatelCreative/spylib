@@ -11,7 +11,8 @@ from requests import Response  # type: ignore
 
 from spylib import hmac
 from spylib.exceptions import FastAPIImportError
-from spylib.utils import JWTBaseModel, now_epoch
+from spylib.oauth.tokens import OAuthJWT
+from spylib.utils import JWTBaseModel, domain_to_storename, now_epoch
 
 HANDLE = 'HANDLE'
 SHOPIFY_API_KEY = 'API_KEY'
@@ -114,11 +115,10 @@ async def test_oauth_with_fastapi(mocker):
         MockHTTPResponse(status_code=200, jsondata=ONLINETOKEN_DATA),
     ]
     # --------- Test the callback endpoint for installation -----------
-    query_str = urlencode(
-        dict(shop=TEST_STORE, state=state, timestamp=now_epoch(), code='INSTALLCODE')
+    query_str = build_callback_query_str(
+        params=dict(shop=TEST_STORE, state=state, timestamp=now_epoch(), code='INSTALLCODE'),
+        hmac_secret=SHOPIFY_SECRET_KEY,
     )
-    hmac_arg = hmac.calculate_from_message(secret=SHOPIFY_SECRET_KEY, message=query_str)
-    query_str += '&hmac=' + hmac_arg
 
     response = client.get('/callback', params=query_str, allow_redirects=False)
     query = check_oauth_redirect_url(
@@ -147,12 +147,11 @@ async def test_oauth_with_fastapi(mocker):
     TEST_DATA.post_install.assert_called_with('test', OfflineTokenModel(**OFFLINETOKEN_DATA))
 
     # --------- Test the callback endpoint for login -----------
-    query_str = urlencode(
-        dict(shop=TEST_STORE, state=state, timestamp=now_epoch(), code='LOGINCODE'),
+    query_str = build_callback_query_str(
+        params=dict(shop=TEST_STORE, state=state, timestamp=now_epoch(), code='LOGINCODE'),
+        hmac_secret=SHOPIFY_SECRET_KEY,
         safe='=,&/[]:',
     )
-    hmac_arg = hmac.calculate_from_message(secret=SHOPIFY_SECRET_KEY, message=query_str)
-    query_str += '&hmac=' + hmac_arg
 
     response = client.get('/callback', params=query_str, allow_redirects=False)
     state = check_oauth_redirect_url(
@@ -209,3 +208,62 @@ def check_oauth_redirect_query(query: str, scope: List[str], query_extra: dict =
     assert parsed_query == expected_query
 
     return state
+
+
+def build_callback_query_str(params: dict, hmac_secret: str, safe: str = '') -> str:
+    query_str = urlencode(params, safe=safe)
+    hmac_arg = hmac.calculate_from_message(secret=hmac_secret, message=query_str)
+    query_str += '&hmac=' + hmac_arg
+    return query_str
+
+
+callback_params = [
+    pytest.param(dict(code='INSTALLCODE')),
+    pytest.param(dict(code='INSTALLCODE', host='edfsg4sdf6g4sdg6re')),
+    pytest.param(dict(code='INSTALLCODE', random1=12345, random2='giezeogkzor')),
+    pytest.param(dict(code='LOGINCODE')),
+    pytest.param(dict(code='LOGINCODE', host='edfsg4sdf6g4sdg6re')),
+    pytest.param(dict(code='LOGINCODE', random1=12345, random2='giezeogkzor')),
+]
+
+
+@pytest.mark.parametrize('extra_params', callback_params)
+def test_callback_endpoint(extra_params, mocker):
+    if 'fastapi' not in modules and util.find_spec('fastapi') is None:
+        return
+
+    from fastapi import FastAPI  # type: ignore[import]
+    from fastapi.testclient import TestClient  # type: ignore[import]
+
+    from spylib.oauth.fastapi import init_oauth_router
+
+    app = FastAPI()
+
+    oauth_router = init_oauth_router(**TEST_DATA)
+
+    app.include_router(oauth_router)
+    client = TestClient(app)
+
+    is_login = extra_params['code'] == 'LOGINCODE'
+    oauthjwt = OAuthJWT(
+        is_login=is_login, storename=domain_to_storename(TEST_STORE), nonce=12345678990
+    )
+    state = oauthjwt.encode_token(key=TEST_DATA.private_key)
+    jsondata = ONLINETOKEN_DATA if is_login else OFFLINETOKEN_DATA
+
+    # Callback calls to get tokens
+    shopify_request_mock = mocker.patch('httpx.AsyncClient.request', new_callable=AsyncMock)
+    shopify_request_mock.side_effect = [
+        MockHTTPResponse(status_code=200, jsondata=jsondata),
+    ]
+
+    params = dict(shop=TEST_STORE, state=state, timestamp=now_epoch())
+    params.update(extra_params)
+    query_str = build_callback_query_str(
+        params=params,
+        hmac_secret=SHOPIFY_SECRET_KEY,
+        safe='=,&/[]:',
+    )
+
+    response = client.get('/callback', params=query_str, allow_redirects=False)
+    assert response.status_code == 307
