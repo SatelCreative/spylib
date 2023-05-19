@@ -42,7 +42,7 @@ class Token(ABC, BaseModel):
     access_token: Optional[str]
     access_token_invalid: bool = False
 
-    api_version: ClassVar[str] = '2022-01'
+    api_version: ClassVar[str] = ''
 
     rest_bucket_max: int = 80
     rest_bucket: int = rest_bucket_max
@@ -62,6 +62,8 @@ class Token(ABC, BaseModel):
 
     @property
     def api_url(self) -> str:
+        if not self.api_version:
+            return f'https://{self.store_name}.myshopify.com/admin'
         return f'https://{self.store_name}.myshopify.com/admin/api/{self.api_version}'
 
     @validator('scope', pre=True)
