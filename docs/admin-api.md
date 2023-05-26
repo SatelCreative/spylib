@@ -38,7 +38,7 @@ class PrivateToken(PrivateTokenABC):
 
 - As shown in the `Implement Token Classes`, token can be used as following:
 ```python
-from spylib import OfflineTokenABC
+from spylib.admin_api import OfflineTokenABC
 
 
 class OfflineToken(OfflineTokenABC):
