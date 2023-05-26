@@ -168,7 +168,7 @@ query = """
   }
 }"""
 
-product_json = await token.execute_gql(query = query)
+product_json = await token.execute_gql(query=query)
 ```
 
 If you want to update a product in a shop you can run:
