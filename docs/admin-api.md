@@ -29,7 +29,7 @@ class OnlineToken(OnlineTokenABC):
 
 class PrivateToken(PrivateTokenABC):
   @classmethod
-  async def load(cls, store_name: str, user_id: str):
+  async def load(cls, store_name: str):
       # Some code to load the token from the database
       # No need for save, as it is static.
 ```
