@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from typing import ClassVar, Optional
+
 from pydantic.class_validators import validator
 from pydantic.main import BaseModel
 
@@ -92,6 +94,21 @@ class PrivateToken(PrivateTokenABC):
     @classmethod
     async def load(cls, store_name: str) -> PrivateToken:
         return PrivateToken(
+            access_token=offline_token_data.access_token,
+            scope=offline_token_data.scope,
+            store_name=test_information.store_name,
+        )
+
+
+class VersionOfflineToken(OfflineTokenABC):
+    api_version: ClassVar[Optional[str]] = '2023-04'
+
+    async def save(self):
+        pass
+
+    @classmethod
+    async def load(cls, store_name: str) -> VersionOfflineToken:
+        return VersionOfflineToken(
             access_token=offline_token_data.access_token,
             scope=offline_token_data.scope,
             store_name=test_information.store_name,

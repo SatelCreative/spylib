@@ -37,6 +37,8 @@ class Token(ABC, BaseModel):
     should either be using the OfflineTokenABC or the OnlineTokenABC.
     """
 
+    api_version: ClassVar[Optional[str]] = None
+
     store_name: str
     scope: List[str] = []
     access_token: Optional[str]
@@ -60,7 +62,9 @@ class Token(ABC, BaseModel):
 
     @property
     def api_url(self) -> str:
-        return f'https://{self.store_name}.myshopify.com/admin'
+        if not self.api_version:
+            return f'https://{self.store_name}.myshopify.com/admin'
+        return f'https://{self.store_name}.myshopify.com/admin/api/{self.api_version}'
 
     @validator('scope', pre=True)
     def convert_scope(cls, v):
@@ -121,7 +125,6 @@ class Token(ABC, BaseModel):
         self,
         request: Request,
         endpoint: str,
-        api_version: Optional[str] = None,
         json: Optional[Dict[str, Any]] = None,
         debug: str = '',
     ) -> Dict[str, Any]:
@@ -131,13 +134,9 @@ class Token(ABC, BaseModel):
             if not self.access_token:
                 raise ValueError('You have not initialized the token for this store. ')
 
-            url = f'{self.api_url}{endpoint}'
-            if api_version:
-                url = f'{self.api_url}/api/{api_version}{endpoint}'
-
             response = await self.client.request(
                 method=request.method.value,
-                url=url,
+                url=f'{self.api_url}{endpoint}',
                 headers={'X-Shopify-Access-Token': self.access_token},
                 json=json,
             )
@@ -168,7 +167,6 @@ class Token(ABC, BaseModel):
         self,
         query: str,
         variables: Dict[str, Any] = {},
-        api_version: Optional[str] = None,
         operation_name: Optional[str] = None,
         suppress_errors: bool = False,
     ) -> Dict[str, Any]:
@@ -177,8 +175,6 @@ class Token(ABC, BaseModel):
             raise ValueError('Token Undefined')
 
         url = f'{self.api_url}/graphql.json'
-        if api_version:
-            url = f'{self.api_url}/api/{api_version}/graphql.json'
 
         headers = {
             'Content-type': 'application/json',
