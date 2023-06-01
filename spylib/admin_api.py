@@ -37,12 +37,12 @@ class Token(ABC, BaseModel):
     should either be using the OfflineTokenABC or the OnlineTokenABC.
     """
 
-    api_version: ClassVar[Optional[str]] = None
-
     store_name: str
     scope: List[str] = []
     access_token: Optional[str]
     access_token_invalid: bool = False
+
+    api_version: ClassVar[Optional[str]] = None
 
     rest_bucket_max: int = 80
     rest_bucket: int = rest_bucket_max
