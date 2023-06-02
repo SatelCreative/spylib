@@ -29,7 +29,7 @@ class OnlineToken(OnlineTokenABC):
 
 class PrivateToken(PrivateTokenABC):
   @classmethod
-  async def load(cls, store_name: str, user_id: str):
+  async def load(cls, store_name: str):
       # Some code to load the token from the database
       # No need for save, as it is static.
 ```
@@ -38,7 +38,7 @@ class PrivateToken(PrivateTokenABC):
 
 - As shown in the `Implement Token Classes`, token can be used as following:
 ```python
-from spylib import OfflineTokenABC
+from spylib.admin_api import OfflineTokenABC
 
 
 class OfflineToken(OfflineTokenABC):
@@ -170,7 +170,7 @@ query = """
   }
 }"""
 
-product_json = await token.execute_gql(query = query)
+product_json = await token.execute_gql(query=query)
 ```
 
 If you want to update a product in a shop you can run:
