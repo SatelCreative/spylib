@@ -65,6 +65,7 @@ async def test_private_token():
 @pytest.mark.asyncio
 async def test_version_offline_token():
     offline_token = await VersionOfflineToken.load(store_name=test_information.store_name)
+    assert offline_token.api_version == test_information.api_version
     assert (
         offline_token.api_url
         == f'https://{test_information.store_name}'

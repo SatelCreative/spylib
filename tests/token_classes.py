@@ -101,7 +101,7 @@ class PrivateToken(PrivateTokenABC):
 
 
 class VersionOfflineToken(OfflineTokenABC):
-    api_version: ClassVar[Optional[str]] = '2023-04'
+    api_version: ClassVar[Optional[str]] = test_information.api_version
 
     async def save(self):
         pass
