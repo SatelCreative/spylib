@@ -22,7 +22,7 @@ class JWTBaseModel(BaseModel):
     def decode_token(cls, key: str, token: str, verify: bool = True):
         """Decode the token and load the data content into an instance of this class.
 
-        Parameters
+        Args
         ----------
         key: Secret key used to encrypt the JWT
         verify: If true, verify the signature is valid, otherwise skip. Default is True
@@ -39,7 +39,7 @@ class JWTBaseModel(BaseModel):
     def encode_token(self, key: str) -> str:
         """Encode the class data into a JWT and return a string.
 
-        Parameters
+        Args
         ----------
         key: Secret key used to encrypt the JWT
 
