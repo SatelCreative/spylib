@@ -54,7 +54,7 @@ def init_oauth_router(
 
     @router.get(install_init_path, include_in_schema=False)
     async def shopify_auth(shop: str):
-        """Endpoint initiating the OAuth process on a Shopify store"""
+        """Endpoint initiating the OAuth process on a Shopify store."""
         return RedirectResponse(
             oauth_init_url(
                 domain=store_domain(shop=shop),
@@ -70,7 +70,7 @@ def init_oauth_router(
 
     @router.get(callback_path, include_in_schema=False)
     async def shopify_callback(request: Request, shop: str, args: Callback = Depends(Callback)):
-        """REST endpoint called by Shopify during the OAuth process for installation and login"""
+        """REST endpoint called by Shopify during the OAuth process for installation and login."""
         try:
             oauthjwt = await process_callback(
                 shop=args.shop,

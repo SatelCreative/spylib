@@ -14,9 +14,7 @@ def oauth_init_url(
     jwt_key: str,
     api_key: str,
 ) -> str:
-    """
-    Create the URL and the parameters needed to start the oauth process to install an app or to log
-    a user in.
+    """Create the URL and the parameters needed to start the oauth process to install an app or to log a user in.
 
     Parameters
     ----------

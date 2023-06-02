@@ -7,17 +7,14 @@ ALPHABET = '23456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz'
 
 
 def random(length):
-    """
-    Generate and return a cryptographically-secure short random string
-    of the specified length.
-    """
+    """Generate a cryptographically-secure short random string of the specified length."""
     random_num = int(binascii.b2a_hex(os.urandom(length)), 16)
     return int_to_string(random_num, ALPHABET, padding=length)[:length]
 
 
 def int_to_string(number, alphabet, padding=None):
-    """
-    Convert a number to a string, using the given alphabet.
+    """Convert a number to a string, using the given alphabet.
+
     The output has the most significant digit first.
     """
     output = ''

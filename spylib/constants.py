@@ -1,6 +1,6 @@
-"""
-These are the text error codes thrown by the GraphQL API. Although some errors
-throw a code e.g.
+"""These are the text error codes thrown by the GraphQL API.
+
+Although some errors throw a code e.g.
 
     "errors": [
         {
