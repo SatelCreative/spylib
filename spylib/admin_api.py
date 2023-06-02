@@ -72,6 +72,7 @@ class Token(ABC, BaseModel):
         return v
 
     class Config:
+        """Configure Token model behaviour."""
         arbitrary_types_allowed = True
 
     # Methods for querying the store
