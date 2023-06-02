@@ -47,6 +47,7 @@ class OfflineToken(OfflineTokenABC):
 
   @classmethod
   async def load(cls, store_name: str):
+      # For version <= 0.8.x, use sync for load function
       pass
 ```
 
@@ -58,6 +59,7 @@ class OfflineToken(OfflineTokenABC):
 
   @classmethod
   async def load(cls, store_name: str):
+      # For version <= 0.8.x, use sync for load function
       pass
       
 # Add the version to be used here

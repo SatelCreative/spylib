@@ -307,7 +307,7 @@ class PrivateTokenABC(Token, ABC):
 
     @classmethod
     @abstractmethod
-    def load(cls, store_name: str):
+    async def load(cls, store_name: str):
         """
         This method handles loading the token. By default this does nothing,
         therefore the developer should override this.
