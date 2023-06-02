@@ -49,7 +49,7 @@ class TestInformation(BaseModel):
     Information about the store for tests.
     """
 
-    api_version: str = '2022-01'
+    api_version: str = '2023-04'
     store_name: str = 'Test-Store'
     client_id: int = 1
     client_secret: int = 2
