@@ -63,7 +63,7 @@ class OfflineToken(OfflineTokenABC):
         pass
 ```
 
-**Warning:** For version <= 0.8.1, async is **not** available for load function
+:warning: **Warning:** For version <= 0.8.1, async is **not** available for load function
 ```python
 class OfflineToken(OfflineTokenABC):
     @classmethod
