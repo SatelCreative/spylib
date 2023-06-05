@@ -48,11 +48,6 @@ class OfflineToken(OfflineTokenABC):
     @classmethod
     async def load(cls, store_name: str):
         pass
-
-    # For version <= 0.8.1, async is not available for load function
-    @classmethod
-    def load(cls, store_name: str):
-        pass
 ```
 
 - If the Shopify API version used in Spylib is not the desired version, it can be changed with the following:
@@ -66,8 +61,11 @@ class OfflineToken(OfflineTokenABC):
     @classmethod
     async def load(cls, store_name: str):
         pass
+```
 
-    # For version <= 0.8.1, async is not available for load function
+**Warning:** For version <= 0.8.1, async is **not** available for load function
+```python
+class OfflineToken(OfflineTokenABC):
     @classmethod
     def load(cls, store_name: str):
         pass
