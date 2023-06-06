@@ -33,8 +33,8 @@ class TokenAuthenticationError(TokenValidationError):
 
 
 class SessionToken(BaseModel):
-    """
-    Session tokens are derived from the authrization header from Shopify.
+    """Session tokens are derived from the authrization header from Shopify.
+
     This performs the set of validations as defined by shopify
     https://shopify.dev/apps/auth/session-tokens/authenticate-an-embedded-app-using-session-tokens#obtain-session-details-manually
     """

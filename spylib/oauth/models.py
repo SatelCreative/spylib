@@ -8,9 +8,7 @@ def _parse_scope(scope: str) -> List[str]:
 
 
 class OfflineTokenModel(BaseModel):
-    """
-    [Read more about Offline access](https://shopify.dev/apps/auth/oauth/access-modes#offline-access)
-    """
+    """[Read more about Offline access](https://shopify.dev/apps/auth/oauth/access-modes#offline-access)."""
 
     access_token: str
     """
@@ -26,9 +24,7 @@ class OfflineTokenModel(BaseModel):
 
 
 class AssociatedUser(BaseModel):
-    """
-    Shopify staff user associated with an online token.
-    """
+    """Shopify staff user associated with an online token."""
 
     id: int
     """
@@ -76,34 +72,22 @@ class AssociatedUser(BaseModel):
 
 
 class OnlineTokenModel(BaseModel):
-    """
-    [Read more about Online access](https://shopify.dev/apps/auth/oauth/access-modes#online-access)
-    """
+    """[Read more about Online access](https://shopify.dev/apps/auth/oauth/access-modes#online-access)."""
 
     access_token: str
-    """
-    An API access token that can be used to access the shop's data until it expires or the associated user logs out.
-    """
+    """An API access token that can be used to access the shop's data until it expires or the associated user logs out."""
 
     scope: List[str]
-    """
-    The list of access scopes that were requested. Inspect `associated_user_scope` to see which were granted.
-    """
+    """The list of access scopes that were requested. Inspect `associated_user_scope` to see which were granted."""
 
     expires_in: int
-    """
-    The number of seconds until this session (and `access_token`) expire.
-    """
+    """The number of seconds until this session (and `access_token`) expire."""
 
     associated_user_scope: List[str]
-    """
-    The list of access scopes that were both requested and available to this user.
-    """
+    """The list of access scopes that were both requested and available to this user."""
 
     associated_user: AssociatedUser
-    """
-    The Shopify user associated with this token.
-    """
+    """The Shopify user associated with this token."""
 
     _normalize_scope = validator('scope', allow_reuse=True, pre=True)(_parse_scope)
     _normalize_associated_user_scope = validator(

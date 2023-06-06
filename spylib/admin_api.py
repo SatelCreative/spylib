@@ -32,9 +32,10 @@ from spylib.utils.rest import Request
 
 
 class Token(ABC, BaseModel):
-    """
-    Abstract class for token objects. This should never be extended, as you
-    should either be using the OfflineTokenABC or the OnlineTokenABC.
+    """Abstract class for token objects.
+
+    This should never be extended, as you should either be
+    using the OfflineTokenABC or the OnlineTokenABC.
     """
 
     store_name: str
@@ -73,6 +74,8 @@ class Token(ABC, BaseModel):
         return v
 
     class Config:
+        """Configure Token model behaviour."""
+
         arbitrary_types_allowed = True
 
     # Methods for querying the store
@@ -93,7 +96,7 @@ class Token(ABC, BaseModel):
             self.updated_at = now
 
     async def __handle_error(self, debug: str, endpoint: str, response: Response):
-        """Handle any error that occured when calling Shopify
+        """Handle any error that occured when calling Shopify.
 
         If the response has a valid json then return it too.
         """
@@ -259,9 +262,7 @@ class Token(ABC, BaseModel):
 
 
 class OfflineTokenABC(Token, ABC):
-    """
-    Offline tokens are used for long term access, and do not have a set expiry.
-    """
+    """Offline tokens are used for long term access, and do not have a set expiry."""
 
     @abstractmethod
     async def save(self):
@@ -274,10 +275,9 @@ class OfflineTokenABC(Token, ABC):
 
 
 class OnlineTokenABC(Token, ABC):
-    """
-    Online tokens are used to implement applications that are authenticated with
-    a specific user's credentials. These extend on the original token, adding
-    in a user, its scope and an expiry time.
+    """Online tokens are used to implement applications authenticated with a specific user's credentials.
+
+    These extend on the original token, adding in a user, its scope and an expiry time.
     """
 
     associated_user_id: int
@@ -286,23 +286,23 @@ class OnlineTokenABC(Token, ABC):
 
     @abstractmethod
     async def save(self):
-        """
-        This method handles saving the token. By default this does nothing,
-        therefore the developer should override this.
+        """This method handles saving the token.
+
+        By default this does nothing, therefore the developer should override this.
         """
 
     @classmethod
     @abstractmethod
     async def load(cls, store_name: str, associated_user: str):
-        """
-        This method handles loading the token. By default this does nothing,
-        therefore the developer should override this.
+        """This method handles loading the token.
+
+        By default this does nothing, therefore the developer should override this.
         """
 
 
 class PrivateTokenABC(Token, ABC):
-    """
-    Private token implementation, when we are pulling this from the config file.
+    """Private token implementation, when we are pulling this from the config file.
+
     Therefore we do not need the save function for the token class as there is
     no calls to the OAuth endpoints for shopify.
     """
@@ -310,8 +310,8 @@ class PrivateTokenABC(Token, ABC):
     @classmethod
     @abstractmethod
     async def load(cls, store_name: str):
-        """
-        This method handles loading the token. By default this does nothing,
-        therefore the developer should override this.
+        """This method handles loading the token.
+
+        By default this does nothing, therefore the developer should override this.
         """
         pass

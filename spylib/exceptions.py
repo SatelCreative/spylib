@@ -1,23 +1,23 @@
 class ShopifyError(Exception):
-    """Exception to identify any Shopify error"""
+    """Exception to identify any Shopify error."""
 
     pass
 
 
 class ShopifyGQLError(Exception):
-    """Exception to identify any Shopify admin graphql error"""
+    """Exception to identify any Shopify admin graphql error."""
 
     pass
 
 
 class ShopifyGQLUserError(Exception):
-    """Exception to identify any Shopify admin graphql error caused by the user mistake"""
+    """Exception to identify any Shopify admin graphql error caused by the user mistake."""
 
     pass
 
 
 class ShopifyCallInvalidError(ShopifyError):
-    """Exception to identify errors that our due to bad data sent by us
+    """Exception to identify errors that our due to bad data sent by us.
 
     These should not be retried
     """
@@ -26,21 +26,19 @@ class ShopifyCallInvalidError(ShopifyError):
 
 
 class ShopifyThrottledError(ShopifyError):
-    """Exception to identify errors that are due to rate limit control"""
+    """Exception to identify errors that are due to rate limit control."""
 
     pass
 
 
 class ShopifyExceedingMaxCostError(ShopifyError):
-    """
-    Exception to identify errors that are due to queries exceeding the max query size
-    """
+    """Exception to identify errors that are due to queries exceeding the max query size."""
 
     pass
 
 
 class FastAPIImportError(ImportError):
-    """Exception to identify errors when spylip.oauth is accessed without fastapi installed"""
+    """Exception to identify errors when spylip.oauth is accessed without fastapi installed."""
 
     pass
 

@@ -5,7 +5,7 @@ from .misc import now_epoch
 
 
 class JWTBaseModel(BaseModel):
-    """Base class to manage JWT
+    """Base class to manage JWT.
 
     The pydantic model fields are the data content of the JWT.
     The default expiration (exp) is set to 900 seconds. Overwrite the ClassVar exp to change the
@@ -20,9 +20,9 @@ class JWTBaseModel(BaseModel):
 
     @classmethod
     def decode_token(cls, key: str, token: str, verify: bool = True):
-        """Decode the token and load the data content into an instance of this class
+        """Decode the token and load the data content into an instance of this class.
 
-        Parameters
+        Args
         ----------
         key: Secret key used to encrypt the JWT
         verify: If true, verify the signature is valid, otherwise skip. Default is True
@@ -37,9 +37,9 @@ class JWTBaseModel(BaseModel):
         return cls(**data)
 
     def encode_token(self, key: str) -> str:
-        """Encode the class data into a JWT and return a string
+        """Encode the class data into a JWT and return a string.
 
-        Parameters
+        Args
         ----------
         key: Secret key used to encrypt the JWT
 

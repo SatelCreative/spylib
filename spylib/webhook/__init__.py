@@ -47,7 +47,10 @@ async def create_http(
     metafield_namespaces: Optional[List[str]] = None,
     private_metafield_namespaces: Optional[List[str]] = None,
 ) -> WebhookResponse:
-    """Uses graphql to subscribe to a webhook and associate it with an HTTP endpoint"""
+    """Creates a HTTP webhook subscription.
+
+    Uses graphql to subscribe to a webhook and associate it with an HTTP endpoint.
+    """
     variables = {
         'topic': topic.value if isinstance(topic, WebhookTopic) else topic,
         'webhookSubscription': {
@@ -77,8 +80,11 @@ async def create_event_bridge(
     metafield_namespaces: Optional[List[str]] = None,
     private_metafield_namespaces: Optional[List[str]] = None,
 ) -> WebhookResponse:
-    """Uses graphql to subscribe to a webhook and associated it with
-    and AWS Event Bridge with ARN (Amazon Resource Name)"""
+    """Creates an Amazon EventBridge webhook subscription.
+
+    Uses graphql to subscribe to a webhook and associated it with
+    and AWS Event Bridge with ARN (Amazon Resource Name)
+    """
     variables = {
         'topic': topic.value if isinstance(topic, WebhookTopic) else topic,
         'webhookSubscription': {
@@ -109,7 +115,10 @@ async def create_pub_sub(
     metafield_namespaces: Optional[List[str]] = None,
     private_metafield_namespaces: Optional[List[str]] = None,
 ) -> WebhookResponse:
-    """Uses graphql to subscribe to a webhook and associate it with a Google PubSub endpoint"""
+    """Creates a Google Cloud Pub/Sub webhook subscription.
+
+    Uses graphql to subscribe to a webhook and associate it with a Google PubSub endpoint
+    """
     variables = {
         'topic': topic.value if isinstance(topic, WebhookTopic) else topic,
         'webhookSubscription': {

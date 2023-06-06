@@ -12,8 +12,7 @@ async def exchange_token(
     api_key: str,
     api_secret_key: str,
 ) -> Union[OnlineTokenModel, OfflineTokenModel]:
-    """
-    [Exchanges the temporary authorization code with Shopify for a token.](https://shopify.dev/apps/auth/oauth/getting-started#step-5-get-a-permanent-access-token)
+    """[Exchanges the temporary authorization code with Shopify for a token](https://shopify.dev/apps/auth/oauth/getting-started#step-5-get-a-permanent-access-token).
 
     [All prior security checks must already have been completed.](https://shopify.dev/apps/auth/oauth/getting-started#step-4-confirm-installation)
 
@@ -59,8 +58,8 @@ async def exchange_offline_token(
     api_key: str,
     api_secret_key: str,
 ) -> OfflineTokenModel:
-    """
-    [Exchanges the temporary authorization code with Shopify for an offline token.](https://shopify.dev/apps/auth/oauth/getting-started#step-5-get-a-permanent-access-token)
+    """[Exchanges the temporary authorization code with Shopify for an offline token](https://shopify.dev/apps/auth/oauth/getting-started#step-5-get-a-permanent-access-token).
+
     Can be used instead of `exchange_token` when you know by some mechanism it will only be an offline token.
 
     [All prior security checks must already have been completed.](https://shopify.dev/apps/auth/oauth/getting-started#step-4-confirm-installation)
@@ -90,8 +89,8 @@ async def exchange_online_token(
     api_key: str,
     api_secret_key: str,
 ) -> OnlineTokenModel:
-    """
-    [Exchanges the temporary authorization code with Shopify for an online token.](https://shopify.dev/apps/auth/oauth/getting-started#step-5-get-a-permanent-access-token)
+    """[Exchanges the temporary authorization code with Shopify for an online token](https://shopify.dev/apps/auth/oauth/getting-started#step-5-get-a-permanent-access-token).
+
     Can be used instead of `exchange_token` when you know by some mechanism it will only be an online token.
 
     [All prior security checks must already have been completed.](https://shopify.dev/apps/auth/oauth/getting-started#step-4-confirm-installation)
