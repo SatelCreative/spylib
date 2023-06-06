@@ -295,7 +295,7 @@ class OnlineTokenABC(Token, ABC):
     @abstractmethod
     async def load(cls, store_name: str, associated_user: str):
         """This method handles loading the token.
- 
+
         By default this does nothing, therefore the developer should override this.
         """
 
