@@ -1,9 +1,9 @@
 from typing import Optional
 
-from fastapi import Request, Security
-from fastapi.openapi.models import APIKey, APIKeyIn
-from fastapi.security.api_key import APIKeyBase
-from starlette.exceptions import HTTPException
+from fastapi import Request, Security # type: ignore
+from fastapi.openapi.models import APIKey, APIKeyIn # type: ignore
+from fastapi.security.api_key import APIKeyBase # type: ignore
+from starlette.exceptions import HTTPException # type: ignore
 from starlette.status import HTTP_401_UNAUTHORIZED, HTTP_403_FORBIDDEN
 
 from spylib import webhook
