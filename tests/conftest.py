@@ -1,6 +1,6 @@
 from pathlib import Path
 
-TO_IGNORE = 'tests/fastapi'
+TO_IGNORE = 'tests/fastapi_extensions'
 
 
 def fastapi_installed() -> bool:

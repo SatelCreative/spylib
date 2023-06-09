@@ -8,7 +8,7 @@ try:
     )
 except ImportError as e:
     raise FastAPIImportError(
-        'The fastapi interface requires `fastapi` which is not installed. '
+        'The fastapi_extensions require `fastapi` which is not installed. '
         'Run `pip install spylib[fastapi]` to be able to use it.'
     ) from e
 

@@ -2,7 +2,7 @@ from fastapi import Depends, FastAPI
 from fastapi.testclient import TestClient
 from pytest import fixture
 
-from spylib.fastapi import authenticate_webhook_hmac
+from spylib.fastapi_extensions import authenticate_webhook_hmac
 
 app = FastAPI()
 

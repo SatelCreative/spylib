@@ -1,4 +1,4 @@
-from spylib.fastapi import webhook_hmac
+from spylib.fastapi_extensions import webhook_hmac
 
 API_SECRET = 'secret'
 MESSAGE = 'message'
