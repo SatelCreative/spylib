@@ -1,0 +1,22 @@
+from pathlib import Path
+
+TO_IGNORE = 'tests/fastapi'
+
+
+def fastapi_installed() -> bool:
+    try:
+        from fastapi import FastAPI  # noqa: F401
+
+        return True
+    except ImportError:
+        return False
+
+
+def pytest_ignore_collect(path, config):
+    """Ignore the fastapi tests if fastapi is not installed."""
+    if not fastapi_installed():
+        here = Path.cwd().absolute()
+        skip_fd = here / TO_IGNORE
+        print(skip_fd)
+        if skip_fd == path:
+            return True
