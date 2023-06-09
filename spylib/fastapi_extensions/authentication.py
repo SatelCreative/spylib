@@ -3,9 +3,9 @@ from typing import Optional
 from spylib.exceptions import FastAPIImportError
 
 try:
-    from fastapi import Request, Security
-    from fastapi.openapi.models import APIKey, APIKeyIn
-    from fastapi.security.api_key import APIKeyBase
+    from fastapi import Request, Security  # type: ignore
+    from fastapi.openapi.models import APIKey, APIKeyIn  # type: ignore
+    from fastapi.security.api_key import APIKeyBase  # type: ignore
 except ImportError as e:
     raise FastAPIImportError(
         'The fastapi_extensions.authentication module require `fastapi` which is not installed. '
