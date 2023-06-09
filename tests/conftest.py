@@ -21,5 +21,6 @@ def pytest_ignore_collect(path, config):
         here = Path.cwd().absolute()
         skip_fd = here / TO_IGNORE
         print(skip_fd)
+        print(path)
         if skip_fd == path:
             return True
