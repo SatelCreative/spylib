@@ -52,6 +52,13 @@ def authenticate_webhook_hmac(hmac: bool = Security(webhook_hmac)):
     """Dependency for authenticating the webhook using the HMAC signature.
 
     `webhook_hmac.api_secret_key` needs to be assigned with a valid secret prior to using this dependency.
+
+    ```python
+    webhook_hmac.api_secret_key = 'SOME_SECRET'
+    @app.post('/SOME_PATH')
+        def authenticate(hmac: bool = Depends(authenticate_webhook_hmac)):
+            return hmac
+    ```
     """
 
     if not hmac:
