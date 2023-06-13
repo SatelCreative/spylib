@@ -1,16 +1,8 @@
 from typing import Optional
 
-from spylib.exceptions import FastAPIImportError
-
-try:
-    from fastapi import Request, Security  # type: ignore
-    from fastapi.openapi.models import APIKey, APIKeyIn  # type: ignore
-    from fastapi.security.api_key import APIKeyBase  # type: ignore
-except ImportError as e:
-    raise FastAPIImportError(
-        'The fastapi_extensions.authentication module require `fastapi` which is not installed. '
-        'Run `pip install spylib[fastapi]` to be able to use it.'
-    ) from e
+from fastapi import Request, Security  # type: ignore
+from fastapi.openapi.models import APIKey, APIKeyIn  # type: ignore
+from fastapi.security.api_key import APIKeyBase  # type: ignore
 from starlette.exceptions import HTTPException
 from starlette.status import HTTP_401_UNAUTHORIZED, HTTP_403_FORBIDDEN
 
