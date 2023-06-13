@@ -56,8 +56,9 @@ def authenticate_webhook_hmac(hmac: bool = Security(webhook_hmac)):
     ```python
     webhook_hmac.api_secret_key = 'SOME_SECRET'
     @app.post('/SOME_PATH')
-        def authenticate(hmac: bool = Depends(authenticate_webhook_hmac)):
-            return hmac
+    def some_path(is_hmac_valid: bool = Depends(authenticate_webhook_hmac)):
+        if not is_hmac_valid:
+            return HTTPException(status_code=400, detail='Invalid HMAC')
     ```
     """
 
