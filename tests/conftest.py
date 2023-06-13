@@ -12,7 +12,7 @@ def fastapi_installed() -> bool:
         return False
 
 
-def pytest_ignore_collect(path, config):
+def pytest_ignore_collect(path, config) -> bool:
     """Ignore the fastapi tests if fastapi is not installed.
 
     pytest collection hook: https://docs.pytest.org/en/stable/reference/reference.html#pytest.hookspec.pytest_ignore_collect
@@ -20,5 +20,5 @@ def pytest_ignore_collect(path, config):
     if not fastapi_installed():
         here = Path.cwd().absolute()
         skip_fd = here / TO_IGNORE
-        if skip_fd == path:
-            return True
+        return skip_fd == path
+    return False
