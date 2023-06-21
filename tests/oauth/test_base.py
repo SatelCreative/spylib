@@ -13,7 +13,6 @@ from spylib import hmac
 from spylib.exceptions import FastAPIImportError
 from spylib.utils import JWTBaseModel, now_epoch
 
-HANDLE = 'HANDLE'
 SHOPIFY_API_KEY = 'API_KEY'
 SHOPIFY_SECRET_KEY = 'SECRET_KEY'
 
@@ -26,7 +25,6 @@ TEST_DATA = Box(
         private_key='TESTPRIVATEKEY',
         post_install=AsyncMock(return_value=JWTBaseModel()),
         post_login=AsyncMock(return_value=None),
-        app_handle=HANDLE,
         api_key=SHOPIFY_API_KEY,
         api_secret_key=SHOPIFY_SECRET_KEY,
     )
@@ -158,7 +156,7 @@ async def test_oauth_with_fastapi(mocker):
     state = check_oauth_redirect_url(
         response=response,
         client=client,
-        path=f'/admin/apps/{HANDLE}',
+        path=f'/admin/apps/{SHOPIFY_API_KEY}',
         scope=TEST_DATA.user_scopes,
     )
 

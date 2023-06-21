@@ -34,7 +34,6 @@ def init_oauth_router(
     user_scopes: List[str],
     public_domain: str,
     private_key: str,
-    app_handle: str,
     api_key: str,
     api_secret_key: str,
     post_install: Callable[[str, OfflineTokenModel], Optional[Awaitable]],
@@ -95,7 +94,7 @@ def init_oauth_router(
                     app_redirect(
                         store_domain=args.shop,
                         app_domain=public_domain,
-                        app_handle=app_handle,
+                        app_api_key=api_key,
                     )
                 )
             # Initiate the oauth loop for login
@@ -117,7 +116,7 @@ def init_oauth_router(
             app_redirect(
                 store_domain=args.shop,
                 app_domain=public_domain,
-                app_handle=app_handle,
+                app_api_key=api_key,
             )
         )
 
