@@ -69,7 +69,7 @@ async def test_oauth_without_fastapi():
 @pytest.mark.asyncio
 async def test_oauth_with_fastapi(mocker):
     if 'fastapi' not in modules and util.find_spec('fastapi') is None:
-        pytest.skip("fastapi not installed")
+        pytest.skip('fastapi not installed')
 
     from fastapi import FastAPI  # type: ignore[import]
     from fastapi.testclient import TestClient  # type: ignore[import]
