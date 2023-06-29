@@ -46,7 +46,7 @@ def oauth_init_url(
 def app_redirect(
     store_domain: str,
     app_domain: str,
-    app_handle: str,
+    app_api_key: str,
 ) -> str:
 
-    return f'https://{store_domain}/admin/apps/{app_handle}'
+    return f'https://{store_domain}/admin/apps/{app_api_key}'
