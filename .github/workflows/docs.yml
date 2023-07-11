@@ -11,13 +11,13 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout main
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
         with:
           fetch-depth: 0
       - name: Set env
         run: echo "RELEASE_VERSION=${GITHUB_REF#refs/*/}" >> $GITHUB_ENV
       - name: Set up python
-        uses: actions/setup-python@v2
+        uses: actions/setup-python@v3
         with:
           python-version: 3.9
       - name: Install Poetry
@@ -26,26 +26,32 @@ jobs:
           virtualenvs-create: true
           virtualenvs-in-project: true
           installer-parallel: true
+
       - name: Load cached venv
         id: cached-poetry-dependencies
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           path: .venv
           key: venv-${{ runner.os }}-${{ hashFiles('**/poetry.lock') }}
+
       - name: Install dependencies
         if: steps.cached-poetry-dependencies.outputs.cache-hit != 'true'
         run: poetry install --no-interaction --no-root
+
       - name: Install library
         run: poetry install --no-interaction
+
       - name: Build lazydocs
         run: |
           source .venv/bin/activate
           lazydocs --overview-file="index.md" --src-base-url="https://github.com/SatelCreative/satel-spylib/tree/main" --output-path="./docs/api-docs" --validate spylib
+
       - name: Deployment setup
         # Use builtin token to deploy
         run: |
           git config user.name github-actions
           git config user.email github-actions@github.com
+
       - name: Deploy document
         run: |
           echo "RELEASE_TAG_VERSION=${RELEASE_VERSION}"
