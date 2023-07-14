@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file. Dates are displayed in UTC.
 
+#### [0.9.0](https://github.com/SatelCreative/spylib/compare/0.8.1...0.9.0)
+> 14 July 2022
+* 📝  Revise admin api doc by @lishanl in https://github.com/SatelCreative/spylib/pull/184
+* :sparkles: Remove default API version and make it manual input by @ponty33 in https://github.com/SatelCreative/spylib/pull/183
+* :sparkles: Change load to async by @ponty33 in https://github.com/SatelCreative/spylib/pull/182
+* 👷 Add lazydocs validate to CI tests by @lishanl in https://github.com/SatelCreative/spylib/pull/186
+* ✨ fastapi webhook hmac validate dependency by @lishanl in https://github.com/SatelCreative/spylib/pull/190
+* ♻️ remove package nest-asyncio by @lishanl in https://github.com/SatelCreative/spylib/pull/191
+* :alien: 💥  replace app_handle with app_api_key for redirect by @lishanl in https://github.com/SatelCreative/spylib/pull/192
+* 🚀 Upgrade tox to v4 by @rahulpatidar0191 in https://github.com/SatelCreative/spylib/pull/195
+* :memo: Fix the link to point to the latest docs by @hillairet in https://github.com/SatelCreative/spylib/pull/196
+
 #### [0.8.1](https://github.com/SatelCreative/spylib/compare/0.8.0...0.8.1)
 > 14 December 2022
 * ✨ Handle GQL non-200 response by @ponty33 in https://github.com/SatelCreative/spylib/pull/155
