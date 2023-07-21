@@ -6,8 +6,8 @@ from urllib.parse import ParseResult, parse_qs, urlencode, urlparse
 
 import pytest
 from box import Box  # type: ignore
+from httpx import Response
 from pydantic.dataclasses import dataclass
-from requests import Response  # type: ignore
 
 from spylib import hmac
 from spylib.exceptions import FastAPIImportError
@@ -96,7 +96,7 @@ async def test_oauth_with_fastapi(mocker):
     }
 
     # Happy path
-    response = client.get('/shopify/auth', params=dict(shop=TEST_STORE), allow_redirects=False)
+    response = client.get('/shopify/auth', params=dict(shop=TEST_STORE), follow_redirects=False)
     query = check_oauth_redirect_url(
         response=response,
         client=client,
@@ -118,7 +118,7 @@ async def test_oauth_with_fastapi(mocker):
     hmac_arg = hmac.calculate_from_message(secret=SHOPIFY_SECRET_KEY, message=query_str)
     query_str += '&hmac=' + hmac_arg
 
-    response = client.get('/callback', params=query_str, allow_redirects=False)
+    response = client.get('/callback', params=query_str, follow_redirects=False)
     query = check_oauth_redirect_url(
         response=response,
         client=client,
@@ -152,7 +152,7 @@ async def test_oauth_with_fastapi(mocker):
     hmac_arg = hmac.calculate_from_message(secret=SHOPIFY_SECRET_KEY, message=query_str)
     query_str += '&hmac=' + hmac_arg
 
-    response = client.get('/callback', params=query_str, allow_redirects=False)
+    response = client.get('/callback', params=query_str, follow_redirects=False)
     state = check_oauth_redirect_url(
         response=response,
         client=client,
@@ -177,8 +177,10 @@ async def test_oauth_with_fastapi(mocker):
 def check_oauth_redirect_url(response: Response, client, path: str, scope: List[str]) -> str:
     print(response.text)
     assert response.status_code == 307
+    if not response.next_request:
+        return ''
 
-    parsed_url = urlparse(client.get_redirect_target(response))
+    parsed_url = urlparse(str(response.next_request.url))
 
     expected_parsed_url = ParseResult(
         scheme='https',
