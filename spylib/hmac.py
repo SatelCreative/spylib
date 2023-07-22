@@ -13,8 +13,8 @@ def calculate_from_message(secret: str, message: str, use_base64: bool = False) 
 
 
 def calculate_from_components(
-    datetime, path, query_string, body, secret, use_base64: bool = False
-):
+    datetime: str, path: str, query_string: str, body: str, secret: str, use_base64: bool = False
+) -> str:
     if query_string != '':
         path = path + '?' + query_string
     message = path + datetime + body

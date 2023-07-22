@@ -16,7 +16,7 @@ async def test_online_token():
     # Create a new token
     online_token = await OnlineToken.load(
         store_name=test_information.store_name,
-        user_id=online_token_data.associated_user.id,
+        user_id=str(online_token_data.associated_user.id),
     )
 
     assert online_token.access_token == online_token_data.access_token
