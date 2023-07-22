@@ -1,5 +1,5 @@
-from fastapi import Depends, FastAPI
-from fastapi.testclient import TestClient
+from fastapi import Depends, FastAPI  # type: ignore
+from fastapi.testclient import TestClient  # type: ignore
 from pytest import fixture
 
 from spylib.fastapi_extensions import authenticate_webhook_hmac

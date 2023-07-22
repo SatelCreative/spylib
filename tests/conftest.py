@@ -5,7 +5,7 @@ TO_IGNORE = 'tests/fastapi_extensions'
 
 def fastapi_installed() -> bool:
     try:
-        from fastapi import FastAPI  # noqa: F401
+        from fastapi import FastAPI  # type: ignore # noqa: F401
 
         return True
     except ImportError:
