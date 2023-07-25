@@ -1,4 +1,4 @@
-from typing import Any
+from typing import Any, Dict
 from unittest.mock import AsyncMock
 
 import pytest
@@ -88,12 +88,14 @@ async def test_store_graphql_operation_name_happypath(
     )
 
     # Checks to see if it is properly handling inputs properly
-    real_result: Any = await token.execute_gql(query=query, operation_name=operation_name)
+    real_result: Dict[str, Any] = await token.execute_gql(
+        query=query, operation_name=operation_name
+    )
     for name in result_location:
         if isinstance(real_result, list):
             real_result = real_result[name]
         elif isinstance(real_result, dict):
-            real_result = real_result.get(name)
+            real_result = real_result.get(name, '')
 
     assert expected_result == real_result
 

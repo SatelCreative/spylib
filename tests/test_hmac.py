@@ -38,7 +38,9 @@ async def test_invalid_calculate_from_message(message):
 
 @pytest.mark.asyncio
 async def test_calculate_from_components():
-    assert compare_digest(COMPONENTS_HMAC, calculate_from_components(**COMPONENTS))
+    assert compare_digest(
+        COMPONENTS_HMAC, calculate_from_components(**COMPONENTS, use_base64=False)
+    )
 
 
 @pytest.mark.parametrize(
@@ -55,7 +57,9 @@ async def test_calculate_from_components():
 async def test_invalid_calculate_from_components(param, value):
     components = deepcopy(COMPONENTS)
     components[param] = value
-    assert not compare_digest(COMPONENTS_HMAC, calculate_from_components(**components))
+    assert not compare_digest(
+        COMPONENTS_HMAC, calculate_from_components(**components, use_base64=False)
+    )
 
 
 @pytest.mark.asyncio

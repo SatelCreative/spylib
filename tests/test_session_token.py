@@ -86,7 +86,7 @@ async def test_invalid_token_parameters(token, parameter, value, error):
 
 
 def parse_session_token(request: Request):
-    SessionToken.from_header(request.headers.get('Authorization'), API_KEY, API_SECRET)
+    SessionToken.from_header(request.headers.get('Authorization', ''), API_KEY, API_SECRET)
 
 
 @pytest.mark.asyncio
