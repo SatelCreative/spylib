@@ -25,6 +25,7 @@ from ..utils import store_domain
 from .callback import process_callback
 from .models import OfflineTokenModel, OnlineTokenModel
 from .redirects import app_redirect, oauth_init_url
+from .validations import validate_hmac
 
 
 @dataclass
@@ -132,11 +133,10 @@ def init_oauth_router(
         @router.get(initial_path, include_in_schema=False)
         async def default_root(
             request: Request,
-            shop: str,
             hmac: str,
-            host: str = Header(None),
             session: str = None,
         ):
+            validate_hmac(request=request, hmac=hmac)
             if session:
                 return Response('Proxy App')
 
