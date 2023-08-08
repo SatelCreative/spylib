@@ -4,14 +4,21 @@ from typing import Awaitable, Callable, List, Optional
 from spylib.exceptions import FastAPIImportError
 
 try:
-    from fastapi import APIRouter, Depends, HTTPException, Query  # type: ignore
+    from fastapi import (  # type: ignore
+        APIRouter,
+        Depends,
+        Header,
+        HTTPException,
+        Query,
+        Request,
+        Response,
+    )
 except ImportError as e:
     raise FastAPIImportError(
         'The oauth router is a fastapi router and fastapi is not installed. '
         'Run `pip install spylib[fastapi]` to be able to use the oauth router.'
     ) from e
 
-from starlette.requests import Request
 from starlette.responses import RedirectResponse
 
 from ..utils import store_domain
@@ -41,6 +48,7 @@ def init_oauth_router(
     install_init_path='/shopify/auth',
     callback_path='/callback',
     path_prefix: str = '',
+    initial_path: str = '/'
 ) -> APIRouter:
     router = APIRouter()
 
@@ -119,5 +127,17 @@ def init_oauth_router(
                 app_api_key=api_key,
             )
         )
+
+    if initial_path:
+        @router.get(initial_path, include_in_schema=False)
+        async def default_root(
+            request: Request,
+            shop: str,
+            hmac: str,
+            host: str = Header(None),
+            session: str = None,
+        ):
+            if session:
+                return Response('Proxy App')
 
     return router
