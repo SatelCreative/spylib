@@ -24,7 +24,7 @@ class OnlineToken(OnlineTokenABC):
       # Some code to save the token to a database
 
   @classmethod
-  async def load(cls, store_name: str, user_id: str):
+  async def load(cls, store_name: str, associated_user: str):
       # Some code to load the token from the database
 
 class PrivateToken(PrivateTokenABC):
@@ -98,6 +98,19 @@ token = PrivateToken(
   access_token,
   scope
 )
+```
+
+### Token Operations
+
+```python
+
+# save using the token instance
+await token.save()
+
+# load using the token class
+await OfflineToken.load(store_name)
+await OnlineToken.load(store_name, associated_user_id)
+await PrivateToken.load(store_name)
 ```
 
 ## Querying Shopify
