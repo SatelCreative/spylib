@@ -7,7 +7,6 @@ try:
     from fastapi import (  # type: ignore
         APIRouter,
         Depends,
-        Header,
         HTTPException,
         Query,
         Request,
