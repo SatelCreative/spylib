@@ -137,6 +137,6 @@ def init_oauth_router(
         ):
             validate_hmac(request=request, hmac=hmac)
             if session:
-                return Response('Proxy App')
+                return Response('App Installed')
 
     return router
