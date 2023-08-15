@@ -48,7 +48,7 @@ def init_oauth_router(
     install_init_path='/shopify/auth',
     callback_path='/callback',
     path_prefix: str = '',
-    initial_path: str = '/'
+    initial_path: Optional[str] = '/'
 ) -> APIRouter:
     router = APIRouter()
 
