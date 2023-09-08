@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file. Dates are displayed in UTC.
 
+
+#### [0.9.1](https://github.com/SatelCreative/spylib/compare/0.9.0...0.9.1)
+> 08 September 2023
+* ⬆️ ➖ Update package dependencies by @lishanl in https://github.com/SatelCreative/spylib/pull/197
+* 👷 add python 3.11 to tox test suite by @lishanl in https://github.com/SatelCreative/spylib/pull/198
+* 📝 Add token save() and load() examples to admin-api doc by @lishanl in https://github.com/SatelCreative/spylib/pull/199
+
+
 #### [0.9.0](https://github.com/SatelCreative/spylib/compare/0.8.1...0.9.0)
 > 14 July 2022
 * 📝  Revise admin api doc by @lishanl in https://github.com/SatelCreative/spylib/pull/184
