@@ -2,6 +2,7 @@ import logging
 from abc import ABC, abstractmethod
 from asyncio import sleep
 from datetime import datetime, timedelta
+from json.decoder import JSONDecodeError
 from math import ceil, floor
 from time import monotonic
 from typing import Any, ClassVar, Dict, List, Optional
@@ -15,6 +16,7 @@ from tenacity.stop import stop_after_attempt
 from tenacity.wait import wait_random
 
 from spylib.constants import (
+    API_CALL_NUMBER_RETRY_ATTEMPTS,
     MAX_COST_EXCEEDED_ERROR_CODE,
     OPERATION_NAME_REQUIRED_ERROR_MESSAGE,
     THROTTLED_ERROR_CODE,
@@ -25,6 +27,7 @@ from spylib.exceptions import (
     ShopifyError,
     ShopifyExceedingMaxCostError,
     ShopifyGQLError,
+    ShopifyInvalidResponseBody,
     ShopifyThrottledError,
     not_our_fault,
 )
@@ -121,7 +124,7 @@ class Token(ABC, BaseModel):
     @retry(
         reraise=True,
         wait=wait_random(min=1, max=2),
-        stop=stop_after_attempt(5),
+        stop=stop_after_attempt(API_CALL_NUMBER_RETRY_ATTEMPTS),
         retry=retry_if_exception(not_our_fault),
     )
     async def execute_rest(
@@ -163,8 +166,8 @@ class Token(ABC, BaseModel):
 
     @retry(
         reraise=True,
-        stop=stop_after_attempt(5),
-        retry=retry_if_exception_type(ShopifyThrottledError),
+        stop=stop_after_attempt(API_CALL_NUMBER_RETRY_ATTEMPTS),
+        retry=retry_if_exception_type((ShopifyThrottledError, ShopifyInvalidResponseBody)),
     )
     async def execute_gql(
         self,
@@ -173,7 +176,6 @@ class Token(ABC, BaseModel):
         operation_name: Optional[str] = None,
         suppress_errors: bool = False,
     ) -> Dict[str, Any]:
-
         if not self.access_token:
             raise ValueError('Token Undefined')
 
@@ -204,7 +206,10 @@ class Token(ABC, BaseModel):
             else:
                 raise ShopifyGQLError(f'GQL query failed, status code: {resp.status_code}.')
 
-        jsondata = resp.json()
+        try:
+            jsondata = resp.json()
+        except JSONDecodeError as exc:
+            raise ShopifyInvalidResponseBody from exc
 
         if type(jsondata) is not dict:
             raise ValueError('JSON data is not a dictionary')

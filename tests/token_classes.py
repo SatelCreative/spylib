@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from json import loads
 from typing import ClassVar, Optional
 
 from pydantic.class_validators import validator
@@ -33,14 +34,17 @@ offline_token_data = OfflineTokenModel(
 
 class MockHTTPResponse(BaseModel):
     status_code: int
-    jsondata: dict
-    headers: dict = None  # type: ignore
+    jsondata: Optional[dict] = None
+    headers: Optional[dict] = None
 
     @validator('headers', pre=True, always=True)
     def set_id(cls, fld):
         return fld or {'X-Shopify-Shop-Api-Call-Limit': '39/40'}
 
     def json(self):
+        # Mock trying to deserialize something that's not a valid JSON
+        if self.jsondata is None:
+            loads('NOT A JSON')
         return self.jsondata
 
 
