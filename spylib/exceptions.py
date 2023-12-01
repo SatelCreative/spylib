@@ -17,11 +17,10 @@ class ShopifyGQLUserError(Exception):
 
 
 class ShopifyInvalidResponseBody(ShopifyError):
-    """Exception to identify the rare and weird case when Shopify returned body is not the expected
-    type, typically not a JSON.
+    """Exception to identify when Shopify returned body is not the expected type, i.e. not a JSON.
 
-    These should be retried because they are intermittent and most likely and internal error in
-    Shopify that wasn't handled properly.
+    These seem extremely rare and should be retried because they are intermittent and most likely
+    and internal error in Shopify that wasn't handled properly.
     """
 
     pass
