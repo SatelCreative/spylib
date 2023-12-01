@@ -28,7 +28,9 @@ scenarios = [
 
 @mark.asyncio
 @mark.parametrize('gql_response, number_attempts, expected_exception', scenarios)
-async def test_store_graphql_surface_errors(gql_response, number_attempts, expected_exception, mocker):
+async def test_store_graphql_surface_errors(
+    gql_response, number_attempts, expected_exception, mocker
+):
     token = await OfflineToken.load(store_name=test_information.store_name)
 
     query = """
