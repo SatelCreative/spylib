@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented in this file. Dates are displayed in UTC.
 
+#### [0.9.2](https://github.com/SatelCreative/spylib/compare/0.9.1...0.9.2)
+> 04 December 2023
+
+* :bug: Handle when the a Shopify API call response body is not a json by @hillairet in https://github.com/SatelCreative/spylib/pull/205
+
 
 #### [0.9.1](https://github.com/SatelCreative/spylib/compare/0.9.0...0.9.1)
 > 08 September 2023
