@@ -4,7 +4,7 @@ from typing import Any, Dict, Optional
 from urllib.parse import urlparse
 
 from jwt import decode
-from pydantic import root_validator
+from pydantic import model_validator
 from pydantic.main import BaseModel
 from pydantic.networks import HttpUrl
 
@@ -41,15 +41,16 @@ class SessionToken(BaseModel):
 
     iss: HttpUrl
     dest: HttpUrl
-    aud: Optional[str]
+    aud: Optional[str] = None
     sub: int
-    exp: Optional[float]
-    nbf: Optional[float]
-    iat: Optional[float]
+    exp: Optional[float] = None
+    nbf: Optional[float] = None
+    iat: Optional[float] = None
     jti: str
     sid: str
 
-    @root_validator()
+    @model_validator()
+    @classmethod
     def equal_iss_and_dest(cls, values: Dict[str, Any]):
         domain = cls.__url_to_base(values.get('iss'))
         try:
