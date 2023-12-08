@@ -1,5 +1,7 @@
+from typing import Optional
+
 import jwt
-from pydantic import BaseModel, validator
+from pydantic import BaseModel, field_validator
 
 from .misc import now_epoch
 
@@ -12,12 +14,11 @@ class JWTBaseModel(BaseModel):
     expiration time.
     """
 
-    exp: int = None  # type: ignore
+    exp: Optional[int] = None
 
-    # TODO[pydantic]: We couldn't refactor the `validator`, please replace it by `field_validator` manually.
-    # Check https://docs.pydantic.dev/dev-v2/migration/#changes-to-validators for more information.
-    @validator('exp', pre=True, always=True)
-    def set_id(cls, exp):
+    @field_validator('exp', mode="before")
+    @classmethod
+    def set_id(cls, exp: int):
         return exp or (now_epoch() + 900)
 
     @classmethod
