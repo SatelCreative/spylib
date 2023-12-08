@@ -16,7 +16,7 @@ class JWTBaseModel(BaseModel):
 
     exp: Optional[int] = None
 
-    @field_validator('exp', mode="before")
+    @field_validator('exp', mode='before')
     @classmethod
     def set_id(cls, exp: int):
         return exp or (now_epoch() + 900)
