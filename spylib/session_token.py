@@ -33,7 +33,7 @@ class TokenAuthenticationError(TokenValidationError):
 
 
 class SessionToken(BaseModel):
-    """Session tokens are derived from the authrization header from Shopify.
+    """Session tokens are derived from the authorization header from Shopify.
 
     This performs the set of validations as defined by shopify
     https://shopify.dev/apps/auth/session-tokens/authenticate-an-embedded-app-using-session-tokens#obtain-session-details-manually
@@ -49,7 +49,7 @@ class SessionToken(BaseModel):
     jti: str
     sid: str
 
-    @model_validator()
+    @model_validator(mode='before')
     @classmethod
     def equal_iss_and_dest(cls, values: Dict[str, Any]):
         domain = cls.__url_to_base(values.get('iss'))
