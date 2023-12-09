@@ -12,7 +12,7 @@ homepage = "https://satelcreative.github.io/spylib"
 repository = "https://github.com/SatelCreative/spylib"
 
 [tool.poetry.dependencies]
-python = "^3.8"
+python = "^3.9"
 httpx = ">= 0.18.1 <= 0.24.1"
 tenacity = "^8.2.2"
 starlette = ">= 0.15.0"
