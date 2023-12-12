@@ -22,7 +22,6 @@ def calculate_from_components(
 
 
 def validate(secret: str, sent_hmac: str, message: str, use_base64: bool = False):
-
     hmac_calculated = calculate_from_message(secret=secret, message=message, use_base64=use_base64)
 
     if not compare_digest(sent_hmac, hmac_calculated):

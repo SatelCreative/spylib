@@ -40,7 +40,7 @@ async def exchange_token(
         message = (
             f'Shopify rejected token exchange. Shop: "{shop}". Status: "{response.status_code}".'
         )
-        raise Exception(message)   # Not sure what the convention is here
+        raise Exception(message)  # Not sure what the convention is here
 
     raw_response_body = response.json()
     is_online_token = 'associated_user' in raw_response_body

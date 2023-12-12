@@ -19,7 +19,6 @@ async def process_callback(
     post_install: Callable[[str, OfflineTokenModel], Optional[Awaitable]],
     post_login: Optional[Callable[[str, OnlineTokenModel], Optional[Awaitable]]],
 ) -> OAuthJWT:
-
     validate_callback(
         shop=shop,
         timestamp=timestamp,
