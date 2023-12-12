@@ -138,7 +138,7 @@ async def test_store_graphql_non_200(mocker):
 
 
 @pytest.mark.asyncio
-async def test_store_graphql_non_503(mocker):
+async def test_store_graphql_503(mocker):
     token = await OfflineToken.load(store_name=test_information.store_name)
 
     query = """
