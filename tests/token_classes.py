@@ -3,8 +3,7 @@ from __future__ import annotations
 from json import loads
 from typing import ClassVar, Optional
 
-from pydantic.class_validators import validator
-from pydantic.main import BaseModel
+from pydantic.main import BaseModel, field_validator
 
 from spylib.admin_api import OfflineTokenABC, OnlineTokenABC, PrivateTokenABC
 from spylib.oauth.models import OfflineTokenModel, OnlineTokenModel
@@ -37,7 +36,8 @@ class MockHTTPResponse(BaseModel):
     jsondata: Optional[dict] = None
     headers: Optional[dict] = None
 
-    @validator('headers', pre=True, always=True)
+    @field_validator('headers', mode='before')
+    @classmethod
     def set_id(cls, fld):
         return fld or {'X-Shopify-Shop-Api-Call-Limit': '39/40'}
 

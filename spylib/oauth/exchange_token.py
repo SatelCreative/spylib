@@ -46,9 +46,9 @@ async def exchange_token(
     is_online_token = 'associated_user' in raw_response_body
 
     if is_online_token:
-        return OnlineTokenModel.parse_obj(raw_response_body)
+        return OnlineTokenModel.model_validate(raw_response_body)
 
-    return OfflineTokenModel.parse_obj(raw_response_body)
+    return OfflineTokenModel.model_validate(raw_response_body)
 
 
 async def exchange_offline_token(

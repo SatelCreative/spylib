@@ -92,7 +92,7 @@ class SessionToken(BaseModel):
         )
 
         # Verify enough fields specified and perform validation checks
-        return cls.parse_obj(payload)
+        return cls.model_validate(payload)
 
     @staticmethod
     def __url_to_base(url):
