@@ -72,7 +72,7 @@ class Token(ABC, BaseModel):
 
     @validator('scope', pre=True)
     def convert_scope(cls, v):
-        if type(v) == str:
+        if isinstance(v, str):
             return v.split(',')
         return v
 
