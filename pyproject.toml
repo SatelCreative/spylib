@@ -12,7 +12,7 @@ homepage = "https://satelcreative.github.io/spylib"
 repository = "https://github.com/SatelCreative/spylib"
 
 [tool.poetry.dependencies]
-python = "^3.8"
+python = "^3.9"
 httpx = ">= 0.18.1 <= 0.24.1"
 tenacity = "^8.2.2"
 starlette = ">= 0.15.0"
@@ -29,8 +29,7 @@ pytest-cov = "^4.1.0"
 pytest-mock = "^3.11.1"
 mypy = "^1.4.1"
 mypy-extensions = "^1.0.0"
-# latest blue 0.9.1 is not compatible with flake8 v5
-flake8 = "^5.0.0"
+flake8 = "^6.0.0"
 flake8-isort = "^6.0.0"
 python-box = "^7.0.1"
 watchdog = "^3.0.0"
@@ -45,6 +44,7 @@ pydocstyle = "^6.3.0"
 linkcheckmd= "^1.4.0"
 respx = "^0.20.2"
 mike = "^1.1.2"
+pytest-asyncio = "^0.23.2"
 
 [tool.poetry.extras]
 fastapi = ["fastapi"]
