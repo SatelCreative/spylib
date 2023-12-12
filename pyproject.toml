@@ -29,7 +29,6 @@ pytest-cov = "^4.1.0"
 pytest-mock = "^3.11.1"
 mypy = "^1.4.1"
 mypy-extensions = "^1.0.0"
-# latest blue 0.9.1 is not compatible with flake8 v5
 flake8 = "^6.0.0"
 flake8-isort = "^6.0.0"
 python-box = "^7.0.1"
