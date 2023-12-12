@@ -5,6 +5,9 @@ services such as the REST and GraphQL APIs as well as the OAuth authentication.
 All of this is done **asynchronously using asyncio**.
 
 ![Tests](https://github.com/SatelCreative/satel-spylib/actions/workflows/tests.yml/badge.svg)
+[![pypi](https://img.shields.io/pypi/v/spylib.svg)](https://pypi.python.org/pypi/spylib)
+[![versions](https://img.shields.io/pypi/pyversions/spylib.svg)](https://github.com/SatelCreative/spylib)
+[![license](https://img.shields.io/github/license/SatelCreative/spylib.svg)](https://github.com/SatelCreative/spylib/blob/main/LICENSE)
 
 ## Installation
 
