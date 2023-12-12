@@ -204,8 +204,8 @@ class Token(ABC, BaseModel):
 
             error_msg = jsondata['errors']
             raise ShopifyGQLError(
-                    f'GQL query failed, status code: {resp.status_code}. {error_msg}'
-                )
+                f'GQL query failed, status code: {resp.status_code}. {error_msg}'
+            )
 
         try:
             jsondata = resp.json()
