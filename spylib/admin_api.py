@@ -197,14 +197,15 @@ class Token(ABC, BaseModel):
         # Handle any response that is not 200, which will return with error message
         # https://shopify.dev/api/admin-graphql#status_and_error_codes
         if resp.status_code != 200:
-            jsondata = resp.json()
-            if jsondata:
-                error_msg = jsondata['errors']
-                raise ShopifyGQLError(
+            try:
+                jsondata = resp.json()
+            except JSONDecodeError:
+                raise ShopifyGQLError(f'GQL query failed, status code: {resp.status_code}.')
+
+            error_msg = jsondata['errors']
+            raise ShopifyGQLError(
                     f'GQL query failed, status code: {resp.status_code}. {error_msg}'
                 )
-            else:
-                raise ShopifyGQLError(f'GQL query failed, status code: {resp.status_code}.')
 
         try:
             jsondata = resp.json()
