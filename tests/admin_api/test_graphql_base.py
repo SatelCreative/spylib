@@ -2,7 +2,8 @@ from unittest.mock import AsyncMock
 
 import pytest
 
-from spylib.exceptions import ShopifyGQLError
+from spylib.constants import API_CALL_NUMBER_RETRY_ATTEMPTS
+from spylib.exceptions import ShopifyIntermittentError
 
 from ..token_classes import MockHTTPResponse, OfflineToken, test_information
 
@@ -134,7 +135,7 @@ async def test_store_graphql_non_200(mocker):
         jsondata = await token.execute_gql(query=query)
         assert jsondata == data
 
-    shopify_request_mock.assert_called_once()
+    assert shopify_request_mock.call_count == API_CALL_NUMBER_RETRY_ATTEMPTS
 
 
 @pytest.mark.asyncio
@@ -153,7 +154,9 @@ async def test_store_graphql_503(mocker):
         new_callable=AsyncMock,
         return_value=MockHTTPResponse(status_code=503, jsondata=None),
     )
-    with pytest.raises(ShopifyGQLError, match='GQL query failed, status code: 503.'):
+    with pytest.raises(
+        ShopifyIntermittentError, match='The Shopify API returned an intermittent error: 503.'
+    ):
         await token.execute_gql(query=query)
 
-    shopify_request_mock.assert_called_once()
+    assert shopify_request_mock.call_count == API_CALL_NUMBER_RETRY_ATTEMPTS

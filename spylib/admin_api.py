@@ -27,6 +27,7 @@ from spylib.exceptions import (
     ShopifyError,
     ShopifyExceedingMaxCostError,
     ShopifyGQLError,
+    ShopifyIntermittentError,
     ShopifyInvalidResponseBody,
     ShopifyThrottledError,
     not_our_fault,
@@ -167,7 +168,9 @@ class Token(ABC, BaseModel):
     @retry(
         reraise=True,
         stop=stop_after_attempt(API_CALL_NUMBER_RETRY_ATTEMPTS),
-        retry=retry_if_exception_type((ShopifyThrottledError, ShopifyInvalidResponseBody)),
+        retry=retry_if_exception_type(
+            (ShopifyThrottledError, ShopifyInvalidResponseBody, ShopifyIntermittentError)
+        ),
     )
     async def execute_gql(
         self,
@@ -196,6 +199,11 @@ class Token(ABC, BaseModel):
 
         # Handle any response that is not 200, which will return with error message
         # https://shopify.dev/api/admin-graphql#status_and_error_codes
+        if resp.status_code in [500, 503]:
+            raise ShopifyIntermittentError(
+                f'The Shopify API returned an intermittent error: {resp.status_code}.'
+            )
+
         if resp.status_code != 200:
             try:
                 jsondata = resp.json()
