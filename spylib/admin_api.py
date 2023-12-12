@@ -207,13 +207,11 @@ class Token(ABC, BaseModel):
         if resp.status_code != 200:
             try:
                 jsondata = resp.json()
+                error_msg = f'{resp.status_code}. {jsondata["errors"]}'
             except JSONDecodeError:
-                raise ShopifyGQLError(f'GQL query failed, status code: {resp.status_code}.')
+                error_msg = f'{resp.status_code}.'
 
-            error_msg = jsondata['errors']
-            raise ShopifyGQLError(
-                f'GQL query failed, status code: {resp.status_code}. {error_msg}'
-            )
+            raise ShopifyGQLError(f'GQL query failed, status code: {error_msg}')
 
         try:
             jsondata = resp.json()
