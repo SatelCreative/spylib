@@ -22,9 +22,6 @@ pycryptodome = "^3.10.1"
 
 fastapi = { version = ">= 0.69.0", optional = true }
 
-[tool.poetry.extras]
-fastapi = ["fastapi"]
-
 [tool.poetry.group.dev.dependencies]
 black = "^23.11.0"
 pytest = "^7.4.0"
@@ -48,6 +45,9 @@ pydocstyle = "^6.3.0"
 linkcheckmd= "^1.4.0"
 respx = "^0.20.2"
 mike = "^1.1.2"
+
+[tool.poetry.extras]
+fastapi = ["fastapi"]
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
