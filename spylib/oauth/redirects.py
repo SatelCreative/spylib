@@ -48,5 +48,4 @@ def app_redirect(
     app_domain: str,
     app_api_key: str,
 ) -> str:
-
     return f'https://{store_domain}/admin/apps/{app_api_key}'
