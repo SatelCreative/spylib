@@ -3,8 +3,7 @@ from __future__ import annotations
 from json import loads
 from typing import ClassVar, Optional
 
-from pydantic.class_validators import validator
-from pydantic.main import BaseModel
+from pydantic import BaseModel
 
 from spylib.admin_api import OfflineTokenABC, OnlineTokenABC, PrivateTokenABC
 from spylib.oauth.models import OfflineTokenModel, OnlineTokenModel
@@ -35,11 +34,7 @@ offline_token_data = OfflineTokenModel(
 class MockHTTPResponse(BaseModel):
     status_code: int
     jsondata: Optional[dict] = None
-    headers: Optional[dict] = None
-
-    @validator('headers', pre=True, always=True)
-    def set_id(cls, fld):
-        return fld or {'X-Shopify-Shop-Api-Call-Limit': '39/40'}
+    headers: dict = {'X-Shopify-Shop-Api-Call-Limit': '39/40'}
 
     def json(self):
         # Mock trying to deserialize something that's not a valid JSON

@@ -1,5 +1,5 @@
 import jwt
-from pydantic import BaseModel, validator
+from pydantic import BaseModel, Field
 
 from .misc import now_epoch
 
@@ -12,11 +12,7 @@ class JWTBaseModel(BaseModel):
     expiration time.
     """
 
-    exp: int = None  # type: ignore
-
-    @validator('exp', pre=True, always=True)
-    def set_id(cls, exp):
-        return exp or (now_epoch() + 900)
+    exp: int = Field(default_factory=lambda: now_epoch() + 900)
 
     @classmethod
     def decode_token(cls, key: str, token: str, verify: bool = True):
@@ -47,6 +43,6 @@ class JWTBaseModel(BaseModel):
         -------
         The JWT as a string
         """
-        data = self.dict()
+        data = self.model_dump()
         data['exp'] = self.exp
         return jwt.encode(data, key, algorithm='HS256')

@@ -1,10 +1,8 @@
-from typing import List
+from typing import Annotated, List
 
-from pydantic import BaseModel, validator
+from pydantic import BaseModel, BeforeValidator
 
-
-def _parse_scope(scope: str) -> List[str]:
-    return scope.split(',')
+from spylib.utils.misc import parse_scope
 
 
 class OfflineTokenModel(BaseModel):
@@ -15,12 +13,10 @@ class OfflineTokenModel(BaseModel):
     An API access token that can be used to access the shop's data as long as your app is installed. Your app should store the token somewhere to make authenticated requests for a shop’s data.
     """
 
-    scope: List[str]
+    scope: Annotated[List[str], BeforeValidator(parse_scope)]
     """
     The list of access scopes that were granted to your app and are associated with the access token.
     """
-
-    _normalize_scope = validator('scope', allow_reuse=True, pre=True)(_parse_scope)
 
 
 class AssociatedUser(BaseModel):
@@ -77,19 +73,14 @@ class OnlineTokenModel(BaseModel):
     access_token: str
     """An API access token that can be used to access the shop's data until it expires or the associated user logs out."""
 
-    scope: List[str]
+    scope: Annotated[List[str], BeforeValidator(parse_scope)]
     """The list of access scopes that were requested. Inspect `associated_user_scope` to see which were granted."""
 
     expires_in: int
     """The number of seconds until this session (and `access_token`) expire."""
 
-    associated_user_scope: List[str]
+    associated_user_scope: Annotated[List[str], BeforeValidator(parse_scope)]
     """The list of access scopes that were both requested and available to this user."""
 
     associated_user: AssociatedUser
     """The Shopify user associated with this token."""
-
-    _normalize_scope = validator('scope', allow_reuse=True, pre=True)(_parse_scope)
-    _normalize_associated_user_scope = validator(
-        'associated_user_scope', allow_reuse=True, pre=True
-    )(_parse_scope)

@@ -4,6 +4,7 @@ from sys import modules
 
 import jwt
 import pytest
+from pydantic import HttpUrl
 from starlette.requests import Request
 
 from spylib.session_token import (
@@ -50,7 +51,10 @@ async def test_session_token(token):
     valid_auth_header = generate_auth_header(token)
     session_token = SessionToken.from_header(valid_auth_header, API_KEY, API_SECRET)
 
-    assert session_token.dict() == token
+    token['iss'] = HttpUrl(token['iss'])
+    token['dest'] = HttpUrl(token['dest'])
+
+    assert session_token.model_dump() == token
 
 
 @pytest.mark.asyncio

@@ -58,4 +58,4 @@ async def test_exchange_token(respx_mock: MockRouter, token_dict, token_model):
         api_secret_key=api_secret_key,
     )
 
-    assert result == token_model.parse_obj(token_dict)
+    assert result == token_model.model_validate(token_dict)

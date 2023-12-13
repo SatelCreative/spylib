@@ -5,10 +5,10 @@ from datetime import datetime, timedelta
 from json.decoder import JSONDecodeError
 from math import ceil, floor
 from time import monotonic
-from typing import Any, ClassVar, Dict, List, Optional
+from typing import Annotated, Any, ClassVar, Dict, List, Optional
 
 from httpx import AsyncClient, Response
-from pydantic import BaseModel, validator
+from pydantic import BaseModel, BeforeValidator, ConfigDict
 from starlette import status
 from tenacity import retry
 from tenacity.retry import retry_if_exception, retry_if_exception_type
@@ -32,6 +32,7 @@ from spylib.exceptions import (
     ShopifyThrottledError,
     not_our_fault,
 )
+from spylib.utils.misc import parse_scope
 from spylib.utils.rest import Request
 
 
@@ -43,8 +44,8 @@ class Token(ABC, BaseModel):
     """
 
     store_name: str
-    scope: List[str] = []
-    access_token: Optional[str]
+    scope: Annotated[List[str], BeforeValidator(parse_scope)] = []
+    access_token: Optional[str] = None
     access_token_invalid: bool = False
 
     api_version: ClassVar[Optional[str]] = None
@@ -71,16 +72,7 @@ class Token(ABC, BaseModel):
             return f'https://{self.store_name}.myshopify.com/admin'
         return f'https://{self.store_name}.myshopify.com/admin/api/{self.api_version}'
 
-    @validator('scope', pre=True)
-    def convert_scope(cls, v):
-        if isinstance(v, str):
-            return v.split(',')
-        return v
-
-    class Config:
-        """Configure Token model behaviour."""
-
-        arbitrary_types_allowed = True
+    model_config = ConfigDict(arbitrary_types_allowed=True)
 
     # Methods for querying the store
 

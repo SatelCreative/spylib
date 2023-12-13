@@ -4,7 +4,7 @@ from typing import Any, Dict, Optional
 from urllib.parse import urlparse
 
 from jwt import decode
-from pydantic import root_validator
+from pydantic import model_validator
 from pydantic.main import BaseModel
 from pydantic.networks import HttpUrl
 
@@ -33,7 +33,7 @@ class TokenAuthenticationError(TokenValidationError):
 
 
 class SessionToken(BaseModel):
-    """Session tokens are derived from the authrization header from Shopify.
+    """Session tokens are derived from the authorization header from Shopify.
 
     This performs the set of validations as defined by shopify
     https://shopify.dev/apps/auth/session-tokens/authenticate-an-embedded-app-using-session-tokens#obtain-session-details-manually
@@ -41,15 +41,16 @@ class SessionToken(BaseModel):
 
     iss: HttpUrl
     dest: HttpUrl
-    aud: Optional[str]
+    aud: Optional[str] = None
     sub: int
-    exp: Optional[float]
-    nbf: Optional[float]
-    iat: Optional[float]
+    exp: Optional[float] = None
+    nbf: Optional[float] = None
+    iat: Optional[float] = None
     jti: str
     sid: str
 
-    @root_validator()
+    @model_validator(mode='before')
+    @classmethod
     def equal_iss_and_dest(cls, values: Dict[str, Any]):
         domain = cls.__url_to_base(values.get('iss'))
         try:
@@ -91,7 +92,7 @@ class SessionToken(BaseModel):
         )
 
         # Verify enough fields specified and perform validation checks
-        return cls.parse_obj(payload)
+        return cls.model_validate(payload)
 
     @staticmethod
     def __url_to_base(url):
