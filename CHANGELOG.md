@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file. Dates are displayed in UTC.
 
+#### [0.9.3](https://github.com/SatelCreative/spylib/compare/0.9.3...0.10.0)
+> 13 December 2023
+
+* ⬆️ Upgrade to pydantic 2.5 by @hillairet in https://github.com/SatelCreative/spylib/pull/207
+
+
 #### [0.9.3](https://github.com/SatelCreative/spylib/compare/0.9.2...0.9.3)
 > 13 December 2023
 
