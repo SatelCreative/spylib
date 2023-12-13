@@ -50,6 +50,6 @@ class JWTBaseModel(BaseModel):
         -------
         The JWT as a string
         """
-        data = self.dict()
+        data = self.model_dump()
         data['exp'] = self.exp
         return jwt.encode(data, key, algorithm='HS256')
