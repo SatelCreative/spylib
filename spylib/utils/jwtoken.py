@@ -1,7 +1,5 @@
-from typing import Annotated, Optional
-
 import jwt
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, Field
 
 from .misc import now_epoch
 
@@ -14,7 +12,7 @@ class JWTBaseModel(BaseModel):
     expiration time.
     """
 
-    exp: Annotated[Optional[int], Field(default_factory=lambda: now_epoch() + 900 )]
+    exp: int = Field(default_factory=lambda: now_epoch() + 900)
 
     @classmethod
     def decode_token(cls, key: str, token: str, verify: bool = True):
