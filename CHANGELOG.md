@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file. Dates are displayed in UTC.
 
+#### [0.9.3](https://github.com/SatelCreative/spylib/compare/0.9.2...0.9.3)
+> 13 December 2023
+
+* 📝 Add badges for licence, version, and pypi version to the README by @hillairet in https://github.com/SatelCreative/spylib/pull/209
+* ⬆️ Upgrade packages in pyproject.toml by @hillairet in https://github.com/SatelCreative/spylib/pull/210
+* 💥 Remove support for python version 3.8, add 3.12 by @hillairet in https://github.com/SatelCreative/spylib/pull/208
+* 🐛  Shopify error handling by @lishanl in https://github.com/SatelCreative/spylib/pull/211
+
+
 #### [0.9.2](https://github.com/SatelCreative/spylib/compare/0.9.1...0.9.2)
 > 04 December 2023
 
