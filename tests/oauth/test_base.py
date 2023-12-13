@@ -91,7 +91,13 @@ async def test_oauth_with_fastapi(mocker):
     assert response.status_code == 422
     assert response.json() == {
         'detail': [
-            {'loc': ['query', 'shop'], 'msg': 'field required', 'type': 'value_error.missing'}
+            {
+                'input': None,
+                'loc': ['query', 'shop'],
+                'msg': 'Field required',
+                'type': 'missing',
+                'url': 'https://errors.pydantic.dev/2.5/v/missing',
+            }
         ],
     }
 
