@@ -10,6 +10,12 @@ class ShopifyGQLError(Exception):
     pass
 
 
+class ShopifyIntermittentError(Exception):
+    """Exception to identify any Shopify admin API Intermittent error."""
+
+    pass
+
+
 class ShopifyGQLUserError(Exception):
     """Exception to identify any Shopify admin graphql error caused by the user mistake."""
 
