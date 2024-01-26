@@ -191,7 +191,7 @@ class Token(ABC, BaseModel):
 
         # Handle any response that is not 200, which will return with error message
         # https://shopify.dev/api/admin-graphql#status_and_error_codes
-        if resp.status_code in [500, 503]:
+        if resp.status_code >= 500:
             raise ShopifyIntermittentError(
                 f'The Shopify API returned an intermittent error: {resp.status_code}.'
             )
