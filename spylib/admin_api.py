@@ -264,6 +264,20 @@ class Token(ABC, BaseModel):
 
         return jsondata['data']
 
+    async def test_connection(self) -> bool:
+        """
+        Test the connection to the Shopify Admin APIs
+        """
+        try:
+            await self.execute_gql(
+                query='query { shop { name } }',
+            )
+            logging.info('Shopify API connection is OK')
+        except Exception as e:
+            logging.exception(e)
+            return False
+        return True
+
 
 class OfflineTokenABC(Token, ABC):
     """Offline tokens are used for long term access, and do not have a set expiry."""
