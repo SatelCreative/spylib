@@ -266,9 +266,7 @@ class Token(ABC, BaseModel):
 
     @elapsed_seconds(data_type=TimedResult)
     async def test_connection(self) -> bool:
-        """
-        Test the connection to the Shopify Admin APIs
-        """
+        """Test the connection to the Shopify Admin APIs."""
         try:
             await self.execute_gql(
                 query='query { shop { name } }',
