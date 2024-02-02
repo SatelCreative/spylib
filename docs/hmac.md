@@ -1,7 +1,7 @@
 # HMAC
 
 The hmac functionality can be used to validate the following Shopify requests:
- - [OAuth](https://shopify.dev/apps/auth/oauth/getting-started#step-7-verify-a-request)
+ - [OAuth](https://shopify.dev/docs/apps/auth/get-access-tokens/authorization-code-grant/getting-started#step-7-verify-a-request)
  - [Webhook](https://shopify.dev/apps/webhooks/configuration/https#verify-the-webhook)
  - [App Proxy](https://shopify.dev/apps/online-store/app-proxies#calculate-a-digital-signature)
 
