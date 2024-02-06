@@ -1,7 +1,7 @@
 from .domain import domain_to_storename, store_domain
 from .httpclient import HTTPClient
 from .jwtoken import JWTBaseModel
-from .misc import TimedResult, elapsed_seconds, get_unique_id, now_epoch
+from .misc import TimedResult, elapsed_ms, get_unique_id, now_epoch
 from .rest import DELETE, GET, POST, PUT, Method
 
 __all__ = [
@@ -17,5 +17,5 @@ __all__ = [
     'PUT',
     'DELETE',
     'TimedResult',
-    'elapsed_seconds',
+    'elapsed_ms',
 ]

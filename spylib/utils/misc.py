@@ -24,17 +24,17 @@ def parse_scope(v: Any) -> List[str]:
 
 class TimedResult(BaseModel):
     result: Any
-    elapsed_seconds: float
+    elapsed_ms: float
 
 
-def elapsed_seconds(data_type: Type[TimedResult]):
+def elapsed_ms(data_type: Type[TimedResult]):
     def decorator(func):
         @wraps(func)
         async def wrapper(*args, **kwargs):
             start = perf_counter()
             result = await func(*args, **kwargs)
             end = perf_counter()
-            return data_type(result=result, elapsed_seconds=end - start)
+            return data_type(result=result, elapsed_ms=(end - start) * 1000)
 
         return wrapper
 
