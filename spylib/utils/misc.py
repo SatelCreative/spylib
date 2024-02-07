@@ -25,11 +25,11 @@ def parse_scope(v: Any) -> List[str]:
 class ElapsedTime(BaseModel):
     start: float
     end: float
-    
+
     @property
     def seconds(self) -> float:
         return self.end - self.start
-    
+
     @property
     def milliseconds(self) -> float:
         return 1000 * (self.end - self.start)
@@ -37,7 +37,7 @@ class ElapsedTime(BaseModel):
 
 class TimedResult(BaseModel):
     result: Any
-    elapsed_time: _Time
+    elapsed_time: ElapsedTime
 
 
 def elapsed_time(data_type: Type[TimedResult]):
@@ -48,11 +48,7 @@ def elapsed_time(data_type: Type[TimedResult]):
             result = await func(*args, **kwargs)
             end = perf_counter()
 
-            time_diff_seconds = end - start
-            return data_type(
-                result=result,
-                elapsed_time=ElapsedTime(start=start, end=end)
-            )
+            return data_type(result=result, elapsed_time=ElapsedTime(start=start, end=end))
 
         return wrapper
 
