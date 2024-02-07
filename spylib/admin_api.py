@@ -32,7 +32,7 @@ from spylib.exceptions import (
     ShopifyThrottledError,
     not_our_fault,
 )
-from spylib.utils.misc import parse_scope
+from spylib.utils.misc import TimedResult, elapsed_time, parse_scope
 from spylib.utils.rest import Request
 
 
@@ -263,6 +263,19 @@ class Token(ABC, BaseModel):
             raise ShopifyGQLError(jsondata)
 
         return jsondata['data']
+
+    @elapsed_time(data_type=TimedResult)
+    async def test_connection(self) -> bool:
+        """Test the connection to the Shopify Admin APIs."""
+        try:
+            await self.execute_gql(
+                query='query { shop { name } }',
+            )
+            logging.info('Shopify API connection is OK')
+        except Exception as e:
+            logging.exception(e)
+            return False
+        return True
 
 
 class OfflineTokenABC(Token, ABC):
