@@ -22,9 +22,17 @@ def parse_scope(v: Any) -> List[str]:
     return v
 
 
-class _Time(BaseModel):
-    seconds: float
-    milliseconds: float
+class ElapsedTime(BaseModel):
+    start: float
+    end: float
+    
+    @property
+    def seconds(self) -> float:
+        return self.end - self.start
+    
+    @property
+    def milliseconds(self) -> float:
+        return 1000 * (self.end - self.start)
 
 
 class TimedResult(BaseModel):
@@ -43,9 +51,7 @@ def elapsed_time(data_type: Type[TimedResult]):
             time_diff_seconds = end - start
             return data_type(
                 result=result,
-                elapsed_time=_Time(
-                    seconds=time_diff_seconds, milliseconds=time_diff_seconds * 1000
-                ),
+                elapsed_time=ElapsedTime(start=start, end=end)
             )
 
         return wrapper
