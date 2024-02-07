@@ -22,19 +22,31 @@ def parse_scope(v: Any) -> List[str]:
     return v
 
 
+class _Time(BaseModel):
+    seconds: float
+    milliseconds: float
+
+
 class TimedResult(BaseModel):
     result: Any
-    elapsed_ms: float
+    elapsed_time: _Time
 
 
-def elapsed_ms(data_type: Type[TimedResult]):
+def elapsed_time(data_type: Type[TimedResult]):
     def decorator(func):
         @wraps(func)
         async def wrapper(*args, **kwargs):
             start = perf_counter()
             result = await func(*args, **kwargs)
             end = perf_counter()
-            return data_type(result=result, elapsed_ms=(end - start) * 1000)
+
+            time_diff_seconds = end - start
+            return data_type(
+                result=result,
+                elapsed_time=_Time(
+                    seconds=time_diff_seconds, milliseconds=time_diff_seconds * 1000
+                ),
+            )
 
         return wrapper
 

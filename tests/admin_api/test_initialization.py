@@ -78,4 +78,4 @@ async def test_connection_invalid_token():
     private_token = await PrivateToken.load(store_name=test_information.store_name)
     timed_result = await private_token.test_connection()
     assert timed_result.result is False
-    assert timed_result.elapsed_ms > 0
+    assert timed_result.elapsed_time.milliseconds > 0
