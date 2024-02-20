@@ -189,50 +189,42 @@ class Token(ABC, BaseModel):
             headers=headers,
         )
 
+        jsondata = await self._check_for_errors(
+            response=resp, suppress_errors=suppress_errors, operation_name=operation_name
+        )
+
+        return jsondata['data']
+
+    async def _check_for_errors(
+        self, response, suppress_errors: bool, operation_name: str | None
+    ) -> dict:
         # Handle any response that is not 200, which will return with error message
         # https://shopify.dev/api/admin-graphql#status_and_error_codes
-        if resp.status_code != 200:
-            self._handle_non_200_status_codes(response=resp)
+        if response.status_code != 200:
+            self._handle_non_200_status_codes(response=response)
 
-        try:
-            jsondata = resp.json()
-        except JSONDecodeError as exc:
-            raise ShopifyInvalidResponseBody from exc
+        jsondata = self._extract_jsondata_from(response=response)
 
-        if type(jsondata) is not dict:
-            raise ValueError('JSON data is not a dictionary')
-        if 'Invalid API key or access token' in jsondata.get('errors', ''):
-            self.access_token_invalid = True
-            logging.warning(
-                f'Store {self.store_name}: The Shopify API token is invalid. '
-                'Flag the access token as invalid.'
+        errors: list | str = jsondata.get('errors', [])
+        if errors:
+            has_data_field = 'data' in jsondata
+            if has_data_field and not suppress_errors:
+                raise ShopifyGQLError(jsondata)
+
+            if isinstance(errors, str):
+                self._handle_invalid_access_token(errors)
+                raise ShopifyGQLError(f'Unknown errors string: {jsondata}')
+
+            await self._handle_errors_list(
+                jsondata=jsondata, errors=errors, operation_name=operation_name
             )
-            raise ConnectionRefusedError
-
-        if 'data' not in jsondata and 'errors' in jsondata and jsondata['errors']:
-            # Only report on the first error just to simplify
-            err = jsondata['errors'][0]
-
-            if 'extensions' in err and 'code' in err['extensions']:
-                error_code = err['extensions']['code']
-                self._handle_max_cost_exceeded_error_code(error_code=error_code)
-                await self._handle_throttled_error_code(error_code=error_code, jsondata=jsondata)
-
-            if 'message' in err:
-                self._handle_operation_name_required_error(error_message=err['message'])
-                self._handle_wrong_operation_name_error(
-                    error_message=err['message'], operation_name=operation_name
-                )
 
             errorlist = '\n'.join(
                 [err['message'] for err in jsondata['errors'] if 'message' in err]
             )
             raise ValueError(f'GraphQL query is incorrect:\n{errorlist}')
 
-        if not suppress_errors and len(jsondata.get('errors', [])) >= 1:
-            raise ShopifyGQLError(jsondata)
-
-        return jsondata['data']
+        return jsondata
 
     def _handle_non_200_status_codes(self, response) -> NoReturn:
         if response.status_code in [500, 503]:
@@ -247,6 +239,44 @@ class Token(ABC, BaseModel):
             error_msg = f'{response.status_code}.'
 
         raise ShopifyGQLError(f'GQL query failed, status code: {error_msg}')
+
+    @staticmethod
+    def _extract_jsondata_from(response) -> dict:
+        try:
+            jsondata = response.json()
+        except JSONDecodeError as exc:
+            raise ShopifyInvalidResponseBody from exc
+
+        if not isinstance(jsondata, dict):
+            raise ValueError('JSON data is not a dictionary')
+
+        return jsondata
+
+    def _handle_invalid_access_token(self, errors: str) -> None:
+        if 'Invalid API key or access token' in errors:
+            self.access_token_invalid = True
+            logging.warning(
+                f'Store {self.store_name}: The Shopify API token is invalid. '
+                'Flag the access token as invalid.'
+            )
+            raise ConnectionRefusedError
+
+    async def _handle_errors_list(
+        self, jsondata: dict, errors: list, operation_name: str | None
+    ) -> None:
+        # Only report on the first error just to simplify: We will raise an exception anyway.
+        err = errors[0]
+
+        if 'extensions' in err and 'code' in err['extensions']:
+            error_code = err['extensions']['code']
+            self._handle_max_cost_exceeded_error_code(error_code=error_code)
+            await self._handle_throttled_error_code(error_code=error_code, jsondata=jsondata)
+
+        if 'message' in err:
+            self._handle_operation_name_required_error(error_message=err['message'])
+            self._handle_wrong_operation_name_error(
+                error_message=err['message'], operation_name=operation_name
+            )
 
     def _handle_max_cost_exceeded_error_code(self, error_code: str) -> None:
         if error_code != MAX_COST_EXCEEDED_ERROR_CODE:
