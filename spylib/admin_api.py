@@ -5,7 +5,7 @@ from datetime import datetime, timedelta
 from json.decoder import JSONDecodeError
 from math import ceil, floor
 from time import monotonic
-from typing import Annotated, Any, ClassVar, Dict, List, Optional
+from typing import Annotated, Any, ClassVar, Dict, List, NoReturn, Optional
 
 from httpx import AsyncClient, Response
 from pydantic import BaseModel, BeforeValidator, ConfigDict
@@ -191,19 +191,8 @@ class Token(ABC, BaseModel):
 
         # Handle any response that is not 200, which will return with error message
         # https://shopify.dev/api/admin-graphql#status_and_error_codes
-        if resp.status_code in [500, 503]:
-            raise ShopifyIntermittentError(
-                f'The Shopify API returned an intermittent error: {resp.status_code}.'
-            )
-
         if resp.status_code != 200:
-            try:
-                jsondata = resp.json()
-                error_msg = f'{resp.status_code}. {jsondata["errors"]}'
-            except JSONDecodeError:
-                error_msg = f'{resp.status_code}.'
-
-            raise ShopifyGQLError(f'GQL query failed, status code: {error_msg}')
+            self._handle_non_200_status_codes(response=resp)
 
         try:
             jsondata = resp.json()
@@ -220,49 +209,88 @@ class Token(ABC, BaseModel):
             )
             raise ConnectionRefusedError
 
-        if 'data' not in jsondata and 'errors' in jsondata:
+        if 'data' not in jsondata and 'errors' in jsondata and jsondata['errors']:
+            # Only report on the first error just to simplify
+            err = jsondata['errors'][0]
+
+            if 'extensions' in err and 'code' in err['extensions']:
+                error_code = err['extensions']['code']
+                self._handle_max_cost_exceeded_error_code(error_code=error_code)
+                await self._handle_throttled_error_code(error_code=error_code, jsondata=jsondata)
+
+            if 'message' in err:
+                self._handle_operation_name_required_error(error_message=err['message'])
+                self._handle_wrong_operation_name_error(
+                    error_message=err['message'], operation_name=operation_name
+                )
+
             errorlist = '\n'.join(
                 [err['message'] for err in jsondata['errors'] if 'message' in err]
             )
-            error_code_list = '\n'.join(
-                [
-                    err['extensions']['code']
-                    for err in jsondata['errors']
-                    if 'extensions' in err and 'code' in err['extensions']
-                ]
-            )
-            if MAX_COST_EXCEEDED_ERROR_CODE in error_code_list:
-                raise ShopifyExceedingMaxCostError(
-                    f'Store {self.store_name}: This query was rejected by the Shopify'
-                    f' API, and will never run as written, as the query cost'
-                    f' is larger than the max possible query size (>{self.graphql_bucket_max})'
-                    ' for Shopify.'
-                )
-            elif THROTTLED_ERROR_CODE in error_code_list:  # This should be the last condition
-                query_cost = jsondata['extensions']['cost']['requestedQueryCost']
-                available = jsondata['extensions']['cost']['throttleStatus']['currentlyAvailable']
-                rate = jsondata['extensions']['cost']['throttleStatus']['restoreRate']
-                sleep_time = ceil((query_cost - available) / rate)
-                await sleep(sleep_time)
-                raise ShopifyThrottledError
-            elif OPERATION_NAME_REQUIRED_ERROR_MESSAGE in errorlist:
-                raise ShopifyCallInvalidError(
-                    f'Store {self.store_name}: Operation name was required for this query.'
-                    'This likely means you have multiple queries within one call '
-                    'and you must specify which to run.'
-                )
-            elif WRONG_OPERATION_NAME_ERROR_MESSAGE.format(operation_name) in errorlist:
-                raise ShopifyCallInvalidError(
-                    f'Store {self.store_name}: Operation name {operation_name}'
-                    'does not exist in the query.'
-                )
-            else:
-                raise ValueError(f'GraphQL query is incorrect:\n{errorlist}')
+            raise ValueError(f'GraphQL query is incorrect:\n{errorlist}')
 
         if not suppress_errors and len(jsondata.get('errors', [])) >= 1:
             raise ShopifyGQLError(jsondata)
 
         return jsondata['data']
+
+    def _handle_non_200_status_codes(self, response) -> NoReturn:
+        if response.status_code in [500, 503]:
+            raise ShopifyIntermittentError(
+                f'The Shopify API returned an intermittent error: {response.status_code}.'
+            )
+
+        try:
+            jsondata = response.json()
+            error_msg = f'{response.status_code}. {jsondata["errors"]}'
+        except JSONDecodeError:
+            error_msg = f'{response.status_code}.'
+
+        raise ShopifyGQLError(f'GQL query failed, status code: {error_msg}')
+
+    def _handle_max_cost_exceeded_error_code(self, error_code: str) -> None:
+        if error_code != MAX_COST_EXCEEDED_ERROR_CODE:
+            return
+
+        raise ShopifyExceedingMaxCostError(
+            f'Store {self.store_name}: This query was rejected by the Shopify'
+            f' API, and will never run as written, as the query cost'
+            f' is larger than the max possible query size (>{self.graphql_bucket_max})'
+            ' for Shopify.'
+        )
+
+    async def _handle_throttled_error_code(self, error_code: str, jsondata: dict) -> None:
+        if error_code != THROTTLED_ERROR_CODE:
+            return
+
+        cost = jsondata['extensions']['cost']
+        query_cost = cost['requestedQueryCost']
+        available = cost['throttleStatus']['currentlyAvailable']
+        rate = cost['throttleStatus']['restoreRate']
+        sleep_time = ceil((query_cost - available) / rate)
+        await sleep(sleep_time)
+        raise ShopifyThrottledError
+
+    def _handle_operation_name_required_error(self, error_message: str) -> None:
+        if error_message != OPERATION_NAME_REQUIRED_ERROR_MESSAGE:
+            return
+
+        raise ShopifyCallInvalidError(
+            f'Store {self.store_name}: Operation name was required for this query.'
+            'This likely means you have multiple queries within one call '
+            'and you must specify which to run.'
+        )
+
+    def _handle_wrong_operation_name_error(
+        self, error_message: str, operation_name: str | None
+    ) -> None:
+        if error_message != WRONG_OPERATION_NAME_ERROR_MESSAGE.format(operation_name):
+            return
+
+        raise ShopifyCallInvalidError(
+            f'Store {self.store_name}: Operation name {operation_name}'
+            'does not exist in the query.'
+        )
 
 
 class OfflineTokenABC(Token, ABC):
