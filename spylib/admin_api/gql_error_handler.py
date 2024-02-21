@@ -2,7 +2,7 @@ import logging
 from asyncio import sleep
 from json.decoder import JSONDecodeError
 from math import ceil
-from typing import NoReturn
+from typing import NoReturn, Optional, Union
 
 from spylib.constants import (
     MAX_COST_EXCEEDED_ERROR_CODE,
@@ -30,7 +30,7 @@ class GQLErrorHandler:
         store_name: str,
         graphql_bucket_max: int,
         suppress_errors: bool,
-        operation_name: str | None,
+        operation_name: Optional[str],
     ):
         self.store_name = store_name
         self.graphql_bucket_max = graphql_bucket_max
@@ -43,7 +43,7 @@ class GQLErrorHandler:
 
         jsondata = self._extract_jsondata_from(response=response)
 
-        errors: list | str = jsondata.get('errors', [])
+        errors: Union[list, str] = jsondata.get('errors', [])
         if errors:
             await self._check_errors_field(errors=errors, jsondata=jsondata)
 
@@ -75,7 +75,7 @@ class GQLErrorHandler:
 
         return jsondata
 
-    async def _check_errors_field(self, errors: list | str, jsondata: dict):
+    async def _check_errors_field(self, errors: Union[list, str], jsondata: dict):
         has_data_field = 'data' in jsondata
         if has_data_field and not self.suppress_errors:
             raise ShopifyGQLError(jsondata)
