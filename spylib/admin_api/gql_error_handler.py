@@ -50,7 +50,7 @@ class GQLErrorHandler:
         return jsondata
 
     def _handle_non_200_status_codes(self, response) -> NoReturn:
-        if response.status_code in [500, 503]:
+        if response.status_code >= 500:
             raise ShopifyIntermittentError(
                 f'The Shopify API returned an intermittent error: {response.status_code}.'
             )

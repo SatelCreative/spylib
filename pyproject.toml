@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "spylib"
-version = "0.10.0"
+version = "0.10.2"
 description = "A library to facilitate interfacing with Shopify's API"
 authors = ["Anthony Hillairet <ant@satel.ca>"]
 maintainers = ["Anthony Hillairet <ant@satel.ca>", "Lishan Luo <lishan@satel.ca>", "Frank Chung <frank@satel.ca>"]
@@ -35,7 +35,7 @@ python-box = "^7.0.1"
 watchdog = "^3.0.0"
 PyYAML = "^6.0.1"
 argh = "^0.28.1"
-tox = "^4.6.4"
+tox = "^4.12.1"
 mkdocs = "^1.4.3"
 mkdocs-awesome-pages-plugin = "^v2.9.1"
 mkdocs-material = "^9.1.18"
@@ -50,7 +50,7 @@ pytest-asyncio = "^0.23.2"
 fastapi = ["fastapi"]
 
 [build-system]
-requires = ["poetry-core>=1.0.0"]
+requires = ["poetry-core>=1.8.1,<1.9.0"]
 build-backend = "poetry.core.masonry.api"
 
 [tool.black]
