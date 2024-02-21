@@ -89,15 +89,6 @@ class GQLErrorHandler:
         errorlist = '\n'.join([err['message'] for err in jsondata['errors'] if 'message' in err])
         raise ValueError(f'GraphQL query is incorrect:\n{errorlist}')
 
-    def _handle_invalid_access_token(self, errors: str) -> None:
-        if 'Invalid API key or access token' in errors:
-            self.access_token_invalid = True
-            logging.warning(
-                f'Store {self.store_name}: The Shopify API token is invalid. '
-                'Flag the access token as invalid.'
-            )
-            raise ConnectionRefusedError
-
     async def _handle_errors_list(self, jsondata: dict, errors: list) -> None:
         # Only report on the first error just to simplify: We will raise an exception anyway.
         err = errors[0]
@@ -110,6 +101,15 @@ class GQLErrorHandler:
         if 'message' in err:
             self._handle_operation_name_required_error(error_message=err['message'])
             self._handle_wrong_operation_name_error(error_message=err['message'])
+
+    def _handle_invalid_access_token(self, errors: str) -> None:
+        if 'Invalid API key or access token' in errors:
+            self.access_token_invalid = True
+            logging.warning(
+                f'Store {self.store_name}: The Shopify API token is invalid. '
+                'Flag the access token as invalid.'
+            )
+            raise ConnectionRefusedError
 
     def _handle_max_cost_exceeded_error_code(self, error_code: str) -> None:
         if error_code != MAX_COST_EXCEEDED_ERROR_CODE:
