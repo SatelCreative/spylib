@@ -11,7 +11,7 @@ def domain_to_storename(domain: str) -> str:
 
 def store_domain(shop: str) -> str:
     """Conversion of a shop's subdomain or complete or incomplete url into a complete url."""
-    result = search(r'^(https:\/\/)?([a-z1-9\-]+)(\.myshopify\.com[\/]?)?$', shop.lower())
+    result = search(r'^(https:\/\/)?([^.]+)(\.myshopify\.com[\/]?)?$', shop.lower())
     if not result:
         raise ValueError(f'{shop} is not a shopify shop')
 

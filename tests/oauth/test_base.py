@@ -11,7 +11,7 @@ from pydantic.dataclasses import dataclass
 
 from spylib import hmac
 from spylib.exceptions import FastAPIImportError
-from spylib.utils import JWTBaseModel, now_epoch
+from spylib.utils import JWTBaseModel, domain_to_storename, now_epoch, store_domain
 
 SHOPIFY_API_KEY = 'API_KEY'
 SHOPIFY_SECRET_KEY = 'SECRET_KEY'
@@ -90,8 +90,6 @@ async def test_oauth_with_fastapi(mocker):
     response = client.get('/shopify/auth')
     assert response.status_code == 422
     response_json = response.json()
-    # the url will change according to the pydantic version installed
-    del response_json['detail'][0]['url']
     assert response_json == {
         'detail': [
             {'input': None, 'loc': ['query', 'shop'], 'msg': 'Field required', 'type': 'missing'}
@@ -212,3 +210,17 @@ def check_oauth_redirect_query(query: str, scope: List[str], query_extra: dict =
     assert parsed_query == expected_query
 
     return state
+
+
+def test_domain_to_storename():
+    assert domain_to_storename(domain='test.myshopify.com') == 'test'
+    assert domain_to_storename(domain='test2.myshopify.com') == 'test2'
+    assert domain_to_storename(domain='test-v2.myshopify.com') == 'test-v2'
+    assert domain_to_storename(domain='test-2-0.myshopify.com') == 'test-2-0'
+
+
+def test_store_domain():
+    assert store_domain(shop='test.myshopify.com') == 'test.myshopify.com'
+    assert store_domain(shop='test-2.myshopify.com') == 'test-2.myshopify.com'
+    assert store_domain(shop='test-v2.myshopify.com') == 'test-v2.myshopify.com'
+    assert store_domain(shop='test-2-0.myshopify.com') == 'test-2-0.myshopify.com'
