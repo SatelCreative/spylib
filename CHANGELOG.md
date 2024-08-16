@@ -2,6 +2,26 @@
 
 All notable changes to this project will be documented in this file. Dates are displayed in UTC.
 
+#### [0.10.3](https://github.com/SatelCreative/spylib/compare/0.10.2...0.10.3)
+> 16 August 2024
+
+* 📝 Change codeowners by @lishanl in https://github.com/SatelCreative/spylib/pull/223
+* 🐛 fix store domain regex by @lishanl in https://github.com/SatelCreative/spylib/pull/222
+
+
+#### [0.10.2](https://github.com/SatelCreative/spylib/compare/0.10.1...0.10.2)
+> 07 February 2023
+
+* ✨ Add connection test to token class by @lishanl in https://github.com/SatelCreative/spylib/pull/218
+
+
+#### [0.10.1](https://github.com/SatelCreative/spylib/compare/0.10.0...0.10.1)
+> 26 January 2023
+
+* 🚀 Fix tox deployment errors by @rahulpatidar0191 in https://github.com/SatelCreative/spylib/pull/216
+* :alien: Consider any shopify 5xx errors as intermittent errors for retry by @lishanl in https://github.com/SatelCreative/spylib/pull/214
+
+
 #### [0.10.0](https://github.com/SatelCreative/spylib/compare/0.9.3...0.10.0)
 > 13 December 2023
 
