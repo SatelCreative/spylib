@@ -90,8 +90,6 @@ async def test_oauth_with_fastapi(mocker):
     response = client.get('/shopify/auth')
     assert response.status_code == 422
     response_json = response.json()
-    # the url will change according to the pydantic version installed
-    del response_json['detail'][0]['url']
     assert response_json == {
         'detail': [
             {'input': None, 'loc': ['query', 'shop'], 'msg': 'Field required', 'type': 'missing'}

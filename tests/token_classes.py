@@ -36,11 +36,11 @@ class MockHTTPResponse(BaseModel):
     jsondata: Optional[dict] = None
     headers: dict = {'X-Shopify-Shop-Api-Call-Limit': '39/40'}
 
-    def json(self):
+    def json(self):  # type: ignore[override]
         # Mock trying to deserialize something that's not a valid JSON
         if self.jsondata is None:
-            loads('NOT A JSON')
-        return self.jsondata
+            loads('Not a JSON')
+        return self.jsondata  # type: ignore[return-value]
 
 
 class TestInformation(BaseModel):
