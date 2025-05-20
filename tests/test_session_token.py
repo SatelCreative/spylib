@@ -28,7 +28,7 @@ def get_token():
         'iss': 'https://test.myshopify.com/admin',
         'dest': 'https://test.myshopify.com',
         'aud': API_KEY,
-        'sub': 1,
+        'sub': "1",
         'exp': (now + timedelta(0, 60)).timestamp(),
         'nbf': (now - timedelta(0, 60)).timestamp(),
         'iat': now.timestamp(),

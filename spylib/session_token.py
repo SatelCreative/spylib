@@ -42,7 +42,7 @@ class SessionToken(BaseModel):
     iss: HttpUrl
     dest: HttpUrl
     aud: Optional[str] = None
-    sub: int
+    sub: str
     exp: Optional[float] = None
     nbf: Optional[float] = None
     iat: Optional[float] = None
