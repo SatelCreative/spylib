@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file. Dates are displayed in UTC.
 
+
+#### [0.10.4](https://github.com/SatelCreative/spylib/compare/0.10.3...0.10.4)
+> 20 May 2025
+* :alien: Fix webhook registration - remove deprecated private metafield by @lishanl in https://github.com/SatelCreative/spylib/pull/225
+
+
 #### [0.10.3](https://github.com/SatelCreative/spylib/compare/0.10.2...0.10.3)
 > 16 August 2024
 
