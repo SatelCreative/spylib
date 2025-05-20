@@ -45,7 +45,6 @@ async def create_http(
     callback_url: str,
     include_fields: Optional[List[str]] = None,
     metafield_namespaces: Optional[List[str]] = None,
-    private_metafield_namespaces: Optional[List[str]] = None,
 ) -> WebhookResponse:
     """Creates a HTTP webhook subscription.
 
@@ -57,7 +56,6 @@ async def create_http(
             'format': 'JSON',
             'includeFields': include_fields,
             'metafieldNamespaces': metafield_namespaces,
-            'privateMetafieldNamespaces': private_metafield_namespaces,
             'callbackUrl': callback_url,
         },
     }
@@ -78,7 +76,6 @@ async def create_event_bridge(
     arn: str,
     include_fields: Optional[List[str]] = None,
     metafield_namespaces: Optional[List[str]] = None,
-    private_metafield_namespaces: Optional[List[str]] = None,
 ) -> WebhookResponse:
     """Creates an Amazon EventBridge webhook subscription.
 
@@ -91,7 +88,6 @@ async def create_event_bridge(
             'format': 'JSON',
             'includeFields': include_fields,
             'metafieldNamespaces': metafield_namespaces,
-            'privateMetafieldNamespaces': private_metafield_namespaces,
             'arn': arn,
         },
     }
@@ -113,7 +109,6 @@ async def create_pub_sub(
     pub_sub_topic: str,
     include_fields: Optional[List[str]] = None,
     metafield_namespaces: Optional[List[str]] = None,
-    private_metafield_namespaces: Optional[List[str]] = None,
 ) -> WebhookResponse:
     """Creates a Google Cloud Pub/Sub webhook subscription.
 
@@ -125,7 +120,6 @@ async def create_pub_sub(
             'format': 'JSON',
             'includeFields': include_fields,
             'metafieldNamespaces': metafield_namespaces,
-            'privateMetafieldNamespaces': private_metafield_namespaces,
             'pubSubProject': pub_sub_project,
             'pubSubTopic': pub_sub_topic,
         },
