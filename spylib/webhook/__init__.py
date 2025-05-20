@@ -45,7 +45,6 @@ async def create_http(
     callback_url: str,
     include_fields: Optional[List[str]] = None,
     metafield_namespaces: Optional[List[str]] = None,
-    private_metafield_namespaces: Optional[List[str]] = None,
 ) -> WebhookResponse:
     """Creates a HTTP webhook subscription.
 
@@ -57,7 +56,6 @@ async def create_http(
             'format': 'JSON',
             'includeFields': include_fields,
             'metafieldNamespaces': metafield_namespaces,
-            'privateMetafieldNamespaces': private_metafield_namespaces,
             'callbackUrl': callback_url,
         },
     }
