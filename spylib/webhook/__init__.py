@@ -45,6 +45,7 @@ async def create_http(
     callback_url: str,
     include_fields: Optional[List[str]] = None,
     metafield_namespaces: Optional[List[str]] = None,
+    filter: Optional[str] = None,
 ) -> WebhookResponse:
     """Creates a HTTP webhook subscription.
 
@@ -57,6 +58,7 @@ async def create_http(
             'includeFields': include_fields,
             'metafieldNamespaces': metafield_namespaces,
             'callbackUrl': callback_url,
+            'filter': filter,
         },
     }
     res = await offline_token.execute_gql(
@@ -76,6 +78,7 @@ async def create_event_bridge(
     arn: str,
     include_fields: Optional[List[str]] = None,
     metafield_namespaces: Optional[List[str]] = None,
+    filter: Optional[str] = None,
 ) -> WebhookResponse:
     """Creates an Amazon EventBridge webhook subscription.
 
@@ -89,6 +92,7 @@ async def create_event_bridge(
             'includeFields': include_fields,
             'metafieldNamespaces': metafield_namespaces,
             'arn': arn,
+            'filter': filter,
         },
     }
     res = await offline_token.execute_gql(
@@ -109,6 +113,7 @@ async def create_pub_sub(
     pub_sub_topic: str,
     include_fields: Optional[List[str]] = None,
     metafield_namespaces: Optional[List[str]] = None,
+    filter: Optional[str] = None,
 ) -> WebhookResponse:
     """Creates a Google Cloud Pub/Sub webhook subscription.
 
@@ -122,6 +127,7 @@ async def create_pub_sub(
             'metafieldNamespaces': metafield_namespaces,
             'pubSubProject': pub_sub_project,
             'pubSubTopic': pub_sub_topic,
+            'filter': filter,
         },
     }
     res = await offline_token.execute_gql(
