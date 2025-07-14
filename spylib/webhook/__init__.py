@@ -5,7 +5,7 @@ from pydantic import BaseModel
 
 from spylib.admin_api import OfflineTokenABC
 from spylib.constants import UTF8ENCODING
-from spylib.exceptions import ShopifyGQLUserError
+from spylib.exceptions import ShopifyGQLError, ShopifyGQLUserError
 from spylib.hmac import validate as validate_hmac
 from spylib.webhook.graphql_queries import WEBHOOK_CREATE_GQL
 
@@ -45,6 +45,7 @@ async def create_http(
     callback_url: str,
     include_fields: Optional[List[str]] = None,
     metafield_namespaces: Optional[List[str]] = None,
+    filter: Optional[str] = None,
 ) -> WebhookResponse:
     """Creates a HTTP webhook subscription.
 
@@ -57,6 +58,7 @@ async def create_http(
             'includeFields': include_fields,
             'metafieldNamespaces': metafield_namespaces,
             'callbackUrl': callback_url,
+            'filter': filter,
         },
     }
     res = await offline_token.execute_gql(
@@ -67,6 +69,8 @@ async def create_http(
     webhook_create = res.get(WebhookCreate.HTTP.value, None)
     if webhook_create and webhook_create.get('userErrors'):
         raise ShopifyGQLUserError(res)
+    if not webhook_create:
+        raise ShopifyGQLError(res)
     return WebhookResponse(id=webhook_create['webhookSubscription']['id'])
 
 
@@ -76,6 +80,7 @@ async def create_event_bridge(
     arn: str,
     include_fields: Optional[List[str]] = None,
     metafield_namespaces: Optional[List[str]] = None,
+    filter: Optional[str] = None,
 ) -> WebhookResponse:
     """Creates an Amazon EventBridge webhook subscription.
 
@@ -89,6 +94,7 @@ async def create_event_bridge(
             'includeFields': include_fields,
             'metafieldNamespaces': metafield_namespaces,
             'arn': arn,
+            'filter': filter,
         },
     }
     res = await offline_token.execute_gql(
@@ -99,6 +105,8 @@ async def create_event_bridge(
     webhook_create = res.get(WebhookCreate.EVENT_BRIDGE.value, None)
     if webhook_create and webhook_create.get('userErrors'):
         raise ShopifyGQLUserError(res)
+    if not webhook_create:
+        raise ShopifyGQLError(res)
     return WebhookResponse(id=webhook_create['webhookSubscription']['id'])
 
 
@@ -109,6 +117,7 @@ async def create_pub_sub(
     pub_sub_topic: str,
     include_fields: Optional[List[str]] = None,
     metafield_namespaces: Optional[List[str]] = None,
+    filter: Optional[str] = None,
 ) -> WebhookResponse:
     """Creates a Google Cloud Pub/Sub webhook subscription.
 
@@ -122,6 +131,7 @@ async def create_pub_sub(
             'metafieldNamespaces': metafield_namespaces,
             'pubSubProject': pub_sub_project,
             'pubSubTopic': pub_sub_topic,
+            'filter': filter,
         },
     }
     res = await offline_token.execute_gql(
@@ -132,4 +142,6 @@ async def create_pub_sub(
     webhook_create = res.get(WebhookCreate.PUB_SUB.value, None)
     if webhook_create and webhook_create.get('userErrors'):
         raise ShopifyGQLUserError(res)
+    if not webhook_create:
+        raise ShopifyGQLError(res)
     return WebhookResponse(id=webhook_create['webhookSubscription']['id'])
