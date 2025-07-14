@@ -15,6 +15,10 @@
       "source.organizeImports": true
     }
   },
+  // disable formatting for markdown files
+  "[markdown]": {
+    "editor.formatOnSave": false
+  },
   // mypy
   "python.linting.mypyEnabled": true,
   // pytest
