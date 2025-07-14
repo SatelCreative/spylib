@@ -3,6 +3,11 @@
 All notable changes to this project will be documented in this file. Dates are displayed in UTC.
 
 
+#### [0.10.5](https://github.com/SatelCreative/spylib/compare/0.10.4...0.10.5)
+> 14 July 2025
+* ✨ Add filter parameter to webhook creation functions by @lishanl in https://github.com/SatelCreative/spylib/pull/229
+
+
 #### [0.10.4](https://github.com/SatelCreative/spylib/compare/0.10.3...0.10.4)
 > 20 May 2025
 * :alien: Fix webhook registration - remove deprecated private metafield by @lishanl in https://github.com/SatelCreative/spylib/pull/225
