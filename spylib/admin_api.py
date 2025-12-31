@@ -20,6 +20,7 @@ from spylib.constants import (
     MAX_COST_EXCEEDED_ERROR_CODE,
     OPERATION_NAME_REQUIRED_ERROR_MESSAGE,
     THROTTLED_ERROR_CODE,
+    TOKEN_EXPIRATION_BUFFER_SECONDS,
     WRONG_OPERATION_NAME_ERROR_MESSAGE,
 )
 from spylib.exceptions import (
@@ -32,7 +33,8 @@ from spylib.exceptions import (
     ShopifyThrottledError,
     not_our_fault,
 )
-from spylib.utils.misc import TimedResult, elapsed_time, parse_scope
+from spylib.oauth.models import ClientCredentialsTokenModel
+from spylib.utils.misc import TimedResult, elapsed_time, now_epoch, parse_scope
 from spylib.utils.rest import Request
 
 
@@ -45,10 +47,10 @@ class Token(ABC, BaseModel):
 
     store_name: str
     scope: Annotated[List[str], BeforeValidator(parse_scope)] = []
-    access_token: Optional[str] = None
+    access_token: str | None = None
     access_token_invalid: bool = False
 
-    api_version: ClassVar[Optional[str]] = None
+    api_version: ClassVar[str | None] = None
 
     rest_bucket_max: int = 80
     rest_bucket: int = rest_bucket_max
@@ -61,6 +63,8 @@ class Token(ABC, BaseModel):
     updated_at: float = monotonic()
 
     client: ClassVar[AsyncClient] = AsyncClient()
+
+    expires_unix_timestamp: int | None = None
 
     @property
     def oauth_url(self) -> str:
@@ -113,6 +117,16 @@ class Token(ABC, BaseModel):
             raise ShopifyCallInvalidError(msg)
 
         raise ShopifyError(msg)
+
+    def set_expires_unix_timestamp(self, expires_in: int):
+        # unix timestamp
+        self.expires_unix_timestamp = now_epoch() + expires_in
+
+    def is_expired(self) -> bool:
+        """Check if the token is expired."""
+        if not self.expires_unix_timestamp:
+            raise ValueError('Token does not have an expiry time')
+        return now_epoch() - self.expires_unix_timestamp > TOKEN_EXPIRATION_BUFFER_SECONDS
 
     @retry(
         reraise=True,
@@ -279,7 +293,10 @@ class Token(ABC, BaseModel):
 
 
 class OfflineTokenABC(Token, ABC):
-    """Offline tokens are used for long term access, and do not have a set expiry."""
+    """Offline tokens are used for long term access,  do not have a set expiry prior to 2026-01-01.
+    All newly supported access tokens will have an expiry of 24 hours after 2026-01-01.
+    [Read more about it](https://shopify.dev/docs/apps/build/authentication-authorization/access-tokens/client-credentials-grant).
+    """
 
     @abstractmethod
     async def save(self):
@@ -289,6 +306,24 @@ class OfflineTokenABC(Token, ABC):
     @abstractmethod
     async def load(cls, store_name: str):
         pass
+
+    async def obtain_client_credentials_token(self, client_id: str, client_secret: str) -> None:
+        response = await self.client.post(
+            url=self.oauth_url,
+            data={
+                'grant_type': 'client_credentials',
+                'client_id': client_id,
+                'client_secret': client_secret,
+            },
+        )
+        if response.status_code != status.HTTP_200_OK:
+            raise ShopifyError(
+                f'Failed to obtain client credentials token: {response.status_code}'
+            )
+        access_token = ClientCredentialsTokenModel.model_validate(response.json()).access_token
+        expires_in = ClientCredentialsTokenModel.model_validate(response.json()).expires_in
+        self.set_expires_unix_timestamp(expires_in)
+        self.access_token = access_token
 
 
 class OnlineTokenABC(Token, ABC):

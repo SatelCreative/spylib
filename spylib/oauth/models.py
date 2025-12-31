@@ -84,3 +84,15 @@ class OnlineTokenModel(BaseModel):
 
     associated_user: AssociatedUser
     """The Shopify user associated with this token."""
+
+
+class ClientCredentialsTokenModel(BaseModel):
+    """[Read more about Client credentials grant](https://shopify.dev/docs/apps/build/authentication-authorization/access-tokens/client-credentials-grant)."""
+
+    access_token: str
+    """An API access token that can be used to access the shop's data until it expires or revoked."""
+
+    expires_in: int
+    """The number of seconds until this session (and `access_token`) expire."""
+
+    scope: str

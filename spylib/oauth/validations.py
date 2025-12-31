@@ -3,6 +3,7 @@ from urllib.parse import parse_qsl
 
 from spylib.hmac import validate as validate_hmac
 
+from ..constants import TOKEN_EXPIRATION_BUFFER_SECONDS
 from ..utils import domain_to_storename, now_epoch
 from .tokens import OAuthJWT
 
@@ -13,7 +14,7 @@ def validate_callback(shop: str, timestamp: int, query_string: Any, api_secret_k
     domain_to_storename(shop)
 
     # 2) Check the timestamp. Must not be more than 5min old
-    if now_epoch() - timestamp > 300:
+    if now_epoch() - timestamp > TOKEN_EXPIRATION_BUFFER_SECONDS:
         raise ValueError('Timestamp is too old')
 
     # 3) Check the hmac
