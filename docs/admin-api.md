@@ -113,6 +113,42 @@ await OnlineToken.load(store_name, associated_user_id)
 await PrivateToken.load(store_name)
 ```
 
+### Client Credentials Grant Token
+
+Starting January 2026, Shopify offline access tokens will expire after 24 hours. To refresh the token, use the `obtain_client_credentials_token` method on an `OfflineToken` instance.
+
+[Read more about Client Credentials Grant](https://shopify.dev/docs/apps/build/authentication-authorization/access-tokens/client-credentials-grant)
+
+```python
+# Load an existing offline token
+offline_token = await OfflineToken.load(store_name='my-store')
+
+# Obtain a new access token using client credentials
+await offline_token.obtain_client_credentials_token(
+    client_id='your_api_key',
+    client_secret='your_api_secret_key'
+)
+
+# The token is now updated with the new access_token and expiry
+# Don't forget to save it
+await offline_token.save()
+```
+
+After calling `obtain_client_credentials_token`, the token instance will have:
+- A new `access_token`
+- An updated `expires_unix_timestamp` (typically 24 hours from now)
+
+You can check if a token has expired using:
+
+```python
+if offline_token.is_expired():
+    await offline_token.obtain_client_credentials_token(
+        client_id='your_api_key',
+        client_secret='your_api_secret_key'
+    )
+    await offline_token.save()
+```
+
 ## Querying Shopify
 
 ### REST
