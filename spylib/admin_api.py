@@ -47,10 +47,10 @@ class Token(ABC, BaseModel):
 
     store_name: str
     scope: Annotated[List[str], BeforeValidator(parse_scope)] = []
-    access_token: str | None = None
+    access_token: Optional[str] = None
     access_token_invalid: bool = False
 
-    api_version: ClassVar[str | None] = None
+    api_version: ClassVar[Optional[str]] = None
 
     rest_bucket_max: int = 80
     rest_bucket: int = rest_bucket_max
@@ -64,7 +64,7 @@ class Token(ABC, BaseModel):
 
     client: ClassVar[AsyncClient] = AsyncClient()
 
-    expires_unix_timestamp: int | None = None
+    expires_unix_timestamp: Optional[int] = None
 
     @property
     def oauth_url(self) -> str:
