@@ -294,6 +294,7 @@ class Token(ABC, BaseModel):
 
 class OfflineTokenABC(Token, ABC):
     """Offline tokens are used for long term access,  do not have a set expiry prior to 2026-01-01.
+
     All newly supported access tokens will have an expiry of 24 hours after 2026-01-01.
     [Read more about it](https://shopify.dev/docs/apps/build/authentication-authorization/access-tokens/client-credentials-grant).
     """
