@@ -13,6 +13,8 @@ from spylib import hmac
 from spylib.exceptions import FastAPIImportError
 from spylib.utils import JWTBaseModel, domain_to_storename, now_epoch, store_domain
 
+from ..token_classes import OfflineToken
+
 SHOPIFY_API_KEY = 'API_KEY'
 SHOPIFY_SECRET_KEY = 'SECRET_KEY'
 
@@ -46,6 +48,12 @@ ONLINETOKEN_DATA = dict(
         'locale': 'en',
         'collaborator': False,
     },
+)
+
+CLIENTCREDENTIALSTOKEN_DATA = dict(
+    access_token='CLIENTCREDENTIALSTOKEN',
+    expires_in=86399,
+    scope='write_products,read_customers,write_orders',
 )
 
 
@@ -210,6 +218,24 @@ def check_oauth_redirect_query(query: str, scope: List[str], query_extra: dict =
     assert parsed_query == expected_query
 
     return state
+
+
+@pytest.mark.asyncio
+async def test_oauth_client_credentials_token(mocker):
+    # test offline token obtain_client_credentials_token using the client credentials token data
+    mocker.patch(
+        'httpx.AsyncClient.post',
+        return_value=MockHTTPResponse(status_code=200, jsondata=CLIENTCREDENTIALSTOKEN_DATA),
+    )
+    offline_token = await OfflineToken.load(store_name=TEST_STORE)
+    await offline_token.obtain_client_credentials_token(
+        client_id=SHOPIFY_API_KEY, client_secret=SHOPIFY_SECRET_KEY
+    )
+    assert offline_token.access_token == CLIENTCREDENTIALSTOKEN_DATA['access_token']
+    assert offline_token.expires_unix_timestamp is not None
+    # approximate comparison for 24 hours in seconds after it's obtained without timefreeze
+    assert offline_token.expires_unix_timestamp > now_epoch() + 86300
+    assert offline_token.is_expired() is False
 
 
 def test_domain_to_storename():
