@@ -123,6 +123,9 @@ Starting January 2026, Shopify offline access tokens will expire after 24 hours.
 # Load an existing offline token
 offline_token = await OfflineToken.load(store_name='my-store')
 
+# OR ceate a new offline token
+offline_token = OfflineToken(store_name='my-store')
+
 # Obtain a new access token using client credentials
 await offline_token.obtain_client_credentials_token(
     client_id='your_api_key',
@@ -130,6 +133,7 @@ await offline_token.obtain_client_credentials_token(
 )
 
 # The token is now updated with the new access_token and expiry
+print(offline_token.access_token)
 # Don't forget to save it
 await offline_token.save()
 ```
