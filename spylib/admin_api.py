@@ -321,10 +321,11 @@ class OfflineTokenABC(Token, ABC):
             raise ShopifyError(
                 f'Failed to obtain client credentials token: {response.status_code}'
             )
-        access_token = ClientCredentialsTokenModel.model_validate(response.json()).access_token
-        expires_in = ClientCredentialsTokenModel.model_validate(response.json()).expires_in
-        self.set_expires_unix_timestamp(expires_in)
-        self.access_token = access_token
+
+        client_credentials_token = ClientCredentialsTokenModel.model_validate(response.json())
+        self.set_expires_unix_timestamp(client_credentials_token.expires_in)
+        self.access_token = client_credentials_token.access_token
+        self.scope = client_credentials_token.scope.split(',')
 
 
 class OnlineTokenABC(Token, ABC):
